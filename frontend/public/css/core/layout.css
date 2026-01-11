@@ -1,0 +1,123 @@
+/* TalentScope - Layout System */
+
+/* Grid Systems */
+.sites-compact-grid, .advanced-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+}
+
+/* Resume Layout Grid */
+.resume-main {
+    display: grid;
+    grid-template-columns: 0.3fr 0.7fr 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+        'header header header'
+        'sidebar form preview';
+    height: calc(100vh - 80px);
+    margin: 0;
+}
+
+/* Utility Classes */
+.text-gradient {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+/* General Overrides */
+.text-white { color: var(--text-primary) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.bg-dark { background: var(--bg-secondary) !important; }
+.bg-light { background: var(--bg-elevated) !important; }
+.border { border-color: var(--glass-border-primary) !important; }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .resume-main {
+        grid-template-columns: 280px 1fr;
+        grid-template-areas:
+            'header header'
+            'sidebar form';
+    }
+    
+    .resume-preview {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --space-8: 1.5rem;
+        --space-10: 2rem;
+        --space-12: 2.5rem;
+    }
+    
+    .container {
+        padding: 0 1rem;
+    }
+    
+    /* Common mobile resume layout */
+    .resume-main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr auto;
+        grid-template-areas:
+            'header'
+            'sidebar'
+            'form'
+            'preview';
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .resume-sidebar {
+        padding: 1rem;
+        overflow-x: auto;
+    }
+    
+    .nav-sections {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 0.5rem;
+        padding-bottom: 1rem;
+    }
+    
+    .nav-item {
+        flex-shrink: 0;
+        min-width: 120px;
+        text-align: center;
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .resume-form {
+        padding: 1rem;
+    }
+    
+    .resume-preview {
+        display: block;
+        padding: 1rem;
+        height: 400px;
+        overflow-y: auto;
+    }
+    
+    .sites-compact-grid, .advanced-checkboxes {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+}
+
+@media (max-width: 576px) {
+    .job-title {
+        font-size: 1.25rem;
+    }
+    
+    .company-name {
+        font-size: 1rem;
+    }
+}

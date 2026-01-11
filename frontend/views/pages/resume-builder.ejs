@@ -1,0 +1,3169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder - TalentScope</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <link href="/css/style.css" rel="stylesheet">
+
+    <!-- Page-specific CSS -->
+    <link href="/css/pages/resume-builder.css" rel="stylesheet">
+    <link href="/css/components/formatting.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- Immediate Theme Application to Prevent Flash -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                if (savedTheme === 'dark') {
+                    document.documentElement.style.setProperty('--early-bg', '#0D1117');
+                    document.body.style.background = '#0D1117';
+                    document.body.classList.add('theme-dark');
+                } else if (savedTheme === 'light') {
+                    document.documentElement.style.setProperty('--early-bg', '#b4b6b9');
+                    document.body.style.background = '#b4b6b9';
+                    document.body.classList.add('theme-light');
+                } else {
+                    document.body.classList.add('theme-default');
+                }
+            }
+        })();
+    </script>
+</head>
+
+<body>
+    <!-- Resume Builder - Standalone -->
+
+    <!-- Resumake.io layout with YOUR design -->
+    <main class="resume-main">
+        <!-- Sidebar -->
+        <aside class="resume-sidebar">
+            <nav class="nav-sections" id="nav-sections">
+                <a href="#" class="sidebar-nav-item active" data-section="templates" data-order="0" data-fixed="true">
+                    <i class="fas fa-file-alt"></i>
+                    Templates
+                </a>
+                <a href="#" class="sidebar-nav-item" data-section="formatting" data-order="1" data-fixed="true">
+                    <i class="fas fa-paint-brush"></i>
+                    Formatting
+                </a>
+                <a href="#" class="sidebar-nav-item" data-section="profile" data-order="2" data-fixed="true">
+                    <i class="fas fa-user"></i>
+                    Profile
+                </a>
+                <a href="#" class="sidebar-nav-item draggable-section" data-section="education" data-order="3"
+                    draggable="true">
+                    <i class="fas fa-grip-vertical drag-handle"></i>
+                    Education
+                </a>
+                <a href="#" class="sidebar-nav-item draggable-section" data-section="work" data-order="4"
+                    draggable="true">
+                    <i class="fas fa-grip-vertical drag-handle"></i>
+                    Work Experience
+                </a>
+                <a href="#" class="sidebar-nav-item draggable-section" data-section="skills" data-order="5"
+                    draggable="true">
+                    <i class="fas fa-grip-vertical drag-handle"></i>
+                    Skills
+                </a>
+                <a href="#" class="sidebar-nav-item draggable-section" data-section="projects" data-order="6"
+                    draggable="true">
+                    <i class="fas fa-grip-vertical drag-handle"></i>
+                    Projects
+                </a>
+                <a href="#" class="sidebar-nav-item draggable-section" data-section="awards" data-order="7"
+                    draggable="true">
+                    <i class="fas fa-grip-vertical drag-handle"></i>
+                    Awards
+                </a>
+                <a href="#" class="sidebar-nav-item" data-section="analysis" data-fixed="true">
+                    <i class="fas fa-microscope"></i>
+                    Resume Analysis
+                </a>
+            </nav>
+            <div style="margin-top: 1rem;">
+                <button id="autofillFromProfileBtn" class="make-button"
+                    style="width: 100%; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%) !important; margin-bottom: 0.5rem;">
+                    <i class="fas fa-user-check me-1"></i>AUTO-FILL FROM PROFILE
+                </button>
+                <button id="updatePreviewBtn" class="make-button"
+                    style="width: 100%; background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%) !important;">
+                    <i class="fas fa-sync me-1"></i>UPDATE PREVIEW
+                </button>
+                <button id="saveResumeBtn" class="make-button"
+                    style="width: 100%; margin-top: 0.5rem; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;">
+                    <i class="fas fa-save me-1"></i>SAVE RESUME
+                </button>
+                <select id="loadResumeSelect" class="form-select mt-2"
+                    style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
+                    <option value="">-- Load Saved Resume --</option>
+                </select>
+            </div>
+            <div style="margin-top: 0.5rem;">
+                <button id="mobilePreviewBtn" class="make-button mobile-preview-button"
+                    style="width: 100%; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;">
+                    <i class="fas fa-eye me-1"></i>VIEW PREVIEW
+                </button>
+            </div>
+        </aside>
+
+        <!-- Form Section -->
+        <section class="resume-form">
+            <h2 class="main-title">Resume Builder</h2>
+            <form id="resumeForm" autocomplete="off">
+                <!-- Templates Section -->
+                <div class="section-content active" id="templates-section">
+                    <h2 class="section-title">Choose Template</h2>
+                    <div class="template-grid">
+                        <div class="template-option active" data-template="1">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt fa-3x"></i><br>
+                                Classic
+                            </div>
+                            <div>Classic</div>
+                        </div>
+                        <div class="template-option" data-template="2">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt fa-3x"></i><br>
+                                Awesome CV
+                            </div>
+                            <div>Awesome CV</div>
+                        </div>
+                        <div class="template-option" data-template="3">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt fa-3x"></i><br>
+                                Banking
+                            </div>
+                            <div>Banking</div>
+                        </div>
+                        <div class="template-option" data-template="4">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt fa-3x"></i><br>
+                                Deedy
+                            </div>
+                            <div>Deedy</div>
+                        </div>
+                        <div class="template-option" data-template="5">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt fa-3x"></i><br>
+                                Res
+                            </div>
+                            <div>Res</div>
+                        </div>
+                        <div class="template-option" data-template="6">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt fa-3x"></i><br>
+                                Minimal
+                            </div>
+                            <div>Minimal</div>
+                        </div>
+                        <div class="template-option" data-template="7">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt fa-3x"></i><br>
+                                ModernCV
+                            </div>
+                            <div>ModernCV</div>
+                        </div>
+                        <div class="template-option" data-template="8">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt fa-3x"></i><br>
+                                McDowell
+                            </div>
+                            <div>McDowell</div>
+                        </div>
+                        <div class="template-option" data-template="9">
+                            <div class="template-preview">
+                                <i class="fas fa-file-alt fa-3x"></i><br>
+                                Professional
+                            </div>
+                            <div>Professional</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formatting & Style Section -->
+                <div class="section-content" id="formatting-section">
+                    <h2 class="section-title">Resume Formatting & Style</h2>
+
+                    <!-- Typography Settings -->
+                    <div class="formatting-subsection">
+                        <h3 class="subsection-title">
+                            <i class="fas fa-font me-2"></i>Typography
+                        </h3>
+
+                        <!-- Font Family Selection -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Font Family</label>
+                                <select class="glass-input" id="fontFamily" name="fontFamily">
+                                    <option value="default">Default (Computer Modern)</option>
+                                    <option value="times">Times New Roman</option>
+                                    <option value="arial">Arial</option>
+                                    <option value="calibri">Calibri</option>
+                                    <option value="georgia">Georgia</option>
+                                    <option value="helvetica">Helvetica</option>
+                                    <option value="palatino">Palatino</option>
+                                    <option value="garamond">Garamond</option>
+                                </select>
+                                <small class="text-muted">Choose the main font family for your resume</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Base Font Size</label>
+                                <select class="glass-input" id="baseFontSize" name="baseFontSize">
+                                    <option value="9pt">9pt (Very Small)</option>
+                                    <option value="10pt">10pt (Small)</option>
+                                    <option value="11pt" selected>11pt (Standard)</option>
+                                    <option value="12pt">12pt (Large)</option>
+                                    <option value="13pt">13pt (Very Large)</option>
+                                </select>
+                                <small class="text-muted">Base font size for body text</small>
+                            </div>
+                        </div>
+
+                        <!-- Section-Specific Font Sizes -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Name/Header Size</label>
+                                <select class="glass-input" id="nameSize" name="nameSize">
+                                    <option value="huge">Huge (24pt)</option>
+                                    <option value="large" selected>Large (20pt)</option>
+                                    <option value="large2">Large+ (18pt)</option>
+                                    <option value="normal">Normal (16pt)</option>
+                                </select>
+                                <small class="text-muted">Size for your name at the top</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Section Titles Size</label>
+                                <select class="glass-input" id="sectionTitleSize" name="sectionTitleSize">
+                                    <option value="large">Large (14pt)</option>
+                                    <option value="normal" selected>Normal (12pt)</option>
+                                    <option value="small">Small (11pt)</option>
+                                </select>
+                                <small class="text-muted">Size for section headings (Experience, Education,
+                                    etc.)</small>
+                            </div>
+                        </div>
+
+                        <!-- Font Weight and Style Options -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Section Title Style</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="sectionTitleBold" name="sectionTitleBold" checked>
+                                        <label for="sectionTitleBold">Bold</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="sectionTitleUnderline" name="sectionTitleUnderline"
+                                            checked>
+                                        <label for="sectionTitleUnderline">Underline</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="sectionTitleSmallCaps" name="sectionTitleSmallCaps">
+                                        <label for="sectionTitleSmallCaps">Small Caps</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Company/Institution Style</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="companyBold" name="companyBold" checked>
+                                        <label for="companyBold">Bold</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="companyItalic" name="companyItalic">
+                                        <label for="companyItalic">Italic</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Spacing & Layout Settings -->
+                    <div class="formatting-subsection">
+                        <h3 class="subsection-title">
+                            <i class="fas fa-expand-arrows-alt me-2"></i>Spacing & Layout
+                        </h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Line Spacing</label>
+                                <select class="glass-input" id="lineSpacing" name="lineSpacing">
+                                    <option value="0.9">Tight (0.9x)</option>
+                                    <option value="1.0" selected>Single (1.0x)</option>
+                                    <option value="1.15">Relaxed (1.15x)</option>
+                                    <option value="1.2">Loose (1.2x)</option>
+                                </select>
+                                <small class="text-muted">Spacing between lines of text</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Section Spacing</label>
+                                <select class="glass-input" id="sectionSpacing" name="sectionSpacing">
+                                    <option value="compact">Compact (2mm)</option>
+                                    <option value="normal" selected>Normal (4mm)</option>
+                                    <option value="relaxed">Relaxed (6mm)</option>
+                                    <option value="spacious">Spacious (8mm)</option>
+                                </select>
+                                <small class="text-muted">Space between resume sections</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Paragraph Spacing</label>
+                                <select class="glass-input" id="paragraphSpacing" name="paragraphSpacing">
+                                    <option value="tight">Tight (1mm)</option>
+                                    <option value="normal" selected>Normal (2mm)</option>
+                                    <option value="relaxed">Relaxed (3mm)</option>
+                                </select>
+                                <small class="text-muted">Space between paragraphs within sections</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Page Margins</label>
+                                <select class="glass-input" id="pageMargins" name="pageMargins">
+                                    <option value="narrow">Narrow (0in)</option>
+                                    <option value="normal" selected>Normal (0.2in)</option>
+                                    <option value="wide">Wide (0.5in)</option>
+                                </select>
+                                <small class="text-muted">Margins around the entire page</small>
+                            </div>
+                        </div>
+
+                        <!-- Margin Controls -->
+                        <div id="customMarginControls">
+                            <h4 class="subsection-title">Margin Values</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Top Margin (inches)</label>
+                                    <input type="number" class="glass-input" id="marginTop" min="-5" max="5" step="0.1"
+                                        value="0.2" style="width: 100%;">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Bottom Margin (inches)</label>
+                                    <input type="number" class="glass-input" id="marginBottom" min="-5" max="5"
+                                        step="0.1" value="0.2" style="width: 100%;">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Left Margin (inches)</label>
+                                    <input type="number" class="glass-input" id="marginLeft" min="-5" max="5" step="0.1"
+                                        value="0.2" style="width: 100%;">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Right Margin (inches)</label>
+                                    <input type="number" class="glass-input" id="marginRight" min="-5" max="5"
+                                        step="0.1" value="0.2" style="width: 100%;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bullet Point Management -->
+                    <div class="formatting-subsection">
+                        <h3 class="subsection-title">
+                            <i class="fas fa-list-ul me-2"></i>Bullet Points & Lists
+                        </h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Bullet Point Style</label>
+                                <select class="glass-input" id="bulletStyle" name="bulletStyle">
+                                    <option value="bullet" selected>• Standard Bullet</option>
+                                    <option value="dash">– En Dash</option>
+                                    <option value="arrow">→ Arrow</option>
+                                    <option value="circle">○ Circle</option>
+                                    <option value="square">■ Square</option>
+                                    <option value="diamond">◆ Diamond</option>
+                                    <option value="star">★ Star</option>
+                                    <option value="chevron">» Chevron</option>
+                                </select>
+                                <small class="text-muted">Style of bullet points in lists</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Bullet Point Size</label>
+                                <select class="glass-input" id="bulletSize" name="bulletSize">
+                                    <option value="small">Small</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="large">Large</option>
+                                </select>
+                                <small class="text-muted">Size of the bullet point markers</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Bullet Indentation</label>
+                                <input type="range" class="form-range" id="bulletIndent" min="0" max="15" step="1"
+                                    value="5">
+                                <span class="range-value" id="bulletIndentValue">5mm</span>
+                                <small class="text-muted">How far bullet points are indented from the left</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Bullet Point Spacing</label>
+                                <select class="glass-input" id="bulletSpacing" name="bulletSpacing">
+                                    <option value="tight">Tight (0pt)</option>
+                                    <option value="normal" selected>Normal (1pt)</option>
+                                    <option value="relaxed">Relaxed (2pt)</option>
+                                    <option value="spacious">Spacious (3pt)</option>
+                                </select>
+                                <small class="text-muted">Vertical spacing between bullet points</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">List Margins</label>
+                                <div class="form-row">
+                                    <div class="col-6">
+                                        <label class="form-label small">Top/Bottom</label>
+                                        <input type="range" class="form-range" id="listMarginVertical" min="0" max="10"
+                                            step="0.5" value="2">
+                                        <span class="range-value" id="listMarginVerticalValue">2mm</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small">Left Offset</label>
+                                        <input type="range" class="form-range" id="listMarginLeft" min="0" max="20"
+                                            step="1" value="10">
+                                        <span class="range-value" id="listMarginLeftValue">10mm</span>
+                                    </div>
+                                </div>
+                                <small class="text-muted">Margins around bullet point lists</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Advanced Bullet Options</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="hangingIndent" name="hangingIndent">
+                                        <label for="hangingIndent">Hanging Indent</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="alignBullets" name="alignBullets" checked>
+                                        <label for="alignBullets">Align Bullets</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="compactLists" name="compactLists">
+                                        <label for="compactLists">Compact Lists</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Color & Visual Settings -->
+                    <div class="formatting-subsection">
+                        <h3 class="subsection-title">
+                            <i class="fas fa-palette me-2"></i>Colors & Visual Elements
+                        </h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Primary Color Theme</label>
+                                <select class="glass-input" id="colorTheme" name="colorTheme">
+                                    <option value="black" selected>Black (Classic)</option>
+                                    <option value="navy">Navy Blue</option>
+                                    <option value="darkblue">Dark Blue</option>
+                                    <option value="darkgreen">Dark Green</option>
+                                    <option value="maroon">Maroon</option>
+                                    <option value="purple">Purple</option>
+                                    <option value="custom">Custom Color</option>
+                                </select>
+                                <small class="text-muted">Main color for headings and accents</small>
+                            </div>
+                            <div class="form-group" id="customColorGroup" style="display: none;">
+                                <label class="form-label">Custom Color</label>
+                                <input type="color" class="form-control color-picker" id="customColor"
+                                    name="customColor" value="#000000">
+                                <small class="text-muted">Choose your custom color</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Section Dividers</label>
+                                <select class="glass-input" id="sectionDividers" name="sectionDividers">
+                                    <option value="line" selected>Horizontal Line</option>
+                                    <option value="none">None</option>
+                                    <option value="double">Double Line</option>
+                                    <option value="dotted">Dotted Line</option>
+                                    <option value="thick">Thick Line</option>
+                                </select>
+                                <small class="text-muted">Visual dividers between sections</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Header Alignment</label>
+                                <select class="glass-input" id="headerAlignment" name="headerAlignment">
+                                    <option value="left">Left Aligned</option>
+                                    <option value="center" selected>Centered</option>
+                                    <option value="right">Right Aligned</option>
+                                </select>
+                                <small class="text-muted">Alignment of your name and contact info</small>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Preview & Actions -->
+                    <div class="formatting-subsection">
+                        <h3 class="subsection-title">
+                            <i class="fas fa-eye me-2"></i>Preview & Actions
+                        </h3>
+
+                        <div class="formatting-actions">
+                            <button type="button" class="glass-btn" id="previewFormattingBtn">
+                                <i class="fas fa-eye me-2"></i>Preview Changes
+                            </button>
+                            <button type="button" class="glass-btn glass-btn-secondary" id="resetFormattingBtn">
+                                <i class="fas fa-undo me-2"></i>Reset to Defaults
+                            </button>
+                            <button type="button" class="glass-btn glass-btn-primary" id="saveFormattingBtn">
+                                <i class="fas fa-save me-2"></i>Save Formatting
+                            </button>
+                        </div>
+
+                        <!-- Formatting Presets -->
+                        <div class="formatting-presets" style="margin-top: 1rem;">
+                            <label class="form-label">Quick Formatting Presets</label>
+                            <div class="preset-buttons">
+                                <button type="button" class="preset-btn" data-preset="classic">
+                                    <i class="fas fa-briefcase me-1"></i>Classic Professional
+                                </button>
+                                <button type="button" class="preset-btn" data-preset="modern">
+                                    <i class="fas fa-rocket me-1"></i>Modern & Clean
+                                </button>
+                                <button type="button" class="preset-btn" data-preset="compact">
+                                    <i class="fas fa-compress me-1"></i>Compact & Dense
+                                </button>
+                                <button type="button" class="preset-btn" data-preset="creative">
+                                    <i class="fas fa-paint-brush me-1"></i>Creative & Bold
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Section -->
+                <div class="section-content" id="profile-section">
+                    <h2 class="section-title">Profile</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="glass-input" id="fullName" name="fullName" placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="glass-input" id="email" name="email"
+                                placeholder="john@example.com">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="glass-input" id="phone" name="phone"
+                                placeholder="+1 (555) 123-4567">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Address</label>
+                            <input type="text" class="glass-input" id="address" name="address"
+                                placeholder="City, State, Country">
+                        </div>
+                    </div>
+
+                    <h3 class="subsection-title">Websites & Links</h3>
+                    <div id="websitesList">
+                        <div class="dynamic-section website-item">
+                            <button type="button" class="remove-button">Remove</button>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">URL</label>
+                                    <input type="url" class="glass-input website-url" name="website-url"
+                                        placeholder="https://johndoe.com">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Display Name</label>
+                                    <input type="text" class="glass-input website-name" name="website-name"
+                                        placeholder="Portfolio">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add-button" data-target="websitesList">
+                        <i class="fas fa-plus"></i> Add Website/Link
+                    </button>
+                </div>
+
+                <!-- Work Section -->
+                <div class="section-content" id="work-section">
+                    <h2 class="section-title">Work Experience</h2>
+                    <div id="workList">
+                        <div class="dynamic-section work-item">
+                            <button type="button" class="remove-button">Remove</button>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Position</label>
+                                    <input type="text" class="glass-input work-position" name="work-position"
+                                        placeholder="Software Engineer">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Company</label>
+                                    <input type="text" class="glass-input work-company" name="work-company"
+                                        placeholder="Tech Corp">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="month" class="glass-input work-start" name="work-start">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">End Date</label>
+                                    <input type="month" class="glass-input work-end" name="work-end"
+                                        placeholder="Leave blank for current">
+                                </div>
+                            </div>
+                            <div class="form-row-full">
+                                <div class="form-group">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" class="glass-input work-location" name="work-location"
+                                        placeholder="San Francisco, CA">
+                                </div>
+                            </div>
+                            <div class="form-row-full">
+                                <div class="form-group">
+                                    <label class="form-label">Description</label>
+                                    <div class="bullet-points-container work-bullets">
+                                        <div class="bullet-point-item">
+                                            <input type="text" class="glass-input bullet-point-input"
+                                                name="work-bullet-point"
+                                                placeholder="• Describe your role and achievements...">
+                                            <button type="button" class="remove-bullet-btn">×</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="add-bullet-btn" data-target="work-bullets">
+                                        <i class="fas fa-plus"></i> Add bullet point
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add-button">
+                        <i class="fas fa-plus me-1"></i>Add Work Experience
+                    </button>
+                </div>
+
+                <!-- Education Section -->
+                <div class="section-content" id="education-section">
+                    <h2 class="section-title">Education</h2>
+                    <div id="educationList">
+                        <div class="dynamic-section education-item">
+                            <button type="button" class="remove-button">Remove</button>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Institution</label>
+                                    <input type="text" class="glass-input education-institution"
+                                        name="education-institution" placeholder="University of Technology">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" class="glass-input education-location" name="education-location"
+                                        placeholder="Boston, MA">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Study Type</label>
+                                    <input type="text" class="glass-input education-degree" name="education-degree"
+                                        placeholder="Bachelor of Science">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Area</label>
+                                    <input type="text" class="glass-input education-area" name="education-area"
+                                        placeholder="Computer Science">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="month" class="glass-input education-start" name="education-start">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">End Date</label>
+                                    <input type="month" class="glass-input education-end" name="education-end">
+                                </div>
+                            </div>
+                            <div class="form-row-full">
+                                <div class="form-group">
+                                    <label class="form-label">Score/GPA</label>
+                                    <input type="text" class="glass-input education-gpa" name="education-gpa"
+                                        placeholder="3.8">
+                                </div>
+                            </div>
+                            <div class="form-row-full">
+                                <div class="form-group">
+                                    <label class="form-label">Additional Details</label>
+                                    <div class="bullet-points-container work-bullets">
+                                        <div class="bullet-point-item">
+                                            <input type="text" class="glass-input bullet-point-input"
+                                                name="education-bullet-point"
+                                                placeholder="• Relevant coursework, achievements, activities...">
+                                            <button type="button" class="remove-bullet-btn">×</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="add-bullet-btn" data-target="work-bullets">
+                                        <i class="fas fa-plus"></i> Add bullet point
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add-button">
+                        <i class="fas fa-plus me-1"></i>Add Education
+                    </button>
+                </div>
+
+                <!-- Skills Section -->
+                <div class="section-content" id="skills-section">
+                    <h2 class="section-title">Skills</h2>
+                    <div id="skillsList">
+                        <div class="dynamic-section skill-item">
+                            <button type="button" class="remove-button">Remove</button>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Name</label>
+                                    <input type="text" class="glass-input skill-name" name="skill-name"
+                                        placeholder="Programming Languages">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Keywords</label>
+                                    <div class="skill-keywords-container">
+                                        <div class="skill-keyword-item">
+                                            <input type="text" class="glass-input skill-keyword-input"
+                                                name="skill-keyword" placeholder="Add a skill...">
+                                            <button type="button" class="remove-skill-keyword-btn">×</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="add-skill-keyword-btn">
+                                        <i class="fas fa-plus"></i> Add keyword
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add-button">
+                        <i class="fas fa-plus me-1"></i>Add Skill
+                    </button>
+                </div>
+
+                <!-- Projects Section -->
+                <div class="section-content" id="projects-section">
+                    <h2 class="section-title">Projects</h2>
+                    <div id="projectsList">
+                        <div class="dynamic-section project-item">
+                            <button type="button" class="remove-button">Remove</button>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Project Name</label>
+                                    <input type="text" class="glass-input project-name" name="project-name"
+                                        placeholder="Portfolio Website">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">URL</label>
+                                    <input type="url" class="glass-input project-url" name="project-url"
+                                        placeholder="https://github.com/username/project">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">URL Display Name (optional)</label>
+                                    <input type="text" class="glass-input project-url-name" name="project-url-name"
+                                        placeholder="View on GitHub">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Technologies</label>
+                                    <input type="text" class="glass-input project-keywords" name="project-keywords"
+                                        placeholder="React, Node.js, MongoDB">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="month" class="glass-input project-start" name="project-start">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">End Date</label>
+                                    <input type="month" class="glass-input project-end" name="project-end">
+                                </div>
+                            </div>
+                            <div class="form-row-full">
+                                <div class="form-group">
+                                    <label class="form-label">Description</label>
+                                    <div class="bullet-points-container work-bullets">
+                                        <div class="bullet-point-item">
+                                            <input type="text" class="glass-input bullet-point-input"
+                                                name="project-bullet-point"
+                                                placeholder="• Describe project features and achievements...">
+                                            <button type="button" class="remove-bullet-btn">×</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="add-bullet-btn" data-target="work-bullets">
+                                        <i class="fas fa-plus"></i> Add bullet point
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add-button">
+                        <i class="fas fa-plus me-1"></i>Add Project
+                    </button>
+                </div>
+
+                <!-- Awards Section -->
+                <div class="section-content" id="awards-section">
+                    <h2 class="section-title">Awards</h2>
+                    <div id="awardsList">
+                        <div class="dynamic-section award-item">
+                            <button type="button" class="remove-button">Remove</button>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Title</label>
+                                    <input type="text" class="glass-input award-title" name="award-title"
+                                        placeholder="Employee of the Month">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Awarder</label>
+                                    <input type="text" class="glass-input award-awarder" name="award-awarder"
+                                        placeholder="Tech Corp">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Date</label>
+                                    <input type="month" class="glass-input award-date" name="award-date">
+                                </div>
+                                <div class="form-group"></div>
+                            </div>
+                            <div class="form-row-full">
+                                <div class="form-group">
+                                    <label class="form-label">Summary</label>
+                                    <div class="bullet-points-container work-bullets">
+                                        <div class="bullet-point-item">
+                                            <input type="text" class="glass-input bullet-point-input"
+                                                name="award-bullet-point"
+                                                placeholder="• Describe the award and its significance...">
+                                            <button type="button" class="remove-bullet-btn">×</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="add-bullet-btn" data-target="work-bullets">
+                                        <i class="fas fa-plus"></i> Add bullet point
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add-button">
+                        <i class="fas fa-plus me-1"></i>Add Award
+                    </button>
+                </div>
+
+                <!-- Resume Analysis Section -->
+                <div class="section-content" id="analysis-section">
+                    <h2 class="section-title">Resume Analysis</h2>
+                    <div class="glass-surface p-4">
+                        <p class="text-white-50 mb-4">Get AI-powered feedback on your current resume with detailed
+                            scoring and improvement suggestions.</p>
+
+                        <button class="make-button w-100 mb-4" id="analyzeCurrentResumeBtn"
+                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;">
+                            <i class="fas fa-brain me-1"></i>ANALYZE THIS RESUME
+                        </button>
+
+                        <!-- AI Results Display Area -->
+                        <div id="aiAnalysisResults" style="display: none;">
+                            <div id="aiAnalysisContent">
+                                <!-- AI results will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Preview Section -->
+        <section class="resume-preview">
+            <div id="previewContainer" style="height: 100%;">
+                <div
+                    style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 16px;">
+                    <div style="text-align: center;">
+                        <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                        <p>Fill out your resume information to see live PDF preview</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Resume Load Confirmation Modal -->
+    <div class="modal fade" id="resumeLoadConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content"
+                style="background: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 20px !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;">
+                    <h5 class="modal-title text-white fw-bold">
+                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Load Resume
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-white">
+                    <p class="mb-3">
+                        <i class="fas fa-info-circle me-2 text-info"></i>
+                        Load this resume? Any unsaved changes will be lost.
+                    </p>
+                    <div id="resumeLoadDetails" class="small text-light mb-3 p-2 rounded"
+                        style="background: rgba(255, 255, 255, 0.1);">
+                        <!-- Resume details will be populated here -->
+                    </div>
+                </div>
+                <div class="modal-footer"
+                    style="border-top: 1px solid rgba(255, 255, 255, 0.1) !important; display: flex !important; justify-content: space-between !important; gap: 10px !important;">
+                    <button type="button" class="btn btn-warning" id="confirmLoadResumeBtn" style="flex: 1 !important;">
+                        <i class="fas fa-download me-1"></i>Load Resume
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="flex: 1 !important;">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- End of Resume Builder -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/animations.js"></script>
+
+    <!-- Browser-side PDF compilation removed - now using server-side compilation -->
+
+    <script src="/js/resume-simple-fixed.js"></script>
+    <script>
+        // Check SwiftLaTeX availability
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(() => {
+                if (typeof window.PdfTeXEngine !== 'undefined') {
+                    console.log('✅ SwiftLaTeX PdfTeX engine available for PDF compilation');
+                } else {
+                    console.log('⚠️ SwiftLaTeX not available - will download TeX source instead');
+                }
+            }, 1000);
+        });
+
+        // Logout functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const logoutBtn = document.getElementById('logoutBtn');
+            const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+
+            function handleLogout(e) {
+                e.preventDefault();
+
+                fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                })
+                    .then(() => {
+                        window.location.href = '/login';
+                    })
+                    .catch(error => {
+                        console.error('Logout error:', error);
+                        window.location.href = '/login';
+                    });
+            }
+
+            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+            if (logoutBtnMobile) logoutBtnMobile.addEventListener('click', handleLogout);
+        });
+
+        // Load saved resumes into dropdown
+        document.addEventListener('DOMContentLoaded', function () {
+            const loadResumeSelect = document.getElementById('loadResumeSelect');
+
+            if (loadResumeSelect) {
+                // Load user's saved resumes
+                fetch('/api/user-resumes')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.resumes) {
+                            data.resumes.forEach(resume => {
+                                const option = document.createElement('option');
+                                option.value = resume.id;
+                                option.textContent = `${resume.title} (${new Date(resume.updated_at).toLocaleDateString()})`;
+                                loadResumeSelect.appendChild(option);
+                            });
+
+
+                            // After populating, set the current resume as selected if we have one
+                            if (window.currentResumeId) {
+                                loadResumeSelect.value = window.currentResumeId;
+                                console.log('✅ Set dropdown to current resume:', window.currentResumeId);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading resumes:', error);
+                    });
+
+                // Handle resume selection
+                loadResumeSelect.addEventListener('change', function () {
+                    if (this.value) {
+                        showResumeLoadConfirmModal(this.value, this);
+                    }
+                });
+            }
+        });
+
+        // Auto-fill from profile
+        document.addEventListener('DOMContentLoaded', function () {
+            const autofillBtn = document.getElementById('autofillFromProfileBtn');
+
+            if (autofillBtn) {
+                autofillBtn.addEventListener('click', function () {
+                    if (!confirm('This will replace all current resume data with your profile information. Continue?')) {
+                        return;
+                    }
+
+                    // Fetch profile data
+                    fetch('/api/profile/data')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.profile) {
+                                autofillResumeFromProfile(data.profile, data.preferences);
+
+                                // Update preview
+                                if (typeof debouncedUpdatePreview === 'function') {
+                                    debouncedUpdatePreview();
+                                } else if (typeof updatePreview === 'function') {
+                                    updatePreview();
+                                }
+
+                                // Show success message
+                                const successMessage = document.createElement('div');
+                                successMessage.textContent = 'Resume auto-filled from profile!';
+                                successMessage.style.cssText = 'position:fixed;top:20px;right:20px;background:#9b59b6;color:white;padding:15px 20px;border-radius:5px;z-index:9999;box-shadow:0 4px 6px rgba(0,0,0,0.1);';
+                                document.body.appendChild(successMessage);
+                                setTimeout(() => successMessage.remove(), 3000);
+                            } else {
+                                alert('Error loading profile data. Please try again.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching profile:', error);
+                            alert('Error loading profile data. Please try again.');
+                        });
+                });
+            }
+        });
+
+        // Auto-fill resume with profile data
+        function autofillResumeFromProfile(profile, preferences) {
+            const profileData = profile.profile_data || {};
+            const personalData = profileData.personal || {};
+            const experience = profileData.experience || [];
+            const education = profileData.education || [];
+
+            // Skills come from preferences.top_skills (comma-separated string)
+            let skills = [];
+            if (preferences && preferences.top_skills) {
+                skills = preferences.top_skills.split(',').map(s => s.trim()).filter(s => s);
+            }
+
+            console.log('🔍 Profile data:', profileData);
+            console.log('🔍 Preferences:', preferences);
+            console.log('📚 Education entries:', education.length);
+            console.log('💼 Experience entries:', experience.length);
+            console.log('🎯 Skills:', skills);
+
+            // Fill Profile section with null checks
+            const fullNameEl = document.getElementById('fullName');
+            const emailEl = document.getElementById('email');
+            const phoneEl = document.getElementById('phone');
+            const addressEl = document.getElementById('address');
+
+            if (fullNameEl && personalData.full_name) fullNameEl.value = personalData.full_name;
+            if (emailEl && personalData.email) emailEl.value = personalData.email;
+            if (phoneEl && personalData.phone) phoneEl.value = personalData.phone;
+            if (addressEl && preferences && preferences.location) addressEl.value = preferences.location;
+
+            // Fill Websites & Links section
+            const websitesList = document.getElementById('websitesList');
+            if (websitesList) {
+                websitesList.innerHTML = ''; // Clear existing
+
+                const websites = [];
+                if (personalData.linkedin_url) websites.push({ url: personalData.linkedin_url, name: 'LinkedIn' });
+                if (personalData.github_url) websites.push({ url: personalData.github_url, name: 'GitHub' });
+                if (personalData.portfolio_url) websites.push({ url: personalData.portfolio_url, name: 'Portfolio' });
+
+                websites.forEach(site => {
+                    const template = `
+                        <div class="dynamic-section website-item">
+                            <button type="button" class="remove-button">Remove</button>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">URL</label>
+                                    <input type="url" class="glass-input website-url" name="website-url" value="${site.url}" placeholder="https://johndoe.com">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Display Name</label>
+                                    <input type="text" class="glass-input website-name" name="website-name" value="${site.name}" placeholder="Portfolio">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    websitesList.insertAdjacentHTML('beforeend', template);
+                });
+            }
+
+            // Fill Education section
+            const educationList = document.getElementById('educationList');
+            if (educationList && education.length > 0) {
+                // Clear existing education entries first
+                educationList.innerHTML = '';
+
+                education.forEach((edu, index) => {
+                    // Clone the first education item template
+                    const template = `
+                        <div class="dynamic-section education-item">
+                            <button type="button" class="remove-button">Remove</button>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Institution</label>
+                                    <input type="text" class="glass-input education-institution" name="education-institution" value="${edu.institution_name || ''}" placeholder="University of Technology">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" class="glass-input education-location" name="education-location" value="${edu.location || ''}" placeholder="Boston, MA">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Study Type</label>
+                                    <input type="text" class="glass-input education-degree" name="education-degree" value="${edu.degree_type || ''}" placeholder="Bachelor of Science">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Area</label>
+                                    <input type="text" class="glass-input education-area" name="education-area" value="${edu.field_of_study || ''}" placeholder="Computer Science">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="month" class="glass-input education-start" name="education-start" value="${edu.start_date || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">End Date</label>
+                                    <input type="month" class="glass-input education-end" name="education-end" value="${edu.end_date || ''}">
+                                </div>
+                            </div>
+                            <div class="form-row-full">
+                                <div class="form-group">
+                                    <label class="form-label">Score/GPA</label>
+                                    <input type="text" class="glass-input education-gpa" name="education-gpa" value="${edu.gpa || ''}" placeholder="3.8">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    educationList.insertAdjacentHTML('beforeend', template);
+                });
+            }
+
+            // Fill Work Experience section
+            const workList = document.getElementById('workList');
+            if (workList && experience.length > 0) {
+                // Clear existing work entries first
+                workList.innerHTML = '';
+
+                experience.forEach((exp, index) => {
+                    const template = `
+                        <div class="dynamic-section work-item">
+                            <button type="button" class="remove-button">Remove</button>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Position</label>
+                                    <input type="text" class="glass-input work-position" name="work-position" value="${exp.job_title || ''}" placeholder="Software Engineer">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Company</label>
+                                    <input type="text" class="glass-input work-company" name="work-company" value="${exp.company_name || ''}" placeholder="Tech Corp">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" class="glass-input work-location" name="work-location" value="${exp.location || ''}" placeholder="San Francisco, CA">
+                                </div>
+                                <div class="form-group"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="month" class="glass-input work-start" name="work-start" value="${exp.start_date || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">End Date</label>
+                                    <input type="month" class="glass-input work-end" name="work-end" value="${exp.end_date || ''}" ${exp.is_current ? 'disabled' : ''}>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="work-current" ${exp.is_current ? 'checked' : ''}>
+                                        <span>Present</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-row-full">
+                                <div class="form-group">
+                                    <label class="form-label">Description & Achievements</label>
+                                    <div class="bullet-points-container work-bullets">
+                                        <div class="bullet-point-item">
+                                            <input type="text" class="glass-input bullet-point-input" name="work-bullet-point" value="${exp.job_description || ''}" placeholder="• Describe your key responsibilities and achievements...">
+                                            <button type="button" class="remove-bullet-btn">×</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="add-bullet-btn" data-target="work-bullets">
+                                        <i class="fas fa-plus"></i> Add bullet point
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    workList.insertAdjacentHTML('beforeend', template);
+                });
+            }
+
+            // Fill Skills section
+            const skillsList = document.getElementById('skillsList');
+            if (skillsList && skills.length > 0) {
+                // Clear existing skills entries first
+                skillsList.innerHTML = '';
+
+                // Group all skills into one category
+                const template = `
+                    <div class="dynamic-section skill-item">
+                        <button type="button" class="remove-button">Remove</button>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="glass-input skill-name" name="skill-name" value="Technical Skills" placeholder="Programming Languages">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Keywords</label>
+                                <div class="skill-keywords-container">
+                                    ${skills.map(skill => `
+                                        <div class="skill-keyword-item">
+                                            <input type="text" class="glass-input skill-keyword-input" name="skill-keyword" value="${skill}" placeholder="Add a skill...">
+                                            <button type="button" class="remove-skill-keyword-btn">×</button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button type="button" class="add-skill-keyword-btn">
+                                    <i class="fas fa-plus"></i> Add keyword
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                skillsList.insertAdjacentHTML('beforeend', template);
+            }
+
+            // Fill bio/summary if available
+            const summaryEl = document.getElementById('summary');
+            if (summaryEl && personalData.bio) {
+                summaryEl.value = personalData.bio;
+            }
+        }
+
+        // Load resume from server and populate form
+        function loadResumeFromServer(resumeId) {
+            fetch(`/api/load-resume?resumeId=${resumeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        populateFormWithResumeData(data.data);
+                        // Update preview after loading with safety check
+                        if (typeof debouncedUpdatePreview === 'function') {
+                            debouncedUpdatePreview();
+                        } else if (typeof updatePreview === 'function') {
+                            updatePreview();
+                        } else {
+                            console.log('updatePreview function not available, skipping preview update');
+                        }
+
+                        // Update the current resume ID
+                        window.currentResumeId = resumeId;
+                        console.log('✅ Updated current resume ID to:', resumeId);
+
+                        // Show success message
+                        const successMessage = document.createElement('div');
+                        successMessage.textContent = `Loaded: ${data.title || 'Resume'}`;
+                        successMessage.style.cssText = 'position:fixed;top:20px;right:20px;background:#2ecc71;color:white;padding:10px;border-radius:5px;z-index:9999;';
+                        document.body.appendChild(successMessage);
+                        setTimeout(() => successMessage.remove(), 3000);
+                    } else {
+                        alert('Error loading resume: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading resume:', error);
+                    alert('Error loading resume. Please try again.');
+                });
+        }
+
+        // Mobile Navigation Functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const mobileNavDropdown = document.getElementById('mobileNavDropdown');
+
+            if (mobileMenuToggle && mobileNavDropdown) {
+                mobileMenuToggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    mobileNavDropdown.classList.toggle('active');
+
+                    // Update toggle icon
+                    const icon = mobileMenuToggle.querySelector('i');
+                    if (mobileNavDropdown.classList.contains('active')) {
+                        icon.className = 'fas fa-times';
+                    } else {
+                        icon.className = 'fas fa-bars';
+                    }
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!mobileMenuToggle.contains(e.target) && !mobileNavDropdown.contains(e.target)) {
+                        mobileNavDropdown.classList.remove('active');
+                        const icon = mobileMenuToggle.querySelector('i');
+                        icon.className = 'fas fa-bars';
+                    }
+                });
+            }
+
+
+            // Logout functionality
+            const logoutBtns = document.querySelectorAll('a[href="/logout"]');
+
+            function handleLogout(e) {
+                e.preventDefault();
+                fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = '/login';
+                        } else {
+                            console.error('Logout failed');
+                            window.location.href = '/logout'; // Fallback to GET logout
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Logout error:', error);
+                        window.location.href = '/logout'; // Fallback to GET logout
+                    });
+            }
+
+            logoutBtns.forEach(btn => {
+                btn.addEventListener('click', handleLogout);
+            });
+        });
+
+
+        // Populate form fields with resume data
+        function populateFormWithResumeData(resumeData) {
+            // Clear all existing dynamic sections first
+            clearAllSections();
+
+            console.log('🔧 POPULATE: Starting population with data:', resumeData);
+
+            // Profile section - use more flexible selectors
+            if (resumeData.profile) {
+                // Use the actual form field IDs and selectors
+                const fullNameField = document.getElementById('fullName') ||
+                    document.querySelector('input[name="fullName"]') ||
+                    document.querySelector('input[placeholder="John Doe"]');
+
+                const emailField = document.getElementById('email') ||
+                    document.querySelector('input[name="email"]') ||
+                    document.querySelector('input[type="email"]');
+
+                const phoneField = document.getElementById('phone') ||
+                    document.querySelector('input[name="phone"]') ||
+                    document.querySelector('input[type="tel"]');
+
+                const locationField = document.getElementById('address') ||
+                    document.getElementById('location') ||
+                    document.querySelector('input[name="address"]') ||
+                    document.querySelector('input[placeholder*="City"]') ||
+                    document.querySelector('input[placeholder*="State"]') ||
+                    document.querySelector('input[placeholder*="Country"]');
+
+                const linkedinField = document.getElementById('linkedin') ||
+                    document.querySelector('input[name="linkedin"]') ||
+                    document.querySelector('input[placeholder*="linkedin"]');
+
+                const githubField = document.getElementById('github') ||
+                    document.querySelector('input[name="github"]') ||
+                    document.querySelector('input[placeholder*="github"]');
+
+                const summaryField = document.getElementById('summary') ||
+                    document.querySelector('textarea[name="summary"]') ||
+                    document.querySelector('textarea');
+
+                console.log('🔍 LOADING DEBUG: Profile fields found:', {
+                    fullName: !!fullNameField,
+                    email: !!emailField,
+                    phone: !!phoneField,
+                    location: !!locationField,
+                    linkedin: !!linkedinField,
+                    github: !!githubField,
+                    summary: !!summaryField
+                });
+
+                // Helper function to set field value and trigger events
+                function setFieldValue(field, value, fieldName) {
+                    if (field && value !== undefined && value !== null) {
+                        field.value = value;
+                        // Trigger change and input events to ensure proper updates
+                        field.dispatchEvent(new Event('input', { bubbles: true }));
+                        field.dispatchEvent(new Event('change', { bubbles: true }));
+                        console.log('✅ Set', fieldName + ':', value);
+                        return true;
+                    }
+                    if (field && !value) {
+                        console.log('⚠️ Empty value for', fieldName);
+                    } else if (!field) {
+                        console.log('❌ Field not found for', fieldName);
+                    }
+                    return false;
+                }
+
+                // Set profile fields
+                if (fullNameField) {
+                    // Handle different name formats
+                    let fullName = '';
+                    if (resumeData.profile.name) {
+                        fullName = resumeData.profile.name;
+                    } else if (resumeData.profile.firstName || resumeData.profile.lastName) {
+                        fullName = [resumeData.profile.firstName, resumeData.profile.lastName].filter(Boolean).join(' ');
+                    } else if (resumeData.name) {
+                        fullName = resumeData.name;
+                    }
+                    setFieldValue(fullNameField, fullName, 'fullName');
+                }
+
+                setFieldValue(emailField, resumeData.profile.email || resumeData.email, 'email');
+                setFieldValue(phoneField, resumeData.profile.phone || resumeData.phone, 'phone');
+                setFieldValue(locationField, resumeData.profile.location || resumeData.profile.address || resumeData.location || resumeData.address, 'location');
+                setFieldValue(linkedinField, resumeData.profile.linkedin, 'linkedin');
+                setFieldValue(githubField, resumeData.profile.github, 'github');
+                setFieldValue(summaryField, resumeData.profile.summary || resumeData.summary, 'summary');
+            }
+
+            // Handle flat data structure (no profile object)
+            if (!resumeData.profile && (resumeData.name || resumeData.email || resumeData.phone)) {
+                console.log('🔧 POPULATE: Handling flat data structure');
+
+                const fullNameField = document.getElementById('fullName') ||
+                    document.querySelector('input[name="fullName"]') ||
+                    document.querySelector('input[placeholder="John Doe"]');
+
+                const emailField = document.getElementById('email') ||
+                    document.querySelector('input[name="email"]') ||
+                    document.querySelector('input[type="email"]');
+
+                const phoneField = document.getElementById('phone') ||
+                    document.querySelector('input[name="phone"]') ||
+                    document.querySelector('input[type="tel"]');
+
+                const locationField = document.getElementById('address') ||
+                    document.getElementById('location') ||
+                    document.querySelector('input[name="address"]') ||
+                    document.querySelector('input[placeholder*="City"]') ||
+                    document.querySelector('input[placeholder*="State"]') ||
+                    document.querySelector('input[placeholder*="Country"]');
+
+                const summaryField = document.getElementById('summary') ||
+                    document.querySelector('textarea[name="summary"]') ||
+                    document.querySelector('textarea');
+
+                // Helper function to set field value and trigger events
+                function setFieldValue(field, value, fieldName) {
+                    if (field && value !== undefined && value !== null) {
+                        field.value = value;
+                        // Trigger change and input events to ensure proper updates
+                        field.dispatchEvent(new Event('input', { bubbles: true }));
+                        field.dispatchEvent(new Event('change', { bubbles: true }));
+                        console.log('✅ Set', fieldName + ':', value);
+                        return true;
+                    }
+                    return false;
+                }
+
+                setFieldValue(fullNameField, resumeData.name, 'fullName');
+                setFieldValue(emailField, resumeData.email, 'email');
+                setFieldValue(phoneField, resumeData.phone, 'phone');
+                setFieldValue(locationField, resumeData.location || resumeData.address, 'location');
+                setFieldValue(summaryField, resumeData.summary, 'summary');
+            }
+
+            // Websites - handle multiple formats
+            let websitesData = null;
+
+            // Check for websites in different locations
+            if (resumeData.websites && Array.isArray(resumeData.websites)) {
+                websitesData = resumeData.websites;
+            } else if (resumeData.profile && resumeData.profile.websites && Array.isArray(resumeData.profile.websites)) {
+                websitesData = resumeData.profile.websites;
+            } else if (resumeData.profile && resumeData.profile.website) {
+                // Single website - convert to array
+                websitesData = [{
+                    name: 'Portfolio',
+                    url: resumeData.profile.website
+                }];
+            } else if (resumeData.website) {
+                // Single website at root level
+                websitesData = [{
+                    name: 'Portfolio',
+                    url: resumeData.website
+                }];
+            }
+
+            if (websitesData && websitesData.length > 0) {
+                console.log('🔧 POPULATE: Found websites data:', websitesData);
+                populateWebsites(websitesData);
+            }
+
+            // Work Experience
+            if (resumeData.sections && resumeData.sections.work) {
+                populateWorkExperience(resumeData.sections.work);
+            } else if (resumeData.experience) {
+                populateWorkExperience(resumeData.experience);
+            }
+
+            // Education
+            if (resumeData.sections && resumeData.sections.education) {
+                populateEducation(resumeData.sections.education);
+            } else if (resumeData.education) {
+                populateEducation(resumeData.education);
+            }
+
+            // Skills
+            if (resumeData.sections && resumeData.sections.skills) {
+                populateSkills(resumeData.sections.skills);
+            } else if (resumeData.skills) {
+                populateSkills(resumeData.skills);
+            }
+
+            // Projects
+            if (resumeData.sections && resumeData.sections.projects) {
+                populateProjects(resumeData.sections.projects);
+            } else if (resumeData.projects) {
+                populateProjects(resumeData.projects);
+            }
+
+            // Awards
+            if (resumeData.sections && resumeData.sections.awards) {
+                populateAwards(resumeData.sections.awards);
+            } else if (resumeData.awards) {
+                populateAwards(resumeData.awards);
+            }
+
+            // Restore section order if available - check both new and legacy field names
+            const savedSectionOrder = resumeData.sectionOrder || resumeData.sections;
+            if (savedSectionOrder && Array.isArray(savedSectionOrder)) {
+                console.log('🔧 POPULATE: Restoring section order:', savedSectionOrder);
+
+                // Ensure we have all sections by merging with defaults
+                const defaultOrder = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
+
+                // Filter out fixed sections and non-content sections from saved order
+                const savedContentOrder = savedSectionOrder.filter(section =>
+                    defaultOrder.includes(section) && !['templates', 'formatting'].includes(section)
+                );
+
+                // If saved order is empty or invalid, use default
+                const finalOrder = savedContentOrder.length > 0 ? savedContentOrder : defaultOrder;
+
+                // Ensure all default sections are included
+                const missingFromSaved = defaultOrder.filter(section => !finalOrder.includes(section));
+                const completeOrder = [...finalOrder, ...missingFromSaved];
+
+                console.log('🔧 POPULATE: Complete section order:', completeOrder);
+
+                // Update both the global variable and DOM
+                if (typeof window.sectionOrder !== 'undefined') {
+                    window.sectionOrder = completeOrder;
+                    console.log('✅ Global section order restored:', window.sectionOrder);
+                } else if (typeof sectionOrder !== 'undefined') {
+                    sectionOrder = completeOrder;
+                    console.log('✅ Local section order restored:', sectionOrder);
+                }
+
+                // Update the DOM order to match the saved order
+                setTimeout(() => {
+                    updateDOMSectionOrder(completeOrder);
+                }, 300);
+            } else {
+                console.log('🔧 POPULATE: No saved section order found, using default');
+                // No saved order, ensure default order is set and applied
+                const defaultOrder = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
+
+                if (typeof window.sectionOrder !== 'undefined') {
+                    window.sectionOrder = defaultOrder;
+                } else if (typeof sectionOrder !== 'undefined') {
+                    sectionOrder = defaultOrder;
+                }
+
+                setTimeout(() => {
+                    updateDOMSectionOrder(defaultOrder);
+                }, 300);
+            }
+
+            // Final step: Trigger preview updates and save after all fields are populated
+            setTimeout(() => {
+                console.log('🔄 POPULATE: Triggering final preview update');
+
+                // Trigger preview update with multiple fallbacks
+                if (typeof window.debouncedUpdatePreview === 'function') {
+                    window.debouncedUpdatePreview();
+                } else if (typeof debouncedUpdatePreview === 'function') {
+                    debouncedUpdatePreview();
+                } else if (typeof updatePreview === 'function') {
+                    updatePreview();
+                } else {
+                    console.log('No preview update function available');
+                }
+
+                // Auto-save after importing if user has a current resume
+                if (window.currentResumeId) {
+                    console.log('🔄 POPULATE: Auto-saving imported data');
+                    setTimeout(() => {
+                        if (typeof saveResume === 'function') {
+                            saveResume();
+                        }
+                    }, 1000);
+                }
+            }, 1000);
+
+            console.log('✅ POPULATE: Resume data population completed');
+        }
+
+        function updateDOMSectionOrder(newSectionOrder) {
+            console.log('🔄 Updating DOM section order to:', newSectionOrder);
+            const navSections = document.getElementById('nav-sections');
+            if (!navSections) {
+                console.error('❌ nav-sections element not found');
+                return;
+            }
+
+            // Get all current section elements
+            const sectionElements = {};
+            const allSections = navSections.querySelectorAll('.sidebar-nav-item');
+            allSections.forEach(item => {
+                const sectionName = item.getAttribute('data-section');
+                if (sectionName) {
+                    sectionElements[sectionName] = item;
+                }
+            });
+
+            console.log('🔍 Available sections:', Object.keys(sectionElements));
+            console.log('🔍 Requested order:', newSectionOrder);
+
+            // Define the complete section order including fixed sections
+            // Fixed sections: templates, formatting, profile (at start), analysis (at end)
+            const startFixedSections = ['templates', 'formatting', 'profile'];
+            const endFixedSections = ['analysis'];
+            const allFixedSections = [...startFixedSections, ...endFixedSections];
+
+            const contentSections = newSectionOrder.filter(s => !allFixedSections.includes(s));
+            const completeOrder = [...startFixedSections, ...contentSections, ...endFixedSections];
+            console.log('🔍 Complete order:', completeOrder);
+
+            // Create a document fragment to build the new order
+            const fragment = document.createDocumentFragment();
+
+            // Add sections in the correct order
+            completeOrder.forEach((sectionName, index) => {
+                const element = sectionElements[sectionName];
+                if (element) {
+                    // Update the data-order attribute
+                    element.setAttribute('data-order', index.toString());
+
+                    // Clone the element to avoid issues with moving it
+                    fragment.appendChild(element);
+                    console.log(`🔄 Added ${sectionName} at position ${index}`);
+                }
+            });
+
+            // Clear the nav sections and append the reordered fragment
+            navSections.innerHTML = '';
+            navSections.appendChild(fragment);
+
+            // Clear preview cache to force regeneration with new section order
+            if (typeof window.lastResumeDataHash !== 'undefined') {
+                window.lastResumeDataHash = null;
+                console.log('🗑️ Cleared preview cache to force update');
+            }
+            if (typeof window.lastPDFBlob !== 'undefined') {
+                window.lastPDFBlob = null;
+            }
+
+            // Re-initialize drag and drop to ensure proper event handlers with new order
+            setTimeout(() => {
+                if (typeof window.reinitializeDragAndDrop === 'function') {
+                    window.reinitializeDragAndDrop();
+                    console.log('🔄 Drag and drop re-initialized');
+                }
+
+                // Force a preview update after reordering
+                if (typeof window.debouncedUpdatePreview === 'function') {
+                    window.debouncedUpdatePreview();
+                    console.log('🔄 Preview update triggered after reorder');
+                } else if (typeof debouncedUpdatePreview === 'function') {
+                    debouncedUpdatePreview();
+                    console.log('🔄 Preview update triggered after reorder (fallback)');
+                }
+            }, 200);
+
+            console.log('✅ DOM section order updated successfully');
+        }
+
+        function clearAllSections() {
+            // Clear work experience (keep first one)
+            const workList = document.getElementById('experienceList');
+            if (workList) {
+                const workItems = workList.querySelectorAll('.dynamic-section');
+                for (let i = workItems.length - 1; i > 0; i--) {
+                    workItems[i].remove();
+                }
+                // Clear first work item
+                if (workItems[0]) {
+                    const inputs = workItems[0].querySelectorAll('input, textarea');
+                    inputs.forEach(input => input.value = '');
+                }
+            }
+
+            // Clear education (keep first one)
+            const eduList = document.getElementById('educationList');
+            if (eduList) {
+                const eduItems = eduList.querySelectorAll('.dynamic-section');
+                for (let i = eduItems.length - 1; i > 0; i--) {
+                    eduItems[i].remove();
+                }
+                if (eduItems[0]) {
+                    const inputs = eduItems[0].querySelectorAll('input, textarea');
+                    inputs.forEach(input => input.value = '');
+                }
+            }
+
+            // Clear skills (keep first one)
+            const skillsList = document.getElementById('skillsList');
+            if (skillsList) {
+                const skillItems = skillsList.querySelectorAll('.dynamic-section');
+                for (let i = skillItems.length - 1; i > 0; i--) {
+                    skillItems[i].remove();
+                }
+                if (skillItems[0]) {
+                    const inputs = skillItems[0].querySelectorAll('input');
+                    inputs.forEach(input => input.value = '');
+                }
+            }
+
+            // Clear projects (keep first one)
+            const projectsList = document.getElementById('projectsList');
+            if (projectsList) {
+                const projectItems = projectsList.querySelectorAll('.dynamic-section');
+                for (let i = projectItems.length - 1; i > 0; i--) {
+                    projectItems[i].remove();
+                }
+                if (projectItems[0]) {
+                    const inputs = projectItems[0].querySelectorAll('input, textarea');
+                    inputs.forEach(input => input.value = '');
+                }
+            }
+
+            // Clear awards (keep first one)
+            const awardsList = document.getElementById('awardsList');
+            if (awardsList) {
+                const awardItems = awardsList.querySelectorAll('.dynamic-section');
+                for (let i = awardItems.length - 1; i > 0; i--) {
+                    awardItems[i].remove();
+                }
+                if (awardItems[0]) {
+                    const inputs = awardItems[0].querySelectorAll('input, textarea');
+                    inputs.forEach(input => input.value = '');
+                }
+            }
+        }
+
+        function populateWebsites(websitesData) {
+            const websitesList = document.getElementById('websitesList');
+            if (!websitesList || !Array.isArray(websitesData) || websitesData.length === 0) {
+                console.log('❌ POPULATE: No websites list or data');
+                return;
+            }
+
+            console.log('🔧 POPULATE: Creating', websitesData.length, 'website entries');
+
+            // Clear existing website entries first
+            const existingItems = websitesList.querySelectorAll('.dynamic-section');
+            existingItems.forEach((item, index) => {
+                if (index > 0) {
+                    item.remove();
+                } else {
+                    // Clear first item
+                    const inputs = item.querySelectorAll('input');
+                    inputs.forEach(input => input.value = '');
+                }
+            });
+
+            // Add websites
+            websitesData.forEach((website, index) => {
+                if (index === 0) {
+                    // Use existing first item
+                    const websiteItem = websitesList.querySelector('.dynamic-section');
+                    console.log('🔧 POPULATE: Using first website item for index 0');
+                    populateWebsiteItem(websiteItem, website, index);
+                } else {
+                    // Create new website item by clicking Add button
+                    console.log('🔧 POPULATE: Adding new website entry', index);
+                    const addBtn = websitesList.nextElementSibling; // The add button is right after websitesList
+                    const fallbackAddBtn = document.querySelector('button[data-target="websitesList"]');
+                    const finalAddBtn = addBtn || fallbackAddBtn;
+
+                    console.log('🔍 Add button found:', !!finalAddBtn, finalAddBtn?.textContent);
+
+                    if (finalAddBtn) {
+                        finalAddBtn.click();
+                        // Wait a moment for the DOM to update, then get the new item
+                        setTimeout(() => {
+                            const allItems = websitesList.querySelectorAll('.dynamic-section');
+                            const websiteItem = allItems[index];
+                            console.log('🔧 POPULATE: New website item created for index', index, !!websiteItem);
+                            populateWebsiteItem(websiteItem, website, index);
+                        }, 100);
+                    } else {
+                        console.error('❌ POPULATE: Could not find add button for websites');
+                    }
+                }
+            });
+        }
+
+        function populateWebsiteItem(websiteItem, website, index) {
+            if (!websiteItem) {
+                console.error('🔧 POPULATE: Website item not found for index', index);
+                return;
+            }
+
+            console.log('🔧 POPULATE: Filling website item', index, 'with data:', website);
+
+            // Use actual HTML CSS classes
+            const nameField = websiteItem.querySelector('.website-name');
+            const urlField = websiteItem.querySelector('.website-url');
+
+            console.log('🔍 Website fields found:', {
+                nameField: !!nameField,
+                urlField: !!urlField,
+                websiteData: website
+            });
+
+            // Helper function to set field value and trigger events
+            function setWebsiteFieldValue(field, value, fieldName) {
+                if (field && value !== undefined && value !== null) {
+                    field.value = value;
+                    // Trigger change and input events to ensure proper updates
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                    console.log('✅ Set website', fieldName + ':', value);
+                    return true;
+                }
+                if (!field) {
+                    console.log('❌ Website field not found for', fieldName);
+                }
+                return false;
+            }
+
+            // Handle different website data formats
+            let websiteName = website.name || website.display || website.displayName || 'Portfolio';
+            let websiteUrl = website.url || website.link || website.href || website.website;
+
+            setWebsiteFieldValue(nameField, websiteName, 'name');
+            setWebsiteFieldValue(urlField, websiteUrl, 'url');
+        }
+
+        function populateWorkExperience(workData) {
+            const workList = document.getElementById('workList');
+            if (!workList || !Array.isArray(workData) || workData.length === 0) return;
+
+            console.log('🔧 POPULATE: Creating', workData.length, 'work experience entries');
+
+            workData.forEach((job, index) => {
+                let workItem;
+                if (index === 0) {
+                    // Use existing first item
+                    workItem = workList.querySelector('.dynamic-section');
+                } else {
+                    // Create new work item by clicking Add button
+                    console.log('🔧 POPULATE: Adding new work experience entry', index);
+                    const addBtn = workList.querySelector('.add-button');
+
+
+                    if (addBtn) {
+                        addBtn.click();
+                        // Wait a moment for the DOM to update, then get the new item
+                        setTimeout(() => {
+                            const allItems = workList.querySelectorAll('.dynamic-section');
+                            workItem = allItems[index];
+                            populateWorkItem(workItem, job, index);
+                        }, 50);
+                        return; // Skip immediate population for async items
+                    }
+                }
+
+
+                populateWorkItem(workItem, job, index);
+            });
+        }
+
+        function populateWorkItem(workItem, job, index) {
+            if (!workItem) {
+                console.error('🔧 POPULATE: Work item not found for index', index);
+                return;
+            }
+
+            console.log('🔧 POPULATE: Filling work item', index, 'with data:', job);
+
+            // Use actual HTML CSS classes
+            const positionField = workItem.querySelector('.work-position');
+            const companyField = workItem.querySelector('.work-company');
+            const startField = workItem.querySelector('.work-start');
+            const endField = workItem.querySelector('.work-end');
+            const locationField = workItem.querySelector('.work-location');
+
+            // Helper function to set field value and trigger events
+            function setWorkFieldValue(field, value, fieldName) {
+                if (field && value !== undefined && value !== null) {
+                    field.value = value;
+                    // Trigger change and input events to ensure proper updates
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                    console.log('✅ Set work', fieldName + ':', value);
+                    return true;
+                }
+                return false;
+            }
+
+            setWorkFieldValue(positionField, job.position || job.title, 'position');
+            setWorkFieldValue(companyField, job.company, 'company');
+            setWorkFieldValue(startField, job.startDate, 'start date');
+            setWorkFieldValue(endField, job.endDate, 'end date');
+            setWorkFieldValue(locationField, job.location, 'location');
+
+            // Handle descriptions - support both bullet points and single description text
+            const bulletContainer = workItem.querySelector('.work-bullets');
+
+            if (job.bulletPoints && Array.isArray(job.bulletPoints) && job.bulletPoints.length > 0) {
+                console.log('🔧 POPULATE: Creating', job.bulletPoints.length, 'bullet points');
+                if (bulletContainer) {
+                    // Clear existing bullets first (except the first one)
+                    const existingBullets = bulletContainer.querySelectorAll('.bullet-point-item');
+                    for (let i = existingBullets.length - 1; i > 0; i--) {
+                        existingBullets[i].remove();
+                    }
+
+                    job.bulletPoints.forEach((bullet, bulletIndex) => {
+                        if (bulletIndex === 0) {
+                            // Use first existing bullet input
+                            const firstBullet = bulletContainer.querySelector('.bullet-point-input');
+                            if (firstBullet) {
+                                firstBullet.value = bullet;
+                                firstBullet.dispatchEvent(new Event('input', { bubbles: true }));
+                                console.log('✅ Set bullet 0:', bullet);
+                            }
+                        } else {
+                            // Add new bullet point
+                            const addBulletBtn = workItem.querySelector('.add-bullet-btn');
+                            if (addBulletBtn) {
+                                addBulletBtn.click();
+                                setTimeout(() => {
+                                    const bulletInputs = bulletContainer.querySelectorAll('.bullet-point-input');
+                                    const newBullet = bulletInputs[bulletIndex];
+                                    if (newBullet) {
+                                        newBullet.value = bullet;
+                                        newBullet.dispatchEvent(new Event('input', { bubbles: true }));
+                                        console.log('✅ Set bullet', bulletIndex, ':', bullet);
+                                    }
+                                }, 50);
+                            }
+                        }
+                    });
+                }
+            } else if (job.description && typeof job.description === 'string' && bulletContainer) {
+                // Handle single description text - split into bullet points if needed
+                console.log('🔧 POPULATE: Converting description to bullet points');
+
+                // Split description by line breaks or bullet points
+                let bullets = [];
+                if (job.description.includes('\n')) {
+                    bullets = job.description.split('\n').filter(line => line.trim() !== '');
+                } else if (job.description.includes('•') || job.description.includes('-')) {
+                    bullets = job.description.split(/[•\-]/).filter(line => line.trim() !== '');
+                } else {
+                    // Single description - use as one bullet point
+                    bullets = [job.description.trim()];
+                }
+
+                // Clear existing bullets first (except the first one)
+                const existingBullets = bulletContainer.querySelectorAll('.bullet-point-item');
+                for (let i = existingBullets.length - 1; i > 0; i--) {
+                    existingBullets[i].remove();
+                }
+
+                bullets.forEach((bullet, bulletIndex) => {
+                    const cleanBullet = bullet.trim();
+                    if (cleanBullet) {
+                        if (bulletIndex === 0) {
+                            // Use first existing bullet input
+                            const firstBullet = bulletContainer.querySelector('.bullet-point-input');
+                            if (firstBullet) {
+                                firstBullet.value = cleanBullet;
+                                firstBullet.dispatchEvent(new Event('input', { bubbles: true }));
+                                console.log('✅ Set description bullet 0:', cleanBullet);
+                            }
+                        } else {
+                            // Add new bullet point
+                            const addBulletBtn = workItem.querySelector('.add-bullet-btn');
+                            if (addBulletBtn) {
+                                addBulletBtn.click();
+                                setTimeout(() => {
+                                    const bulletInputs = bulletContainer.querySelectorAll('.bullet-point-input');
+                                    const newBullet = bulletInputs[bulletIndex];
+                                    if (newBullet) {
+                                        newBullet.value = cleanBullet;
+                                        newBullet.dispatchEvent(new Event('input', { bubbles: true }));
+                                        console.log('✅ Set description bullet', bulletIndex, ':', cleanBullet);
+                                    }
+                                }, 50);
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Events are now triggered by setWorkFieldValue function above
+        }
+
+        function populateEducation(eduData) {
+            const eduList = document.getElementById('educationList');
+            if (!eduList || !Array.isArray(eduData) || eduData.length === 0) return;
+
+            console.log('🔧 POPULATE: Creating', eduData.length, 'education entries');
+
+            eduData.forEach((edu, index) => {
+                let eduItem;
+                if (index === 0) {
+                    eduItem = eduList.querySelector('.dynamic-section');
+                } else {
+                    console.log('🔧 POPULATE: Adding new education entry', index);
+                    const addBtn = eduList.querySelector('.add-button');
+                    if (addBtn) {
+                        addBtn.click();
+                        setTimeout(() => {
+                            const allItems = eduList.querySelectorAll('.dynamic-section');
+                            eduItem = allItems[index];
+                            populateEducationItem(eduItem, edu, index);
+                        }, 50);
+                        return;
+                    }
+                }
+
+                populateEducationItem(eduItem, edu, index);
+            });
+        }
+
+        function populateEducationItem(eduItem, edu, index) {
+            if (!eduItem) {
+                console.error('🔧 POPULATE: Education item not found for index', index);
+                return;
+            }
+
+            console.log('🔧 POPULATE: Filling education item', index, 'with data:', edu);
+
+            // Use actual HTML CSS classes
+            const institutionField = eduItem.querySelector('.education-institution');
+            const locationField = eduItem.querySelector('.education-location');
+            const degreeField = eduItem.querySelector('.education-degree');
+            const areaField = eduItem.querySelector('.education-area');
+            const startField = eduItem.querySelector('.education-start');
+            const endField = eduItem.querySelector('.education-end');
+            const gpaField = eduItem.querySelector('.education-gpa');
+
+            if (institutionField) {
+                institutionField.value = edu.institution || edu.school || '';
+                console.log('✅ Set institution:', institutionField.value);
+            }
+            if (locationField) {
+                locationField.value = edu.location || '';
+                console.log('✅ Set location:', locationField.value);
+            }
+            if (degreeField) {
+                degreeField.value = edu.degree || '';
+                console.log('✅ Set degree:', degreeField.value);
+            }
+            if (areaField) {
+                areaField.value = edu.area || edu.field || '';
+                console.log('✅ Set area:', areaField.value);
+            }
+            if (startField) {
+                startField.value = edu.startDate || '';
+                console.log('✅ Set start date:', startField.value);
+            }
+            if (endField) {
+                endField.value = edu.endDate || edu.graduationDate || '';
+                console.log('✅ Set end date:', endField.value);
+            }
+            if (gpaField) {
+                gpaField.value = edu.gpa || '';
+                console.log('✅ Set GPA:', gpaField.value);
+            }
+
+            // Handle bullet points for education
+            if (edu.bulletPoints && edu.bulletPoints.length > 0) {
+                const bulletContainer = eduItem.querySelector('.bullet-points-container');
+                if (bulletContainer) {
+                    console.log('🔧 POPULATE: Adding education bullet points:', edu.bulletPoints);
+
+                    edu.bulletPoints.forEach((bullet, bulletIndex) => {
+                        if (bulletIndex === 0) {
+                            // Use first existing bullet input
+                            const firstBullet = bulletContainer.querySelector('.bullet-point-input');
+                            if (firstBullet) {
+                                firstBullet.value = bullet;
+                                console.log('✅ Set education bullet 0:', bullet);
+                            }
+                        } else {
+                            // Add new bullet point
+                            const addBulletBtn = eduItem.querySelector('.add-bullet-btn');
+                            if (addBulletBtn) {
+                                addBulletBtn.click();
+                                setTimeout(() => {
+                                    const bulletInputs = bulletContainer.querySelectorAll('.bullet-point-input');
+                                    const newBullet = bulletInputs[bulletIndex];
+                                    if (newBullet) {
+                                        newBullet.value = bullet;
+                                        console.log('✅ Set education bullet', bulletIndex, ':', bullet);
+                                    }
+                                }, 50 * bulletIndex); // Stagger the timeouts
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Trigger input events
+            [institutionField, locationField, degreeField, areaField, startField, endField, gpaField].forEach(field => {
+                if (field) {
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+
+        function populateSkills(skillsData) {
+            const skillsList = document.getElementById('skillsList');
+            if (!skillsList || !Array.isArray(skillsData) || skillsData.length === 0) return;
+
+            console.log('🔧 POPULATE: Creating', skillsData.length, 'skills entries');
+
+            skillsData.forEach((skill, index) => {
+                let skillItem;
+                if (index === 0) {
+                    skillItem = skillsList.querySelector('.dynamic-section');
+                } else {
+                    console.log('🔧 POPULATE: Adding new skill entry', index);
+                    const addBtn = skillsList.querySelector('.add-button');
+                    if (addBtn) {
+                        addBtn.click();
+                        setTimeout(() => {
+                            const allItems = skillsList.querySelectorAll('.dynamic-section');
+                            skillItem = allItems[index];
+                            populateSkillItem(skillItem, skill, index);
+                        }, 50);
+                        return;
+                    }
+                }
+
+                populateSkillItem(skillItem, skill, index);
+            });
+        }
+
+        function populateSkillItem(skillItem, skill, index) {
+            if (!skillItem) {
+                console.error('🔧 POPULATE: Skill item not found for index', index);
+                return;
+            }
+
+            console.log('🔧 POPULATE: Filling skill item', index, 'with data:', skill);
+
+            const categoryField = skillItem.querySelector('.skill-name') || skillItem.querySelector('.skill-category');
+            if (categoryField) {
+                categoryField.value = skill.category || '';
+                console.log('✅ Set skill category:', categoryField.value);
+            }
+
+            // Handle keywords - create multiple keyword inputs if needed
+            if (skill.keywords && Array.isArray(skill.keywords) && skill.keywords.length > 0) {
+                console.log('🔧 POPULATE: Creating', skill.keywords.length, 'keyword inputs for skill', index);
+
+                skill.keywords.forEach((keyword, keyIndex) => {
+                    if (keyIndex === 0) {
+                        // Use first existing keyword input
+                        const firstInput = skillItem.querySelector('.skill-keyword-input');
+                        if (firstInput) {
+                            firstInput.value = keyword;
+                            console.log('✅ Set keyword 0:', keyword);
+                        }
+                    } else {
+                        // Add new keyword input
+                        console.log('🔧 POPULATE: Adding keyword input', keyIndex, 'for skill', index);
+                        const addKeywordBtn = skillItem.querySelector('.add-skill-keyword-btn');
+                        if (addKeywordBtn) {
+                            addKeywordBtn.click();
+                            setTimeout(() => {
+                                const keywordInputs = skillItem.querySelectorAll('.skill-keyword-input');
+                                const newInput = keywordInputs[keyIndex];
+                                if (newInput) {
+                                    newInput.value = keyword;
+                                    console.log('✅ Set keyword', keyIndex, ':', keyword);
+                                }
+                            }, 30); // Shorter timeout for keyword creation
+                        }
+                    }
+                });
+            }
+
+            // Trigger input events
+            const categoryField2 = skillItem.querySelector('.skill-category');
+            if (categoryField2) {
+                categoryField2.dispatchEvent(new Event('input', { bubbles: true }));
+                categoryField2.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        function populateProjects(projectsData) {
+            const projectsList = document.getElementById('projectsList');
+            if (!projectsList || !Array.isArray(projectsData) || projectsData.length === 0) return;
+
+            projectsData.forEach((project, index) => {
+                let projectItem;
+                if (index === 0) {
+                    projectItem = projectsList.querySelector('.dynamic-section');
+                } else {
+                    projectsList.querySelector('.add-button').click();
+                    projectItem = projectsList.querySelectorAll('.dynamic-section')[index];
+                }
+
+                if (projectItem) {
+                    projectItem.querySelector('.project-name').value = project.name || '';
+                    projectItem.querySelector('.project-url').value = project.url || '';
+                    projectItem.querySelector('.project-url-name').value = project.urlName || '';
+                    projectItem.querySelector('.project-keywords').value = project.keywords || '';
+                    projectItem.querySelector('.project-start').value = project.startDate || '';
+                    projectItem.querySelector('.project-end').value = project.endDate || '';
+
+                    // Handle bullet points for projects
+                    if (project.bulletPoints && project.bulletPoints.length > 0) {
+                        const bulletContainer = projectItem.querySelector('.bullet-points-container');
+                        if (bulletContainer) {
+                            console.log('🔧 POPULATE: Adding project bullet points:', project.bulletPoints);
+
+                            project.bulletPoints.forEach((bullet, bulletIndex) => {
+                                if (bulletIndex === 0) {
+                                    // Use first existing bullet
+                                    const firstBullet = bulletContainer.querySelector('.bullet-point-input');
+                                    if (firstBullet) {
+                                        firstBullet.value = bullet;
+                                        console.log('✅ Set project bullet 0:', bullet);
+                                    }
+                                } else {
+                                    // Add new bullet point
+                                    const addBulletBtn = projectItem.querySelector('.add-bullet-btn');
+                                    if (addBulletBtn) {
+                                        addBulletBtn.click();
+                                        setTimeout(() => {
+                                            const bulletInputs = bulletContainer.querySelectorAll('.bullet-point-input');
+                                            const newBullet = bulletInputs[bulletIndex];
+                                            if (newBullet) {
+                                                newBullet.value = bullet;
+                                                console.log('✅ Set project bullet', bulletIndex, ':', bullet);
+                                            }
+                                        }, 50 * bulletIndex);
+                                    }
+                                }
+                            });
+                        } else if (project.description) {
+                            // Fallback to single description field if no bulletPoints
+                            const descField = projectItem.querySelector('.project-description');
+                            if (descField) {
+                                descField.value = project.description;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function populateAwards(awardsData) {
+            const awardsList = document.getElementById('awardsList');
+            if (!awardsList || !Array.isArray(awardsData) || awardsData.length === 0) return;
+
+            awardsData.forEach((award, index) => {
+                let awardItem;
+                if (index === 0) {
+                    awardItem = awardsList.querySelector('.dynamic-section');
+                } else {
+                    awardsList.querySelector('.add-button').click();
+                    awardItem = awardsList.querySelectorAll('.dynamic-section')[index];
+                }
+
+                if (awardItem) {
+                    awardItem.querySelector('.award-title').value = award.title || '';
+                    const awarderField = awardItem.querySelector('.award-awarder') || awardItem.querySelector('.award-issuer');
+                    if (awarderField) {
+                        awarderField.value = award.awarder || award.issuer || '';
+                    }
+                    awardItem.querySelector('.award-date').value = award.date || '';
+
+                    // Handle bullet points for awards
+                    if (award.bulletPoints && award.bulletPoints.length > 0) {
+                        const bulletContainer = awardItem.querySelector('.bullet-points-container');
+                        if (bulletContainer) {
+                            console.log('🔧 POPULATE: Adding award bullet points:', award.bulletPoints);
+
+                            award.bulletPoints.forEach((bullet, bulletIndex) => {
+                                if (bulletIndex === 0) {
+                                    // Use first existing bullet input
+                                    const firstBullet = bulletContainer.querySelector('.bullet-point-input');
+                                    if (firstBullet) {
+                                        firstBullet.value = bullet;
+                                        console.log('✅ Set award bullet 0:', bullet);
+                                    }
+                                } else {
+                                    // Add new bullet point
+                                    const addBulletBtn = awardItem.querySelector('.add-bullet-btn');
+                                    if (addBulletBtn) {
+                                        addBulletBtn.click();
+                                        setTimeout(() => {
+                                            const bulletInputs = bulletContainer.querySelectorAll('.bullet-point-input');
+                                            const newBullet = bulletInputs[bulletIndex];
+                                            if (newBullet) {
+                                                newBullet.value = bullet;
+                                                console.log('✅ Set award bullet', bulletIndex, ':', bullet);
+                                            }
+                                        }, 50 * bulletIndex);
+                                    }
+                                }
+                            });
+                        } else if (award.description || award.summary) {
+                            // Fallback to single description field
+                            const descField = awardItem.querySelector('.award-description') || awardItem.querySelector('.award-summary');
+                            if (descField) {
+                                descField.value = award.description || award.summary || '';
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Save Resume functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const saveResumeBtn = document.getElementById('saveResumeBtn');
+
+            if (saveResumeBtn) {
+                saveResumeBtn.addEventListener('click', function () {
+                    const resumeData = collectResumeData();
+
+                    if (resumeData) {
+                        // Check if we're updating an existing resume or creating a new one
+                        if (window.currentResumeId) {
+                            // Update existing resume
+                            const title = prompt('Update resume title:', 'My Resume') || 'My Resume';
+
+                            fetch('/api/save-resume', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    resumeId: window.currentResumeId,
+                                    title: title,
+                                    resumeData: resumeData
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert('Resume updated successfully!');
+                                    } else {
+                                        alert('Error updating resume: ' + data.error);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Update error:', error);
+                                    alert('Error updating resume. Please try again.');
+                                });
+                        } else {
+                            // Create new resume
+                            const title = prompt('Enter a title for this resume:', 'My Resume') || 'My Resume';
+
+                            fetch('/api/save-resume', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    title: title,
+                                    resumeData: resumeData
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert('Resume saved successfully!');
+                                        // Store the new resume ID for future updates
+                                        window.currentResumeId = data.resumeId;
+                                    } else {
+                                        alert('Error saving resume: ' + data.error);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Save error:', error);
+                                    alert('Error saving resume. Please try again.');
+                                });
+                        }
+                    }
+                });
+            }
+
+            // Function to collect all resume data from the form
+            function collectResumeData() {
+                try {
+                    console.log('🔍 SAVE DEBUG: Starting to collect resume data');
+
+                    // Use the actual form field IDs (same as loading)
+                    const fullNameField = document.getElementById('fullName');
+                    const emailField = document.getElementById('email');
+                    const phoneField = document.getElementById('phone');
+                    const websiteField = document.getElementById('website');
+                    const locationField = document.getElementById('address') || document.getElementById('location');
+                    const linkedinField = document.getElementById('linkedin');
+                    const githubField = document.getElementById('github');
+                    const summaryField = document.getElementById('summary');
+
+                    // Parse full name into first/last name for backward compatibility
+                    const fullName = fullNameField?.value || '';
+                    const nameParts = fullName.trim().split(' ');
+                    const firstName = nameParts[0] || '';
+                    const lastName = nameParts.slice(1).join(' ') || '';
+
+                    console.log('🔍 SAVE DEBUG: Profile fields found:', {
+                        fullName: fullName,
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: emailField?.value,
+                        phone: phoneField?.value,
+                        website: websiteField?.value,
+                        location: locationField?.value,
+                        linkedin: linkedinField?.value,
+                        github: githubField?.value,
+                        summary: summaryField?.value
+                    });
+
+                    const resumeData = {
+                        profile: {
+                            firstName: firstName,
+                            lastName: lastName,
+                            email: emailField?.value || '',
+                            phone: phoneField?.value || '',
+                            website: websiteField?.value || '',
+                            location: locationField?.value || '',
+                            linkedin: linkedinField?.value || '',
+                            github: githubField?.value || '',
+                            summary: summaryField?.value || ''
+                        },
+                        sections: {}
+                    };
+
+                    // Collect websites separately
+                    console.log('🔍 SAVE DEBUG: Collecting websites');
+                    const websitesList = document.getElementById('websitesList');
+                    if (websitesList) {
+                        resumeData.websites = [];
+                        const websiteSections = websitesList.querySelectorAll('.dynamic-section');
+                        console.log(`🔍 SAVE DEBUG: Found ${websiteSections.length} website entries`);
+
+                        websiteSections.forEach((websiteSection, index) => {
+                            const entry = {};
+                            const inputs = websiteSection.querySelectorAll('input');
+                            inputs.forEach(input => {
+                                let fieldValue = input.value?.trim();
+                                if (fieldValue) {
+                                    if (input.classList.contains('website-url')) entry.url = fieldValue;
+                                    else if (input.classList.contains('website-name')) entry.name = fieldValue;
+                                }
+                            });
+                            if (Object.keys(entry).length > 0) {
+                                resumeData.websites.push(entry);
+                                console.log(`🔍 SAVE DEBUG: Website ${index}:`, entry);
+                            }
+                        });
+                    }
+
+                    // Collect all dynamic sections
+                    console.log('🔍 SAVE DEBUG: Collecting dynamic sections');
+                    const sections = ['education', 'work', 'skills', 'projects', 'awards'];
+                    sections.forEach(sectionName => {
+                        const sectionDiv = document.getElementById(sectionName + '-section') ||
+                            document.getElementById(sectionName + 'List') ||
+                            document.getElementById(sectionName === 'work' ? 'workList' : sectionName + 'List');
+
+                        console.log(`🔍 SAVE DEBUG: Processing ${sectionName} section, found container:`, !!sectionDiv);
+
+                        if (sectionDiv) {
+                            resumeData.sections[sectionName] = [];
+
+                            // Get all dynamic entries for this section
+                            const dynamicSections = sectionDiv.querySelectorAll('.dynamic-section');
+                            console.log(`🔍 SAVE DEBUG: Found ${dynamicSections.length} dynamic sections in ${sectionName}`);
+
+                            dynamicSections.forEach((dynamicSection, index) => {
+                                const entry = {};
+                                const inputs = dynamicSection.querySelectorAll('input, textarea, select');
+                                console.log(`🔍 SAVE DEBUG: Processing ${sectionName} entry ${index}, found ${inputs.length} inputs`);
+
+                                inputs.forEach(input => {
+                                    let fieldValue = input.value?.trim();
+
+                                    // Only process fields with values
+                                    if (fieldValue) {
+                                        // Work experience mapping - use actual CSS classes from HTML
+                                        if (input.classList.contains('work-position')) entry.position = fieldValue;
+                                        else if (input.classList.contains('work-company')) entry.company = fieldValue;
+                                        else if (input.classList.contains('work-start')) entry.startDate = fieldValue;
+                                        else if (input.classList.contains('work-end')) entry.endDate = fieldValue;
+                                        else if (input.classList.contains('work-location')) entry.location = fieldValue;
+                                        else if (input.classList.contains('bullet-point-input')) {
+                                            if (!entry.bulletPoints) entry.bulletPoints = [];
+                                            entry.bulletPoints.push(fieldValue);
+                                        }
+
+                                        // Website mapping
+                                        else if (input.classList.contains('website-url')) entry.url = fieldValue;
+                                        else if (input.classList.contains('website-name')) entry.name = fieldValue;
+
+                                        // Education mapping - use actual CSS classes from HTML
+                                        else if (input.classList.contains('education-institution')) entry.institution = fieldValue;
+                                        else if (input.classList.contains('education-location')) entry.location = fieldValue;
+                                        else if (input.classList.contains('education-degree')) entry.degree = fieldValue;
+                                        else if (input.classList.contains('education-area')) entry.area = fieldValue;
+                                        else if (input.classList.contains('education-start')) entry.startDate = fieldValue;
+                                        else if (input.classList.contains('education-end')) entry.endDate = fieldValue;
+                                        else if (input.classList.contains('education-gpa')) entry.gpa = fieldValue;
+
+                                        // Skills mapping
+                                        else if (input.classList.contains('skill-name')) entry.category = fieldValue;
+                                        else if (input.classList.contains('skill-category')) entry.category = fieldValue;
+                                        else if (input.classList.contains('skill-keyword-input')) {
+                                            if (!entry.keywords) entry.keywords = [];
+                                            entry.keywords.push(fieldValue);
+                                        }
+
+                                        // Projects mapping
+                                        else if (input.classList.contains('project-name')) entry.name = fieldValue;
+                                        else if (input.classList.contains('project-url')) entry.url = fieldValue;
+                                        else if (input.classList.contains('project-url-name')) entry.urlName = fieldValue;
+                                        else if (input.classList.contains('project-keywords')) entry.keywords = fieldValue;
+                                        else if (input.classList.contains('project-start')) entry.startDate = fieldValue;
+                                        else if (input.classList.contains('project-end')) entry.endDate = fieldValue;
+                                        else if (input.classList.contains('project-description')) entry.description = fieldValue;
+
+                                        // Awards mapping
+                                        else if (input.classList.contains('award-title')) entry.title = fieldValue;
+                                        else if (input.classList.contains('award-awarder')) entry.awarder = fieldValue;
+                                        else if (input.classList.contains('award-issuer')) entry.issuer = fieldValue;
+                                        else if (input.classList.contains('award-date')) entry.date = fieldValue;
+                                        else if (input.classList.contains('award-description')) entry.description = fieldValue;
+
+                                        // Generic fallback
+                                        else if (input.name) {
+                                            entry[input.name] = fieldValue;
+                                        }
+                                    }
+                                });
+
+                                console.log(`🔍 SAVE DEBUG: ${sectionName} entry ${index}:`, entry);
+                                if (Object.keys(entry).length > 0) {
+                                    resumeData.sections[sectionName].push(entry);
+                                }
+                            });
+                        }
+                    });
+
+                    // Collect formatting data - always use custom logic since dropdown populates input fields
+                    resumeData.formatting = {
+                        pageMargins: 'custom', // Always treat as custom since we use input field values
+                        marginTop: parseFloat(document.getElementById('marginTop')?.value || 0),
+                        marginBottom: parseFloat(document.getElementById('marginBottom')?.value || 0),
+                        marginLeft: parseFloat(document.getElementById('marginLeft')?.value || 0),
+                        marginRight: parseFloat(document.getElementById('marginRight')?.value || 0),
+                        fontFamily: document.getElementById('fontFamily')?.value || 'default',
+                        baseFontSize: document.getElementById('baseFontSize')?.value || '11pt',
+                        nameSize: document.getElementById('nameSize')?.value || 'large',
+                        sectionSpacing: document.getElementById('sectionSpacing')?.value || 'normal',
+                        lineSpacing: document.getElementById('lineSpacing')?.value || '1.0',
+                        bulletStyle: document.getElementById('bulletStyle')?.value || 'bullet',
+                        colorTheme: document.getElementById('colorTheme')?.value || 'black'
+                    };
+
+                    // Save the current section order from drag and drop
+                    if (typeof window.sectionOrder !== 'undefined') {
+                        resumeData.sectionOrder = window.sectionOrder;
+                        console.log('🔍 SAVE DEBUG: Saving section order from window:', window.sectionOrder);
+                    } else if (typeof sectionOrder !== 'undefined') {
+                        resumeData.sectionOrder = sectionOrder;
+                        console.log('🔍 SAVE DEBUG: Saving section order:', sectionOrder);
+                    }
+
+                    console.log('🔍 SAVE DEBUG: Final resume data:', resumeData);
+
+                    return resumeData;
+                } catch (error) {
+                    console.error('Error collecting resume data:', error);
+                    return null;
+                }
+            }
+        });
+
+        // Prevent back button access after logout
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+
+        // Disable browser back button caching
+        window.addEventListener('beforeunload', function () {
+            document.body.style.display = 'none';
+        });
+
+        // Global variable to store pending resume load details
+        let pendingResumeLoad = null;
+
+        // Show resume load confirmation modal
+        function showResumeLoadConfirmModal(resumeId, selectElement) {
+            // Store the pending load details
+            pendingResumeLoad = {
+                resumeId: resumeId,
+                selectElement: selectElement
+            };
+
+            // Find the selected option to get resume details
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const resumeTitle = selectedOption.text;
+
+            // Update modal content
+            const detailsDiv = document.getElementById('resumeLoadDetails');
+            detailsDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-file-alt me-2 text-primary"></i>
+                    <div>
+                        <div class="fw-bold">${resumeTitle}</div>
+                        <small class="text-muted">Resume ID: ${resumeId}</small>
+                    </div>
+                </div>
+            `;
+
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('resumeLoadConfirmModal'));
+            modal.show();
+        }
+
+        // Handle modal confirmation
+        document.addEventListener('DOMContentLoaded', function () {
+            const confirmBtn = document.getElementById('confirmLoadResumeBtn');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function () {
+                    if (pendingResumeLoad) {
+                        // Load the resume
+                        loadResumeFromServer(pendingResumeLoad.resumeId);
+
+                        // Hide the modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('resumeLoadConfirmModal'));
+                        modal.hide();
+
+                        // Clear pending load
+                        pendingResumeLoad = null;
+                    }
+                });
+            }
+
+            // Handle modal cancel/close
+            document.getElementById('resumeLoadConfirmModal').addEventListener('hidden.bs.modal', function () {
+                if (pendingResumeLoad && pendingResumeLoad.selectElement) {
+                    // Reset the select dropdown if modal was cancelled
+                    pendingResumeLoad.selectElement.value = '';
+                    pendingResumeLoad = null;
+                }
+            });
+        });
+
+        // Initialize resume data from server
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🚀 Initializing resume builder...');
+
+            // Set flag to prevent external JS conflicts
+            window.templateHandlesInit = true;
+
+            // Note: Drag and drop is initialized by external JS file
+
+            // Check if we have server-side resume data
+            <% if (resumeData && resumeId) { %>
+                console.log('📋 Loading resume data from server...');
+                const serverResumeData = <% - JSON.stringify(resumeData) %>;
+                const resumeId = '<%= resumeId %>';
+
+                if (serverResumeData) {
+                    console.log('✅ Found server resume data:', serverResumeData);
+                    populateFormWithResumeData(serverResumeData);
+
+                    // Store the resume ID for saving updates and dropdown selection
+                    window.currentResumeId = resumeId;
+                } else {
+                    console.log('❌ No resume data from server');
+                }
+            <% } else { %>
+                console.log('📝 No specific resume to load, starting fresh');
+            <% } %>
+
+                console.log('✅ Consolidated initialization complete');
+        });
+
+        // ========================
+        // RESUME ANALYSIS FUNCTIONS
+        // ========================
+
+        // Resume Analysis Function
+        async function analyzeCurrentResume() {
+            const btn = document.getElementById('analyzeCurrentResumeBtn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Analyzing...';
+            btn.disabled = true;
+
+            try {
+                // Disable all form validation to prevent control errors
+                const allInputs = document.querySelectorAll('input, textarea, select');
+                allInputs.forEach(input => {
+                    input.setAttribute('novalidate', 'true');
+                    input.removeAttribute('required');
+                    // Remove any validation constraints
+                    if (input.setCustomValidity) {
+                        input.setCustomValidity('');
+                    }
+                });
+
+                // Get current resume data from the form - analyze whatever content is available
+                const resumeData = collectResumeData();
+
+                // Analyze the resume
+                const response = await fetch('/api/analyze-resume', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resumeData: resumeData })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResumeAnalysis(result.analysis);
+                    if (window.talentScopeAnimations && window.talentScopeAnimations.showToast) {
+                        window.talentScopeAnimations.showToast('Resume analysis completed!', 'success');
+                    }
+                } else {
+                    throw new Error(result.error || 'Analysis failed');
+                }
+            } catch (error) {
+                console.error('Error analyzing resume:', error);
+                if (window.talentScopeAnimations && window.talentScopeAnimations.showToast) {
+                    window.talentScopeAnimations.showToast('Failed to analyze resume: ' + error.message, 'error');
+                }
+            } finally {
+                // Restore form validation attributes
+                const allInputs = document.querySelectorAll('input, textarea, select');
+                allInputs.forEach(input => {
+                    input.removeAttribute('novalidate');
+                });
+
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        // Display Resume Analysis Results
+        function displayResumeAnalysis(analysis) {
+            const container = document.getElementById('aiAnalysisResults');
+            const content = document.getElementById('aiAnalysisContent');
+
+            const html = `
+                <div class="mb-4">
+                    <h5 class="text-white mb-4">
+                        <i class="fas fa-chart-line me-2"></i>Resume Analysis Results
+                    </h5>
+                    
+                    <!-- Overall Score Section -->
+                    <div class="text-center mb-4 p-4" style="background: rgba(255, 255, 255, 0.1); border-radius: 12px;">
+                        <div class="display-3 text-primary fw-bold mb-2">${analysis.overallScore || 'N/A'}/100</div>
+                        <div class="text-white h6">Overall Resume Score</div>
+                        <div class="text-white-50 small">Based on content completeness, formatting, and industry standards</div>
+                    </div>
+                    
+                    <!-- Strengths Section -->
+                    <div class="mb-4 p-4" style="background: rgba(34, 197, 94, 0.1); border-radius: 12px; border-left: 4px solid #22c55e;">
+                        <h6 class="text-success mb-3">
+                            <i class="fas fa-check-circle me-2"></i>Strengths
+                        </h6>
+                        ${analysis.strengths && analysis.strengths.length > 0 ?
+                    `<ul class="list-unstyled text-white mb-0">
+                                ${analysis.strengths.map(strength => `<li class="mb-2"><i class="fas fa-plus text-success me-2"></i>${strength}</li>`).join('')}
+                            </ul>` :
+                    '<p class="text-white-50 mb-0">No specific strengths identified yet. Add more content to your resume for a detailed analysis.</p>'
+                }
+                    </div>
+                    
+                    <!-- Areas for Improvement Section -->
+                    <div class="mb-4 p-4" style="background: rgba(245, 158, 11, 0.1); border-radius: 12px; border-left: 4px solid #f59e0b;">
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Areas for Improvement
+                        </h6>
+                        ${analysis.improvements && analysis.improvements.length > 0 ?
+                    `<div class="space-y-3">
+                                ${analysis.improvements.map(imp => `
+                                    <div class="mb-3 p-3" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                                        <div class="fw-bold text-white mb-1">${imp.section || 'General'}</div>
+                                        <div class="text-white-50 mb-2">${imp.issue || imp.description || 'No specific issue identified'}</div>
+                                        <div class="text-info small">
+                                            <i class="fas fa-lightbulb me-1"></i>${imp.suggestion || imp.recommendation || 'Consider reviewing this section'}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>` :
+                    '<p class="text-white-50 mb-0">No specific improvements suggested. Great job on your resume content!</p>'
+                }
+                    </div>
+                    
+                    <!-- Keyword Suggestions Section -->
+                    ${analysis.keywordSuggestions && analysis.keywordSuggestions.length > 0 ? `
+                    <div class="mb-4 p-4" style="background: rgba(59, 130, 246, 0.1); border-radius: 12px; border-left: 4px solid #3b82f6;">
+                        <h6 class="text-info mb-3">
+                            <i class="fas fa-tags me-2"></i>Recommended Keywords
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            ${analysis.keywordSuggestions.map(keyword => `
+                                <span class="badge px-3 py-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 0.85rem;">${keyword}</span>
+                            `).join('')}
+                        </div>
+                        <div class="text-white-50 small mt-2">Consider incorporating these industry-relevant keywords into your resume</div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+
+            content.innerHTML = html;
+            container.style.display = 'block';
+        }
+
+        // Add event listener for the analyze button
+        document.addEventListener('DOMContentLoaded', function () {
+            const analyzeBtn = document.getElementById('analyzeCurrentResumeBtn');
+            if (analyzeBtn) {
+                analyzeBtn.addEventListener('click', analyzeCurrentResume);
+            }
+        });
+
+        // ========================
+        // FORMATTING FUNCTIONALITY
+        // ========================
+
+        // Initialize formatting controls
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeFormattingControls();
+        });
+
+        function initializeFormattingControls() {
+            // Margin controls - dropdown always populates the input fields
+            const pageMargins = document.getElementById('pageMargins');
+
+            if (pageMargins) {
+                // Set initial margin values based on current selection
+                setMarginValuesForPreset(pageMargins.value);
+
+                pageMargins.addEventListener('change', function () {
+                    // Always update the margin input fields with the preset values
+                    setMarginValuesForPreset(this.value);
+                    updatePreviewFromFormatting();
+                });
+            }
+
+            // Custom color controls toggle
+            const colorTheme = document.getElementById('colorTheme');
+            const customColorGroup = document.getElementById('customColorGroup');
+
+            if (colorTheme && customColorGroup) {
+                colorTheme.addEventListener('change', function () {
+                    if (this.value === 'custom') {
+                        customColorGroup.style.display = 'block';
+                    } else {
+                        customColorGroup.style.display = 'none';
+                    }
+                    updatePreviewFromFormatting();
+                });
+            }
+
+            // Range input value updates
+            updateRangeValues();
+
+            // Add event listeners to all formatting controls to update preview in real-time
+            const formattingInputs = document.querySelectorAll('#formatting-section input, #formatting-section select');
+            formattingInputs.forEach(input => {
+                const eventType = input.type === 'range' ? 'input' : 'change';
+                input.addEventListener(eventType, debounce(updatePreviewFromFormatting, 300));
+            });
+
+            // Preset buttons
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    applyFormattingPreset(this.dataset.preset);
+                    setTimeout(updatePreviewFromFormatting, 100); // Update preview after preset is applied
+                });
+            });
+
+            // Formatting action buttons
+            const previewBtn = document.getElementById('previewFormattingBtn');
+            const resetBtn = document.getElementById('resetFormattingBtn');
+            const saveBtn = document.getElementById('saveFormattingBtn');
+
+            if (previewBtn) previewBtn.addEventListener('click', previewFormatting);
+            if (resetBtn) resetBtn.addEventListener('click', function () {
+                resetFormatting();
+                setTimeout(updatePreviewFromFormatting, 100); // Update preview after reset
+            });
+            if (saveBtn) saveBtn.addEventListener('click', saveFormatting);
+        }
+
+        function setMarginValuesForPreset(preset) {
+            const marginValues = {
+                'narrow': 0,
+                'normal': 0.2,
+                'wide': 0.5
+            };
+
+            const value = marginValues.hasOwnProperty(preset) ? marginValues[preset] : 0.2;
+            console.log(`Setting margin preset: ${preset} to value: ${value}`);
+
+            // Update all margin inputs to match the preset
+            const marginIds = ['marginTop', 'marginBottom', 'marginLeft', 'marginRight'];
+            marginIds.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    console.log(`Setting ${id} from ${input.value} to ${value}`);
+                    input.value = value;
+                    // Trigger input event to ensure any listeners are notified
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                } else {
+                    console.error(`Input element not found: ${id}`);
+                }
+            });
+        }
+
+        function setCustomMarginValues(top, right, bottom, left) {
+            const marginData = [
+                { id: 'marginTop', value: top },
+                { id: 'marginRight', value: right },
+                { id: 'marginBottom', value: bottom },
+                { id: 'marginLeft', value: left }
+            ];
+
+            marginData.forEach(({ id, value }) => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = value;
+                    console.log(`Set ${id} to ${value} (min: ${input.min}, max: ${input.max})`);
+                }
+            });
+        }
+
+        function updateRangeValues() {
+            const ranges = [
+                'bulletIndent', 'listMarginVertical', 'listMarginLeft'
+            ];
+
+            ranges.forEach(rangeId => {
+                const range = document.getElementById(rangeId);
+                const valueSpan = document.getElementById(rangeId + 'Value');
+
+                if (range && valueSpan) {
+                    const updateValue = () => {
+                        const unit = rangeId.includes('margin') && !rangeId.includes('list') ? 'in' : 'mm';
+                        valueSpan.textContent = range.value + unit;
+                    };
+
+                    updateValue();
+                    range.addEventListener('input', updateValue);
+                }
+            });
+        }
+
+        function updatePreviewFromFormatting() {
+            // Trigger resume preview update
+            if (typeof debouncedUpdatePreview === 'function') {
+                debouncedUpdatePreview();
+            } else if (typeof updatePreview === 'function') {
+                updatePreview();
+            }
+        }
+
+        function applyFormattingPreset(preset) {
+            const presets = {
+                classic: {
+                    fontFamily: 'times',
+                    baseFontSize: '11pt',
+                    lineSpacing: '1.0',
+                    sectionSpacing: 'normal',
+                    bulletStyle: 'bullet',
+                    colorTheme: 'black',
+                    pageMargins: 'normal'
+                },
+                modern: {
+                    fontFamily: 'calibri',
+                    baseFontSize: '11pt',
+                    lineSpacing: '1.15',
+                    sectionSpacing: 'relaxed',
+                    bulletStyle: 'dash',
+                    colorTheme: 'darkblue',
+                    pageMargins: 'normal'
+                },
+                compact: {
+                    fontFamily: 'arial',
+                    baseFontSize: '10pt',
+                    lineSpacing: '0.9',
+                    sectionSpacing: 'compact',
+                    bulletStyle: 'bullet',
+                    colorTheme: 'black',
+                    pageMargins: 'narrow'
+                },
+                creative: {
+                    fontFamily: 'palatino',
+                    baseFontSize: '12pt',
+                    lineSpacing: '1.2',
+                    sectionSpacing: 'spacious',
+                    bulletStyle: 'arrow',
+                    colorTheme: 'purple',
+                    pageMargins: 'wide'
+                }
+            };
+
+            const settings = presets[preset];
+            if (settings) {
+                Object.entries(settings).forEach(([key, value]) => {
+                    const element = document.getElementById(key);
+                    if (element) element.value = value;
+                });
+
+                // Update margin sliders to match the pageMargins setting
+                if (settings.pageMargins) {
+                    setMarginValuesForPreset(settings.pageMargins);
+                }
+
+                showNotification(`Applied ${preset} formatting preset!`, 'success');
+            }
+        }
+
+        function previewFormatting() {
+            const formattingSettings = collectFormattingSettings();
+            showNotification('Generating preview with new formatting...', 'info');
+
+            // Trigger resume update with new formatting
+            if (typeof debouncedUpdatePreview === 'function') {
+                debouncedUpdatePreview();
+            } else if (typeof updatePreview === 'function') {
+                updatePreview();
+            }
+        }
+
+        function resetFormatting() {
+            if (confirm('Reset all formatting to defaults? This cannot be undone.')) {
+                applyFormattingPreset('classic');
+                showNotification('Formatting reset to defaults', 'success');
+            }
+        }
+
+        function saveFormatting() {
+            const formattingSettings = collectFormattingSettings();
+
+            // Save to localStorage for now
+            localStorage.setItem('resumeFormatting', JSON.stringify(formattingSettings));
+            showNotification('Formatting settings saved!', 'success');
+        }
+
+        function collectFormattingSettings() {
+            const settings = {};
+            const formInputs = document.querySelectorAll('#formatting-section input, #formatting-section select');
+
+            formInputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    settings[input.id] = input.checked;
+                } else if (input.type === 'radio') {
+                    if (input.checked) settings[input.name] = input.value;
+                } else {
+                    settings[input.id] = input.value;
+                }
+            });
+
+            return settings;
+        }
+
+
+
+
+
+
+
+
+        // Utility function for debouncing
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+
+    </script>
+</body>
+
+</html>

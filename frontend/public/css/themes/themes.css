@@ -1,0 +1,193 @@
+/* TalentScope - Simplified Theme System */
+/* Minimal theme overrides using the unified variable system */
+
+/* === DEFAULT THEME (Light/Gradient Theme) === */
+:root {
+    /* Background is handled by gradient in default-theme.css body::before/::after */
+    color-scheme: dark;
+}
+
+/* Animated Gradient Background - Default Theme Only */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.15) 0%, rgba(124, 58, 237, 0.05) 35%, transparent 70%),
+        radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.04) 35%, transparent 70%),
+        radial-gradient(circle at 40% 90%, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 40%, transparent 70%),
+        radial-gradient(circle at 90% 10%, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.03) 40%, transparent 70%),
+        radial-gradient(circle at 10% 70%, rgba(124, 58, 237, 0.08) 0%, rgba(124, 58, 237, 0.02) 50%, transparent 80%);
+    z-index: -3;
+    animation: subtleBreathing 20s ease-in-out infinite alternate;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: 
+        rgba(0, 0, 0, 0.25),
+        linear-gradient(135deg, rgba(124, 58, 237, 0.03) 0%, transparent 30%),
+        linear-gradient(-45deg, rgba(6, 182, 212, 0.03) 0%, transparent 30%),
+        linear-gradient(45deg, rgba(245, 158, 11, 0.02) 70%, transparent 100%);
+    z-index: -2;
+    animation: subtleShift 30s ease-in-out infinite alternate;
+}
+
+@keyframes subtleBreathing {
+    0% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
+@keyframes subtleShift {
+    0% { opacity: 0.6; }
+    100% { opacity: 0.8; }
+}
+
+/* === DARK THEME === */
+.theme-dark {
+    /* Variable Overrides */
+    --bg-primary: #0d1117;
+    --glass-bg-canvas: #0d1117;
+    
+    /* Hide gradient backgrounds */
+    background: #0d1117;
+}
+
+.theme-dark::before,
+.theme-dark::after {
+    display: none;
+}
+
+/* Dark Theme Component Overrides */
+.theme-dark .navbar {
+    background: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(110, 118, 129, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.theme-dark .navbar.scrolled {
+    background: rgba(13, 17, 23, 0.98);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .navbar-nav .nav-link {
+    color: rgba(201, 209, 217, 0.8);
+}
+
+.theme-dark .navbar-nav .nav-link:hover {
+    background: rgba(124, 58, 237, 0.15);
+}
+
+.theme-dark .navbar-nav .nav-link.active {
+    background: rgba(124, 58, 237, 0.25);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+.theme-dark .card {
+    background: rgba(22, 27, 34, 0.8);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    backdrop-filter: blur(15px);
+}
+
+.theme-dark .form-control,
+.theme-dark .form-select,
+.theme-dark .glass-input {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    color: var(--text-primary);
+}
+
+.theme-dark .form-control:focus,
+.theme-dark .form-select:focus,
+.theme-dark .glass-input:focus {
+    background: rgba(28, 33, 39, 0.95);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--interactive-focus);
+}
+
+.theme-dark .dropdown-menu {
+    background: rgba(13, 17, 23, 0.95);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    backdrop-filter: blur(20px);
+}
+
+.theme-dark .dropdown-item {
+    color: var(--text-secondary);
+}
+
+.theme-dark .dropdown-item:hover {
+    background: rgba(124, 58, 237, 0.2);
+    color: var(--text-primary);
+}
+
+.theme-dark .modal-content {
+    background: rgba(13, 17, 23, 0.95);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+}
+
+.theme-dark .btn-secondary {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.4);
+    color: var(--text-primary);
+}
+
+.theme-dark .btn-secondary:hover {
+    background: rgba(33, 38, 45, 0.95);
+    border-color: var(--primary);
+}
+
+/* Additional dark theme overrides for specific components */
+.theme-dark .card-auth {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    backdrop-filter: blur(25px);
+}
+
+.theme-dark .mobile-nav-dropdown {
+    background: rgba(13, 17, 23, 0.98);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    backdrop-filter: blur(20px);
+}
+
+.theme-dark .mobile-nav-link {
+    color: var(--text-secondary);
+}
+
+.theme-dark .mobile-nav-link:hover {
+    background: rgba(124, 58, 237, 0.2);
+    color: var(--text-primary);
+}
+
+.theme-dark .card-job {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+}
+
+.theme-dark .card-search {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+}
+
+.theme-dark .alert {
+    backdrop-filter: blur(15px);
+}
+
+.theme-dark .accordion-button {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    color: var(--text-primary);
+}
+
+.theme-dark .accordion-body {
+    background: rgba(28, 33, 39, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+}

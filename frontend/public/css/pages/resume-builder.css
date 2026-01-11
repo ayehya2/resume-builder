@@ -1,0 +1,857 @@
+/* Common Resume Builder Styles - Shared between resume and cover letter builders */
+
+/* Resume Header Area - Specific to resume builder */
+.resume-header-area {
+    grid-area: header;
+    background: var(--glass-bg-primary);
+    backdrop-filter: var(--glass-blur-xl);
+    border-bottom: 1px solid var(--glass-border-primary);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resume-sidebar {
+    grid-area: sidebar;
+    background: var(--glass-bg-primary);
+    padding: 10px;
+    overflow-y: auto;
+    border-right: 1px solid var(--glass-border-primary);
+    backdrop-filter: var(--glass-blur-xl);
+    -webkit-backdrop-filter: var(--glass-blur-xl);
+}
+
+.resume-form {
+    grid-area: form;
+    padding: 10px;
+    overflow-y: auto;
+    background: var(--glass-bg-subtle);
+}
+
+.resume-preview {
+    grid-area: preview;
+    background: var(--glass-bg-secondary);
+    border-left: 1px solid var(--glass-border-primary);
+    backdrop-filter: var(--glass-blur-xl);
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sidebar Navigation */
+.nav-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 2rem;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: var(--glass-bg-primary);
+    backdrop-filter: var(--glass-blur-xl);
+    -webkit-backdrop-filter: var(--glass-blur-xl);
+    border: 1px solid var(--glass-border-primary);
+    border-radius: 12px;
+    color: var(--glass-text-secondary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.sidebar-nav-item:hover {
+    background: var(--glass-bg-secondary);
+    border-color: rgba(124, 58, 237, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    color: var(--glass-text-primary);
+    text-decoration: none;
+}
+
+.sidebar-nav-item:hover::before {
+    left: 100%;
+}
+
+.sidebar-nav-item.active {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.3) 0%, rgba(124, 58, 237, 0.2) 100%);
+    border-color: rgba(124, 58, 237, 0.6);
+    color: var(--glass-text-primary);
+    box-shadow: 0 8px 32px rgba(124, 58, 237, 0.3);
+}
+
+.sidebar-nav-item i {
+    width: 20px;
+    text-align: center;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+/* Drag and Drop Styles */
+.draggable-section {
+    cursor: grab;
+}
+
+.draggable-section:active {
+    cursor: grabbing;
+}
+
+.draggable-section.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+}
+
+.nav-sections.drag-over {
+    background: rgba(124, 58, 237, 0.1);
+    border-radius: 8px;
+}
+
+.drop-indicator {
+    height: 3px;
+    background: linear-gradient(90deg, #7c3aed, #a855f7);
+    border-radius: 2px;
+    margin: 2px 0;
+    animation: pulse 1s infinite;
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.drag-handle {
+    color: var(--glass-text-muted);
+    cursor: grab;
+    margin-right: 8px;
+    user-select: none; /* Prevent text selection */
+}
+
+.drag-handle:hover {
+    color: var(--glass-text-primary);
+}
+
+.draggable-section {
+    cursor: grab;
+    user-select: none; /* Prevent text selection during drag */
+}
+
+.draggable-section:active {
+    cursor: grabbing;
+}
+
+.sidebar-nav-item:hover i,
+.sidebar-nav-item.active i {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Section Management */
+.section-content {
+    display: none;
+}
+
+.section-content.active {
+    display: block;
+}
+
+.section-title {
+    color: var(--glass-text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Form Styling */
+.form-label {
+    color: var(--glass-text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select, textarea.form-control, .glass-input {
+    background: var(--glass-bg-secondary) !important;
+    border: 1px solid var(--glass-border-secondary) !important;
+    color: var(--glass-text-primary) !important;
+    backdrop-filter: var(--glass-blur-md);
+    -webkit-backdrop-filter: var(--glass-blur-md);
+}
+
+.form-control:focus, .form-select:focus, textarea.form-control:focus, .glass-input:focus {
+    background: var(--glass-bg-primary) !important;
+    border-color: var(--glass-focus-border) !important;
+    box-shadow: 0 0 0 0.2rem var(--glass-focus-ring) !important;
+    color: var(--glass-text-primary) !important;
+}
+
+.form-control::placeholder, textarea.form-control::placeholder, .glass-input::placeholder {
+    color: var(--glass-text-muted) !important;
+}
+
+.form-select option {
+    background: #1a1a2e !important;
+    color: white !important;
+}
+
+.form-select option:hover {
+    background: var(--primary, #667eea) !important;
+    color: white !important;
+}
+
+.form-select option:checked,
+.form-select option:selected {
+    background: var(--primary, #667eea) !important;
+    color: white !important;
+}
+
+/* Keep selected option highlighted when hovering other options */
+.form-select option:checked:not(:hover) {
+    background: var(--primary, #667eea) !important;
+    color: white !important;
+}
+
+/* Button Styling */
+.make-button {
+    background: var(--btn-primary-bg) !important;
+    border: none !important;
+    color: white !important;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.make-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(103, 126, 234, 0.4);
+}
+
+.make-button:active {
+    transform: translateY(0);
+}
+
+/* Mobile Preview Button */
+.mobile-preview-button {
+    display: none;
+}
+
+/* Preview Header */
+.preview-header {
+    padding: 1rem;
+    background: var(--glass-bg-primary);
+    border-bottom: 1px solid var(--glass-border-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.preview-header h4 {
+    margin: 0;
+    color: var(--glass-text-primary);
+    font-weight: 600;
+}
+
+/* PDF Container */
+.pdf-container {
+    flex: 1;
+    background: transparent;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: none;
+}
+
+.pdf-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* PDF Viewer Styles */
+.pdf-viewer-container {
+    height: 100%;
+    background: var(--glass-bg-tertiary);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--glass-border-primary);
+}
+
+.pdf-toolbar {
+    background: var(--glass-bg-primary);
+    backdrop-filter: var(--glass-blur-xl);
+    -webkit-backdrop-filter: var(--glass-blur-xl);
+    border-bottom: 1px solid var(--glass-border-primary);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.pdf-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pdf-btn {
+    background: var(--glass-bg-secondary);
+    border: 1px solid var(--glass-border-secondary);
+    color: var(--glass-text-primary) !important;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.pdf-btn:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    color: var(--glass-text-primary) !important;
+}
+
+.pdf-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pdf-filename-container {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    justify-content: center;
+    max-width: 300px;
+    margin: 0 1rem;
+}
+
+.pdf-filename-input {
+    background: var(--glass-bg-secondary);
+    border: 1px solid var(--glass-border-secondary);
+    color: var(--glass-text-primary) !important;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.pdf-filename-input:focus {
+    outline: none;
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-focus-border);
+    color: var(--glass-text-primary);
+    box-shadow: 0 0 0 2px var(--glass-focus-ring);
+}
+
+.pdf-filename-input:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+}
+
+.pdf-page-info {
+    color: var(--glass-text-primary) !important;
+    font-size: 14px;
+}
+
+.pdf-canvas-container {
+    height: calc(100% - 60px);
+    overflow: auto;
+    /* background: var(--glass-bg-canvas, #16213e); */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 10px;
+    transition: background-color 0.3s ease;
+}
+
+/* Theme-specific overrides for immediate effect */
+.theme-dark .pdf-canvas-container {
+    background: #161B22 !important;
+}
+
+.theme-light .pdf-canvas-container {
+    background: #e8eaed !important;
+}
+
+.pdf-canvas {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    max-width: 100%;
+    height: auto;
+}
+
+/* PDF Content Styling for Theme Support */
+.pdf-content {
+    background: var(--pdf-bg, white) !important;
+    color: var(--pdf-text, #333) !important;
+    font-family: 'Times New Roman', serif;
+    line-height: 1.6;
+    max-width: 8.5in;
+    margin: 20px auto;
+    padding: 40px;
+    min-height: 11in;
+    transform-origin: top center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-date {
+    text-align: right;
+    margin-bottom: 2rem;
+}
+
+.pdf-sender-info {
+    margin-bottom: 2rem;
+}
+
+.pdf-sender-name {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.pdf-recipient-info {
+    margin-bottom: 1.5rem;
+}
+
+.pdf-subject {
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+.pdf-content-body {
+    margin-bottom: 2rem;
+    text-align: justify;
+    min-height: 200px;
+}
+
+.pdf-content-body p {
+    margin-bottom: 1rem;
+}
+
+.pdf-closing {
+    margin-bottom: 1rem;
+}
+
+.pdf-signature {
+    margin-top: 2rem;
+}
+
+/* Editable field styling for PDF */
+.editable-field {
+    outline: none;
+    cursor: text;
+}
+
+/* Default theme support for PDF content */
+.pdf-content {
+    --pdf-bg: white;
+    --pdf-text: #333;
+}
+
+/* Dark theme support for PDF content */
+[data-theme="dark"] .pdf-content,
+.dark-theme .pdf-content,
+.theme-dark .pdf-content {
+    --pdf-bg: var(--glass-bg-primary) !important;
+    --pdf-text: var(--glass-text-primary) !important;
+}
+
+/* Default theme PDF canvas background */
+.pdf-canvas-container {
+    /* background: #f5f5f5; */
+}
+
+/* Theme-specific PDF canvas backgrounds */
+.theme-dark .pdf-canvas-container,
+[data-theme="dark"] .pdf-canvas-container {
+    background: #161B22 !important;
+}
+
+/* Ensure PDF viewer elements inherit theme properly */
+.pdf-viewer-container,
+.pdf-toolbar,
+.pdf-controls {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* PDF Icon Styling */
+.pdf-btn .fas,
+.pdf-btn i {
+    color: var(--glass-text-primary) !important;
+}
+
+.pdf-btn:hover .fas,
+.pdf-btn:hover i {
+    color: var(--glass-text-primary) !important;
+}
+
+.fa-chevron-left,
+.fa-chevron-right,
+.fa-search-minus,
+.fa-search-plus {
+    color: var(--glass-text-primary) !important;
+}
+
+.pdf-page-info,
+.pdf-page-info span,
+.pdf-page-info * {
+    color: var(--glass-text-primary) !important;
+}
+
+/* Editable Fields */
+.editable-field {
+    transition: all 0.2s ease;
+    border-radius: 3px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+}
+
+.editable-field:hover {
+    background-color: rgba(102, 126, 234, 0.1);
+    border: 1px dashed rgba(102, 126, 234, 0.3);
+}
+
+.editable-field:focus {
+    background-color: rgba(102, 126, 234, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.5);
+}
+
+.editable-field[data-field="content"] {
+    border-radius: 6px;
+}
+
+/* Dynamic Sections */
+.dynamic-section {
+    background: var(--glass-bg-primary);
+    backdrop-filter: var(--glass-blur-xl);
+    border: 1px solid var(--glass-border-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    padding-top: 2.8rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.add-button {
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.add-button:hover {
+    background: rgba(34, 197, 94, 0.3);
+    transform: translateY(-1px);
+}
+
+.remove-button {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    position: absolute;
+    top: 1.2rem;
+    right: 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    z-index: 10;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.remove-button:hover {
+    background: rgba(239, 68, 68, 0.35);
+    border-color: rgba(239, 68, 68, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.remove-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+}
+
+/* Form Layout */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+    overflow: hidden;
+}
+
+.form-row-full {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+.form-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Bullet Points */
+.bullet-points-container {
+    width: 100% !important;
+    display: block !important;
+    margin-bottom: 10px;
+}
+
+.bullet-point-item {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 5px !important;
+    gap: 10px !important;
+}
+
+.bullet-point-input {
+    flex: 1 !important;
+    width: auto !important;
+    margin: 0 !important;
+}
+
+.remove-bullet-btn {
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.remove-bullet-btn:hover {
+    background: rgba(239, 68, 68, 0.35);
+    border-color: rgba(239, 68, 68, 0.6);
+    transform: scale(1.05);
+}
+
+.add-bullet-btn {
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.add-bullet-btn:hover {
+    background: rgba(34, 197, 94, 0.3);
+    transform: translateY(-1px);
+}
+
+.single-bullet .remove-bullet-btn {
+    display: none !important;
+}
+
+/* Skill Keywords */
+.skill-keywords-container {
+    width: 100% !important;
+    display: block !important;
+    margin-bottom: 10px;
+}
+
+.skill-keyword-item {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 10px !important;
+    gap: 10px !important;
+}
+
+.skill-keyword-input {
+    flex: 1 !important;
+    width: auto !important;
+    margin: 0 !important;
+}
+
+.remove-skill-keyword-btn {
+    width: 32px !important;
+    height: 32px !important;
+    flex-shrink: 0 !important;
+    background: rgba(239, 68, 68, 0.2) !important;
+    border: 1px solid rgba(239, 68, 68, 0.4) !important;
+    color: white !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+}
+
+.remove-skill-keyword-btn:hover {
+    background: rgba(239, 68, 68, 0.35) !important;
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    transform: scale(1.05) !important;
+}
+
+.add-skill-keyword-btn {
+    background: rgba(34, 197, 94, 0.2) !important;
+    border: 1px solid rgba(34, 197, 94, 0.4) !important;
+    color: white !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+}
+
+.add-skill-keyword-btn:hover {
+    background: rgba(34, 197, 94, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+.skill-keywords-container.single-keyword .remove-skill-keyword-btn {
+    display: none !important;
+}
+
+/* Template Selection */
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.template-option {
+    background: var(--glass-bg-primary);
+    border: 2px solid var(--glass-border-primary);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.template-option:hover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.2);
+}
+
+.template-option.active {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.3);
+}
+
+.template-preview {
+    width: 100%;
+    height: 120px;
+    background: var(--glass-bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--glass-text-muted);
+}
+
+/* Glass inputs specific styling */
+.glass-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 0.75rem;
+    border-radius: 8px;
+    box-sizing: border-box !important;
+}
+
+.glass-input[type="month"],
+.glass-input[type="date"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 120px !important;
+    padding: 0.75rem !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+/* Responsive Design - Resume specific overrides */
+@media (max-width: 1024px) {    
+    .mobile-preview-button {
+        display: block;
+    }
+}
+
+@media (max-width: 768px) {
+    
+    .pdf-toolbar {
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 12px;
+    }
+    
+    .pdf-controls {
+        gap: 8px;
+    }
+    
+    .pdf-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}

@@ -1,0 +1,322 @@
+/* TalentScope - Dark Theme (solid dark background, no gradients) */
+
+/* Dark Theme CSS Variables Override */
+.theme-dark {
+    /* Glass Component Variables - Dark Theme */
+    --glass-bg-primary: rgba(22, 27, 34, 0.95);
+    --glass-bg-secondary: rgba(33, 38, 45, 0.9);
+    --glass-bg-tertiary: rgba(45, 51, 59, 0.85);
+    --glass-bg-subtle: rgba(13, 17, 23, 0.8);
+    --glass-bg-hover: rgba(124, 58, 237, 0.25);
+    --glass-bg-canvas: #161B22;
+    
+    --glass-border-primary: rgba(110, 118, 129, 0.3);
+    --glass-border-secondary: rgba(110, 118, 129, 0.4);
+    --glass-border-tertiary: rgba(110, 118, 129, 0.2);
+    --glass-border-subtle: rgba(110, 118, 129, 0.15);
+    --glass-border-hover: var(--primary);
+    
+    --glass-text-primary: #F0F6FF;
+    --glass-text-secondary: #C9D1D9;
+    --glass-text-muted: #8B949E;
+    --glass-text-subtle: #6E7681;
+    
+    --glass-blur-sm: blur(8px);
+    --glass-blur-md: blur(12px);
+    --glass-blur-lg: blur(16px);
+    --glass-blur-xl: blur(20px);
+    
+    --glass-focus-ring: rgba(124, 58, 237, 0.4);
+    --glass-focus-border: #7C3AED;
+    
+    background: #0D1117;
+}
+
+.theme-dark::before,
+.theme-dark::after {
+    /* Hide the gradient backgrounds in dark theme */
+    display: none;
+}
+
+.theme-dark .navbar {
+    background: rgba(13, 17, 23, 0.95);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(110, 118, 129, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.25s ease-out;
+    padding: 1rem 0;
+}
+
+.theme-dark .navbar.scrolled {
+    background: rgba(13, 17, 23, 0.98);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .navbar-brand {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.5rem;
+    text-decoration: none;
+    transition: all 0.25s ease-out;
+}
+
+.theme-dark .navbar-brand:hover {
+    color: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+.theme-dark .brand-logo {
+    display: flex;
+    align-items: center;
+    font-weight: 800;
+    font-size: 1.75rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.25s ease-out;
+    gap: 0.5rem;
+}
+
+.theme-dark .brand-logo:hover {
+    transform: translateY(-2px);
+    color: var(--primary-light);
+}
+
+.theme-dark .brand-text {
+    color: var(--text-primary);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    font-family: 'Inter', 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.5rem;
+}
+
+.theme-dark .navbar-nav .nav-link {
+    color: rgba(201, 209, 217, 0.8);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    transition: all 0.25s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-dark .navbar-nav .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
+    transition: left 0.4s ease-out;
+}
+
+.theme-dark .navbar-nav .nav-link:hover {
+    color: var(--text-primary);
+    background: rgba(124, 58, 237, 0.15);
+    transform: translateY(-2px);
+}
+
+.theme-dark .navbar-nav .nav-link:hover::before {
+    left: 100%;
+}
+
+.theme-dark .navbar-nav .nav-link.active {
+    color: var(--text-primary);
+    background: rgba(124, 58, 237, 0.25);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    transform: translateY(-1px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.theme-dark .card {
+    background: rgba(22, 27, 34, 0.8);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    backdrop-filter: blur(15px);
+}
+
+.theme-dark .form-control,
+.theme-dark .form-select,
+.theme-dark .glass-input {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    color: var(--text-primary);
+}
+
+.theme-dark .form-control:focus,
+.theme-dark .form-select:focus,
+.theme-dark .glass-input:focus {
+    background: rgba(28, 33, 39, 0.95);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--interactive-focus);
+}
+
+.theme-dark .btn-secondary {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.4);
+    color: var(--text-primary);
+}
+
+.theme-dark .btn-secondary:hover {
+    background: rgba(33, 38, 45, 0.95);
+    border-color: var(--primary);
+}
+
+.theme-dark .dropdown-menu {
+    background: rgba(13, 17, 23, 0.95);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    backdrop-filter: blur(20px);
+}
+
+.theme-dark .dropdown-item {
+    color: var(--text-secondary) !important;
+}
+
+.theme-dark .dropdown-item:hover {
+    background: rgba(124, 58, 237, 0.2);
+    color: var(--text-primary) !important;
+}
+
+.theme-dark .modal-content {
+    background: rgba(13, 17, 23, 0.95);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+}
+
+.theme-dark .auth-card {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    backdrop-filter: blur(25px);
+}
+
+.theme-dark .mobile-nav-dropdown {
+    background: rgba(13, 17, 23, 0.98);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    backdrop-filter: blur(20px);
+}
+
+.theme-dark .mobile-nav-link {
+    color: var(--text-secondary);
+}
+
+.theme-dark .mobile-nav-link:hover {
+    background: rgba(124, 58, 237, 0.2);
+    color: var(--text-primary);
+}
+
+.theme-dark .job-card {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+}
+
+.theme-dark .search-card {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+}
+
+.theme-dark .form-check-compact {
+    background: rgba(22, 27, 34, 0.8);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+}
+
+.theme-dark .alert {
+    backdrop-filter: blur(15px);
+}
+
+.theme-dark .accordion-button {
+    background: rgba(22, 27, 34, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+    color: var(--text-primary);
+}
+
+.theme-dark .accordion-body {
+    background: rgba(28, 33, 39, 0.9);
+    border: 1px solid rgba(110, 118, 129, 0.3);
+}
+
+/* Dark Theme PDF Viewer */
+.theme-dark .pdf-viewer-container {
+    background: var(--bg-secondary) !important;
+    border: 1px solid rgba(110, 118, 129, 0.3) !important;
+}
+
+.theme-dark .pdf-toolbar {
+    background: rgba(22, 27, 34, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(110, 118, 129, 0.3) !important;
+}
+
+.theme-dark .pdf-btn {
+    background: rgba(45, 51, 59, 0.8) !important;
+    border: 1px solid rgba(110, 118, 129, 0.4) !important;
+    color: var(--text-primary) !important;
+}
+
+.theme-dark .pdf-btn:hover {
+    background: rgba(124, 58, 237, 0.3) !important;
+    border-color: var(--primary) !important;
+    color: var(--text-primary) !important;
+}
+
+.theme-dark .pdf-btn:disabled {
+    background: rgba(45, 51, 59, 0.4) !important;
+    color: var(--text-muted) !important;
+    opacity: 0.5 !important;
+}
+
+.theme-dark .pdf-filename-input {
+    background: rgba(28, 33, 39, 0.9) !important;
+    border: 1px solid rgba(110, 118, 129, 0.4) !important;
+    color: var(--text-primary) !important;
+}
+
+.theme-dark .pdf-filename-input:focus {
+    background: rgba(33, 38, 45, 0.95) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px var(--interactive-focus) !important;
+}
+
+.theme-dark .pdf-page-info {
+    color: var(--text-secondary) !important;
+}
+
+.theme-dark .pdf-canvas-container {
+    background: #161B22 !important;
+    border: 1px solid rgba(110, 118, 129, 0.2) !important;
+}
+
+.theme-dark .pdf-canvas {
+    background: white !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Dark Theme Profile Username Visibility Enhancement */
+.theme-dark .profile-name {
+    color: rgba(240, 246, 255, 0.95) !important;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .profile-avatar {
+    color: rgba(201, 209, 217, 0.9) !important;
+}
+
+.theme-dark .nav-link.dropdown-toggle::after {
+    color: rgba(201, 209, 217, 0.8) !important;
+}
+
+.theme-dark #profileDropdown:hover .profile-name {
+    color: rgba(240, 246, 255, 1) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.theme-dark #profileDropdown:hover .profile-avatar {
+    color: rgba(240, 246, 255, 1) !important;
+}

@@ -1,0 +1,157 @@
+/* Resume Builder - Main Stylesheet */
+
+/* Core Styles */
+@import url('./core/reset.css');
+@import url('./core/variables.css');
+@import url('./core/layout.css');
+@import url('./core/spacing-layout.css');
+@import url('./core/typography.css');
+
+/* Component Styles */
+@import url('./components/animation-system.css');
+@import url('./components/button-system.css');
+@import url('./components/components.css');
+@import url('./components/form-system.css');
+@import url('./components/formatting.css');
+@import url('./components/glass-morphism.css');
+@import url('./components/tables.css');
+
+/* Page-Specific Styles */
+@import url('./pages/resume-builder.css');
+
+/* Theme Styles (Load Last) */
+@import url('./themes/default-theme.css');
+@import url('./themes/dark-theme.css');
+@import url('./themes/themes.css');
+@import url('./themes/toggle/toggle.css');
+
+/* Utility Styles */
+@import url('./utilities/utilities.css');
+
+
+/* Cross-browser compatibility */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+    background-color: #0D1117 !important;
+    /* Set immediately to prevent flash */
+}
+
+body {
+    font-family: var(--font-primary);
+    background: transparent;
+    /* Allow gradient/theme to show through */
+    color: var(--text-primary);
+    line-height: var(--leading-normal);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--glass-border-primary);
+    border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Selection Styling */
+::selection {
+    background: rgba(124, 58, 237, 0.3);
+    color: var(--text-primary);
+}
+
+::-moz-selection {
+    background: rgba(124, 58, 237, 0.3);
+    color: var(--text-primary);
+}
+
+/* Focus Management */
+:focus-visible {
+    outline: 2px solid var(--glass-focus-border);
+    outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    :root {
+        --glass-border-primary: rgba(255, 255, 255, 0.6);
+        --text-secondary: #E5E5E5;
+        --text-muted: #CCCCCC;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Print Styles */
+@media print {
+
+    body::before,
+    body::after {
+        display: none;
+    }
+
+    .navbar,
+    .floating-buttons,
+    .btn-fab,
+    .mobile-menu-toggle,
+    .theme-switcher {
+        display: none;
+    }
+
+    .card,
+    .card-job,
+    .card-resume {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #000;
+        background: #fff;
+    }
+
+    * {
+        color: #000 !important;
+        background: #fff !important;
+    }
+
+    .text-primary,
+    .text-secondary,
+    .text-muted {
+        color: #000 !important;
+    }
+}
+
+/* Dark mode media query support */
+@media (prefers-color-scheme: dark) {
+    :root:not(.theme-light) {
+        color-scheme: dark;
+    }
+}
