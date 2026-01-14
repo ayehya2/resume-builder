@@ -1,52 +1,74 @@
 import { useResumeStore } from '../store';
-import { getBulletIndentValue } from '../utils/formatting';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue } from '../utils/formatting';
 
 export function TechnicalTemplate() {
     const { resumeData } = useResumeStore();
     const { basics, work, education, skills, projects, awards, sections, formatting } = resumeData;
 
+    const colorValue = getColorValue(formatting.colorTheme, formatting.customColor);
+    const bulletSymbol = getBulletSymbol(formatting.bulletStyle);
+
     return (
-        <div className="bg-white p-6 font-sans text-slate-900" style={{ fontSize: '10pt', lineHeight: '1.3' }}>
+        <div
+            className="bg-white text-black"
+            style={{
+                fontFamily: getFontFamilyCSS(formatting.fontFamily),
+                fontSize: formatting.baseFontSize,
+                lineHeight: formatting.lineSpacing,
+                padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`
+            }}
+        >
             {/* Header */}
-            <div className="mb-4">
-                <h1 className="text-4xl font-light mb-1">
+            <div className="mb-6 text-center">
+                <h1 className="text-4xl font-bold uppercase mb-2 tracking-tighter" style={{ color: colorValue }}>
                     {basics.name || 'Your Name'}
                 </h1>
-                <div className="text-xs text-slate-600">
-                    {[basics.email, basics.phone, basics.address, ...basics.websites.map(w => w.url ? `${w.name}: ${w.url}` : w.name)]
-                        .filter(Boolean)
-                        .join(' • ')}
+                <div className="text-sm flex flex-wrap gap-y-1 justify-center">
+                    {[
+                        basics.email,
+                        basics.phone,
+                        basics.address,
+                        ...basics.websites.map(w => w.name)
+                    ].filter(Boolean).map((item, idx, arr) => (
+                        <span key={idx} className="flex items-center">
+                            {item}
+                            {idx < arr.length - 1 && <span className="mx-2 opacity-50">{formatting.separator}</span>}
+                        </span>
+                    ))}
                 </div>
             </div>
 
-            <div className="border-t border-slate-300 mb-4" />
+            <div className="h-0.5 bg-black mb-6" style={{ backgroundColor: colorValue }} />
 
             {/* Sections */}
-            {sections.map((section) => {
-                if (section === 'profile') return null;
+            {sections.map((sectionKey) => {
+                if (sectionKey === 'profile') return null;
 
-                if (section === 'work' && work.length > 0) {
+                if (sectionKey === 'work' && work.length > 0) {
                     return (
-                        <div key={section} className="mb-4">
-                            <h2 className="text-sm font-semibold uppercase tracking-wide border-b border-slate-300 pb-1 mb-2">
-                                Experience
+                        <div key="work" className="mb-6">
+                            <h2 className="text-left text-lg font-bold border-y-2 border-black py-1 mb-3 uppercase tracking-widest" style={{ borderColor: colorValue }}>
+                                Professional Experience
                             </h2>
                             {work.map((job, idx) => (
-                                <div key={idx} className="mb-3">
-                                    <div className="flex justify-between items-baseline">
-                                        <span className="font-semibold">{job.company}</span>
-                                        <span className="text-xs text-slate-600">{job.startDate} - {job.endDate}</span>
+                                <div key={idx} className="mb-4">
+                                    <div className="flex justify-between items-baseline font-bold">
+                                        <span>{job.company}</span>
+                                        <span className="text-sm">{job.startDate} — {job.endDate}</span>
                                     </div>
-                                    <div className="flex justify-between items-baseline text-slate-700">
-                                        <span className="italic">{job.position}</span>
-                                        <span className="text-xs">{job.location}</span>
+                                    <div className="flex justify-between items-baseline italic text-sm mb-1">
+                                        <span>{job.position}</span>
+                                        <span>{job.location}</span>
                                     </div>
                                     {job.bullets && job.bullets.length > 0 && (
-                                        <div className="mt-1 text-xs text-slate-800" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {job.bullets.map((line: string, i: number) => (
-                                                <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
+                                        <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
+                                            {job.bullets.map((line, i) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5">
+                                                    <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
+                                                    <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                                                </li>
                                             ))}
-                                        </div>
+                                        </ul>
                                     )}
                                 </div>
                             ))}
@@ -54,19 +76,19 @@ export function TechnicalTemplate() {
                     );
                 }
 
-                if (section === 'education' && education.length > 0) {
+                if (sectionKey === 'education' && education.length > 0) {
                     return (
-                        <div key={section} className="mb-4">
-                            <h2 className="text-sm font-semibold uppercase tracking-wide border-b border-slate-300 pb-1 mb-2">
+                        <div key="education" className="mb-6">
+                            <h2 className="text-left text-lg font-bold border-y-2 border-black py-1 mb-3 uppercase tracking-widest" style={{ borderColor: colorValue }}>
                                 Education
                             </h2>
                             {education.map((edu, idx) => (
                                 <div key={idx} className="mb-2">
-                                    <div className="flex justify-between">
-                                        <span className="font-semibold">{edu.institution}</span>
-                                        <span className="text-xs text-slate-600">{edu.graduationDate}</span>
+                                    <div className="flex justify-between items-baseline font-bold">
+                                        <span>{edu.institution}</span>
+                                        <span className="text-sm font-normal">{edu.graduationDate}</span>
                                     </div>
-                                    <div className="text-slate-700 italic text-sm">
+                                    <div className="text-sm italic">
                                         {edu.degree} in {edu.field} {edu.gpa && `• GPA: ${edu.gpa}`}
                                     </div>
                                 </div>
@@ -75,43 +97,55 @@ export function TechnicalTemplate() {
                     );
                 }
 
-                if (section === 'skills' && skills.length > 0) {
+                if (sectionKey === 'skills' && skills.length > 0) {
                     return (
-                        <div key={section} className="mb-4">
-                            <h2 className="text-sm font-semibold uppercase tracking-wide border-b border-slate-300 pb-1 mb-2">
-                                Skills
+                        <div key="skills" className="mb-6 text-left">
+                            <h2 className="text-left text-lg font-bold border-y-2 border-black py-1 mb-3 uppercase tracking-widest text-left" style={{ borderColor: colorValue }}>
+                                Technical Skills
                             </h2>
-                            {skills.map((skill, idx) => (
-                                <div key={idx} className="mb-1 text-xs">
-                                    <span className="font-semibold">{skill.category}:</span> {skill.items.join(' • ')}
-                                </div>
-                            ))}
+                            <div className="grid grid-cols-1 gap-1 text-left">
+                                {skills.map((skill, idx) => (
+                                    <div key={idx} className="text-sm text-left">
+                                        <span className="font-bold">{skill.category}:</span> {skill.items.join(', ')}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     );
                 }
-
-                if (section === 'projects' && projects.length > 0) {
+                if (sectionKey === 'projects' && projects.length > 0) {
                     return (
-                        <div key={section} className="mb-4">
-                            <h2 className="text-sm font-semibold uppercase tracking-wide border-b border-slate-300 pb-1 mb-2">
-                                Projects
+                        <div key="projects" className="mb-6">
+                            <h2 className="text-left text-lg font-bold border-y-2 border-black py-1 mb-3 uppercase tracking-widest" style={{ borderColor: colorValue }}>
+                                Key Projects
                             </h2>
                             {projects.map((project, idx) => (
-                                <div key={idx} className="mb-3">
-                                    <div className="font-semibold">
-                                        {project.name}
-                                        {project.keywords.length > 0 && (
-                                            <span className="text-xs font-normal text-slate-600 ml-2">
-                                                [{project.keywords.join(', ')}]
-                                            </span>
-                                        )}
-                                    </div>
-                                    {project.bullets && project.bullets.length > 0 && (
-                                        <div className="mt-1 text-xs text-slate-800" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {project.bullets.map((line: string, i: number) => (
-                                                <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
-                                            ))}
+                                <div key={idx} className="mb-4">
+                                    <div className="font-bold flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            {project.name}
+                                            {project.url && (
+                                                <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-xs font-normal text-indigo-600 hover:underline">
+                                                    [{project.urlName || 'Link'}]
+                                                </a>
+                                            )}
                                         </div>
+                                        <span className="text-xs font-normal opacity-70">{project.startDate} — {project.endDate}</span>
+                                    </div>
+                                    {project.keywords.length > 0 && (
+                                        <div className="text-xs italic opacity-80 mb-1">
+                                            Technologies: {project.keywords.join(', ')}
+                                        </div>
+                                    )}
+                                    {project.bullets && project.bullets.length > 0 && (
+                                        <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
+                                            {project.bullets.map((line, i) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5">
+                                                    <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
+                                                    <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
                                     )}
                                 </div>
                             ))}
@@ -119,15 +153,16 @@ export function TechnicalTemplate() {
                     );
                 }
 
-                if (section === 'awards' && awards.length > 0) {
+                if (sectionKey === 'awards' && awards.length > 0) {
                     return (
-                        <div key={section} className="mb-4">
-                            <h2 className="text-sm font-semibold uppercase tracking-wide border-b border-slate-300 pb-1 mb-2">
-                                Awards
+                        <div key="awards" className="mb-6 text-left">
+                            <h2 className="text-left text-lg font-bold border-y-2 border-black py-1 mb-3 uppercase tracking-widest text-left" style={{ borderColor: colorValue }}>
+                                Honors & Awards
                             </h2>
                             {awards.map((award, idx) => (
-                                <div key={idx} className="mb-1 text-xs">
-                                    <span className="font-semibold">{award.title}</span> - {award.awarder} ({award.date})
+                                <div key={idx} className="text-sm mb-1 text-left">
+                                    <span className="font-bold">{award.title}</span> — {award.awarder} ({award.date})
+                                    {award.summary && <div className="text-xs opacity-80 italic text-left">{award.summary}</div>}
                                 </div>
                             ))}
                         </div>

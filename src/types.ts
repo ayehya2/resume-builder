@@ -66,7 +66,7 @@ export interface Award {
 }
 
 // Template Types
-export type TemplateId = 1 | 2 | 4 | 8;
+export type TemplateId = 1 | 2 | 3 | 4;
 export type SectionKey = 'profile' | 'education' | 'work' | 'skills' | 'projects' | 'awards';
 
 export interface TemplateMetadata {

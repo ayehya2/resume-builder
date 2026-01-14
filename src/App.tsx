@@ -8,6 +8,7 @@ import { ProjectsForm } from './components/ProjectsForm'
 import { AwardsForm } from './components/AwardsForm'
 import { FormattingForm } from './components/FormattingForm'
 import { TemplateRenderer } from './templates/TemplateRenderer'
+import { TemplateThumbnail } from './components/TemplateThumbnail'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import type { TemplateId, SectionKey } from './types'
@@ -32,8 +33,8 @@ interface TabItem {
 const templates: Array<{ id: TemplateId; name: string; icon: string }> = [
   { id: 1, name: 'Classic', icon: '📄' },
   { id: 2, name: 'Modern', icon: '✨' },
-  { id: 4, name: 'Technical', icon: '⚙️' },
-  { id: 8, name: 'Executive', icon: '💼' },
+  { id: 3, name: 'Technical', icon: '⚙️' },
+  { id: 4, name: 'Executive', icon: '💼' },
 ];
 
 function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boolean; onClick: () => void }) {
@@ -276,18 +277,55 @@ function App() {
                       key={template.id}
                       onClick={() => setTemplate(template.id)}
                       className={`
-                        p-6 rounded-xl border-4 transition-all text-center
+                        group relative flex flex-col overflow-hidden rounded-xl border-4 transition-all
                         ${resumeData.selectedTemplate === template.id
-                          ? 'border-indigo-600 bg-indigo-50 shadow-xl'
+                          ? 'border-indigo-600 ring-4 ring-indigo-600/20'
                           : darkMode
-                            ? 'border-gray-600 bg-black hover:border-indigo-300 hover:shadow-lg'
-                            : 'border-slate-300 bg-white hover:border-indigo-300 hover:shadow-lg'
+                            ? 'border-gray-600 bg-black hover:border-indigo-400'
+                            : 'border-slate-300 bg-white hover:border-indigo-400'
                         }
                       `}
                     >
-                      <div className="text-5xl mb-2">{template.icon}</div>
-                      <div className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-black'}`}>{template.name}</div>
-                      <div className={`text-sm font-semibold mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>Template {template.id}</div>
+                      {/* Real-Time Template Preview */}
+                      <div className="aspect-[3/4] overflow-hidden bg-white border-b-2 border-slate-200 dark:border-gray-800">
+                        <TemplateThumbnail templateId={template.id} />
+
+                        {/* Subtle selection ring instead of full overlay */}
+                        {resumeData.selectedTemplate === template.id && (
+                          <div className="absolute inset-0 border-8 border-indigo-600/30 pointer-events-none"></div>
+                        )}
+                      </div>
+
+                      {/* Info Footer */}
+                      <div className={`
+                        p-4 text-left transition-colors relative
+                        ${resumeData.selectedTemplate === template.id
+                          ? 'bg-indigo-600'
+                          : darkMode
+                            ? 'bg-black'
+                            : 'bg-white'
+                        }
+                      `}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`font-bold text-lg leading-tight ${resumeData.selectedTemplate === template.id ? 'text-white' : darkMode ? 'text-white' : 'text-black'
+                              }`}>
+                              {template.name}
+                            </div>
+                            <div className={`text-xs font-bold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id ? 'text-indigo-100' : darkMode ? 'text-gray-400' : 'text-slate-500'
+                              }`}>
+                              TEMPLATE 0{template.id}
+                            </div>
+                          </div>
+
+                          {/* Selected Checkmark */}
+                          {resumeData.selectedTemplate === template.id && (
+                            <div className="bg-white text-indigo-600 rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+                              <span className="text-sm font-bold">✓</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </button>
                   ))}
                 </div>

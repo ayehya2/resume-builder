@@ -45,14 +45,15 @@ export function ClassicTemplate() {
             {sections.map((sectionKey) => {
                 if (sectionKey === 'education' && education.length > 0) {
                     return (
-                        <div key="education" style={{ marginBottom: '12pt' }}>
+                        <div key="education" style={{ marginBottom: '12pt', textAlign: 'left' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
-                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
+                                textAlign: 'left'
                             }}>
                                 EDUCATION
                             </h2>
@@ -72,14 +73,15 @@ export function ClassicTemplate() {
 
                 if (sectionKey === 'work' && work.length > 0) {
                     return (
-                        <div key="work" style={{ marginBottom: '12pt' }}>
+                        <div key="work" style={{ marginBottom: '12pt', textAlign: 'left' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
-                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
+                                textAlign: 'left'
                             }}>
                                 EXPERIENCE
                             </h2>
@@ -94,11 +96,14 @@ export function ClassicTemplate() {
                                         {job.location && `, ${job.location}`}
                                     </div>
                                     {job.bullets && job.bullets.length > 0 && (
-                                        <div style={{ margin: '2pt 0 0 0', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {job.bullets.map((bullet, i) => (
-                                                <div key={i} style={{ margin: '1pt 0' }}>{bulletSymbol} {bullet}</div>
+                                        <ul className="list-none" style={{ margin: '2pt 0 0 0', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
+                                            {job.bullets.map((line, i) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5" style={{ color: '#000000' }}>
+                                                    <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
+                                                    <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                                                </li>
                                             ))}
-                                        </div>
+                                        </ul>
                                     )}
                                 </div>
                             ))}
@@ -108,19 +113,20 @@ export function ClassicTemplate() {
 
                 if (sectionKey === 'skills' && skills.length > 0) {
                     return (
-                        <div key="skills" style={{ marginBottom: '12pt' }}>
+                        <div key="skills" style={{ marginBottom: '12pt', textAlign: 'left' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
-                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
+                                textAlign: 'left'
                             }}>
                                 SKILLS
                             </h2>
                             {skills.map((skillGroup, idx) => (
-                                <div key={idx} style={{ margin: '2pt 0' }}>
+                                <div key={idx} style={{ margin: '2pt 0', color: '#000000' }}>
                                     <span style={{ fontWeight: 'bold' }}>{skillGroup.category}: </span>
                                     <span>{skillGroup.items.join(', ')}</span>
                                 </div>
@@ -131,43 +137,44 @@ export function ClassicTemplate() {
 
                 if (sectionKey === 'projects' && projects.length > 0) {
                     return (
-                        <div key="projects" style={{ marginBottom: '12pt' }}>
+                        <div key="projects" style={{ marginBottom: '12pt', textAlign: 'left' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
-                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
+                                textAlign: 'left'
                             }}>
                                 PROJECTS
                             </h2>
                             {projects.map((project, idx) => (
                                 <div key={idx} style={{ marginBottom: '6pt' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', color: '#000000' }}>
                                         <span>
                                             {project.name}
                                             {project.url && (
-                                                <span>
-                                                    {' '}•{' '}
-                                                    <a href={project.url} target="_blank" rel="noopener noreferrer" style={{ color: '#0000EE', textDecoration: 'underline', fontWeight: 'normal' }}>
-                                                        {project.urlName || 'Link'}
-                                                    </a>
-                                                </span>
+                                                <a href={project.url} target="_blank" rel="noopener noreferrer" className="ml-2 hover:underline font-normal text-xs" style={{ color: colorValue }}>
+                                                    [{project.urlName || 'Link'}]
+                                                </a>
                                             )}
                                         </span>
                                         {project.keywords && project.keywords.length > 0 && (
-                                            <span style={{ fontWeight: 'normal', fontStyle: 'italic' }}>
+                                            <span style={{ fontWeight: 'normal', fontStyle: 'italic', fontSize: '9pt', opacity: 0.7 }}>
                                                 {project.keywords.join(', ')}
                                             </span>
                                         )}
                                     </div>
                                     {project.bullets && project.bullets.length > 0 && (
-                                        <div style={{ margin: '2pt 0 0 0', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {project.bullets.map((bullet, i) => (
-                                                <div key={i} style={{ margin: '1pt 0' }}>{bulletSymbol} {bullet}</div>
+                                        <ul className="list-none" style={{ margin: '2pt 0 0 0', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
+                                            {project.bullets.map((line, i) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5" style={{ color: '#000000' }}>
+                                                    <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
+                                                    <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                                                </li>
                                             ))}
-                                        </div>
+                                        </ul>
                                     )}
                                 </div>
                             ))}
@@ -177,19 +184,20 @@ export function ClassicTemplate() {
 
                 if (sectionKey === 'awards' && awards.length > 0) {
                     return (
-                        <div key="awards" style={{ marginBottom: '12pt' }}>
+                        <div key="awards" style={{ marginBottom: '12pt', textAlign: 'left' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
-                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
+                                textAlign: 'left'
                             }}>
                                 AWARDS
                             </h2>
                             {awards.map((award, idx) => (
-                                <div key={idx} style={{ margin: '2pt 0' }}>
+                                <div key={idx} style={{ margin: '2pt 0', color: '#000000' }}>
                                     <span style={{ fontWeight: 'bold' }}>{award.title}</span>
                                     {award.date && <span> • {award.date}</span>}
                                     {award.awarder && <span style={{ fontStyle: 'italic' }}> ({award.awarder})</span>}

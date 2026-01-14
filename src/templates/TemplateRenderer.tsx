@@ -14,9 +14,9 @@ export function TemplateRenderer({ templateId }: TemplateRendererProps) {
             return <ClassicTemplate />;
         case 2:
             return <ModernTemplate />;
-        case 4:
+        case 3:
             return <TechnicalTemplate />;
-        case 8:
+        case 4:
             return <ExecutiveTemplate />;
         default:
             return <ClassicTemplate />;
