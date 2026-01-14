@@ -12,15 +12,19 @@
                 <div class="form-group">
                     <label class="form-label">Keywords</label>
                     <div class="skill-keywords-container">
+                        <!-- Pills will be inserted here -->
                         <div class="skill-keyword-item">
                             <input type="text" class="glass-input skill-keyword-input" name="skill-keyword"
-                                placeholder="Add a skill...">
-                            <button type="button" class="remove-skill-keyword-btn">×</button>
+                                value="Example" placeholder="Skill">
+                            <button type="button" class="remove-skill-keyword-btn"><i class="fas fa-times"></i></button>
+                        </div>
+
+                        <!-- The 'Add New' Input acts as a pill creation trigger -->
+                        <div class="new-keyword-input-wrapper">
+                            <input type="text" class="glass-input new-skill-keyword" placeholder="+ Add skill..."
+                                style="height: 32px; font-size: 0.85rem; padding: 4px 8px;">
                         </div>
                     </div>
-                    <button type="button" class="add-skill-keyword-btn">
-                        <i class="fas fa-plus"></i> Add keyword
-                    </button>
                 </div>
             </div>
         </div>

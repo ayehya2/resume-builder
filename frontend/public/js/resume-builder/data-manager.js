@@ -195,25 +195,36 @@ const DataManager = {
     },
 
     /**
-     * Helper to add a website entry
+     * Helper to add a website entry (Compact Row)
      */
     addWebsiteEntry: function (data = {}) {
         const list = document.getElementById('websitesList');
         const template = `
-            <div class="dynamic-section website-item">
-                <button type="button" class="remove-button">Remove</button>
+            <div class="website-item-row mb-3 position-relative">
+                <button type="button" class="remove-button" style="top: 0; right: 0;">Remove</button>
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group mb-0">
                         <label class="form-label">URL</label>
-                        <input type="url" class="glass-input website-url" value="${data.url || ''}" placeholder="https://johndoe.com">
+                        <input type="url" class="glass-input website-url" name="website-url" value="${data.url || ''}" placeholder="https://johndoe.com">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group mb-0">
                         <label class="form-label">Display Name</label>
-                        <input type="text" class="glass-input website-name" value="${data.name || ''}" placeholder="Portfolio">
+                        <input type="text" class="glass-input website-name" name="website-name" value="${data.name || ''}" placeholder="Portfolio">
                     </div>
                 </div>
             </div>`;
         list.insertAdjacentHTML('beforeend', template);
+
+        // Re-attach listeners to new Remove button
+        // Note: The main app logic usually delegates formatting, but simple inline listener helps here if not delegated
+        const newItem = list.lastElementChild;
+        const removeBtn = newItem.querySelector('.remove-button');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function () {
+                newItem.remove();
+                if (window.PreviewManager) window.PreviewManager.debouncedUpdatePreview();
+            });
+        }
     },
 
     /**
@@ -246,8 +257,14 @@ const DataManager = {
         const bulletContainers = newItem.querySelectorAll('.bullet-points-container, .skill-keywords-container');
         bulletContainers.forEach(container => {
             const items = container.children;
-            for (let i = items.length - 1; i > 0; i--) {
-                items[i].remove();
+            for (let i = items.length - 1; i >= 0; i--) {
+                // Keep the first input/item structure but clear value 
+                if (i === 0) {
+                    const firstInput = items[i].querySelector('input');
+                    if (firstInput) firstInput.value = '';
+                } else {
+                    items[i].remove();
+                }
             }
         });
 
@@ -261,6 +278,8 @@ const DataManager = {
 
         // Trigger UI updates
         this.triggerPreviewUpdate();
+
+        // Re-attach listeners if needed (Delegate usually handles this in ui-manager.js)
 
         return newItem;
     },
@@ -279,11 +298,24 @@ const DataManager = {
                     if (inputs[idx]) inputs[idx].value = bullet;
                 });
             } else if (key === 'keywords' && Array.isArray(value)) {
-                const addKeywordBtn = element.querySelector('.add-skill-keyword-btn');
-                value.forEach((keyword, idx) => {
-                    if (idx > 0 && addKeywordBtn) addKeywordBtn.click();
-                    const inputs = element.querySelectorAll('.skill-keyword-input');
-                    if (inputs[idx]) inputs[idx].value = keyword;
+                // Handle Skills Pills Population
+                const container = element.querySelector('.skill-keywords-container');
+                const wrapper = element.querySelector('.new-keyword-input-wrapper');
+
+                // Clear existing pills (all children except the wrapper)
+                const existingPills = container.querySelectorAll('.skill-keyword-item');
+                existingPills.forEach(p => p.remove());
+
+                // Create new pills from data
+                value.forEach(keyword => {
+                    if (!keyword) return;
+                    const pill = document.createElement('div');
+                    pill.className = 'skill-keyword-item';
+                    pill.innerHTML = `
+                         <input type="text" class="glass-input skill-keyword-input" name="skill-keyword" value="${keyword}" style="width: ${keyword.length + 1}ch">
+                         <button type="button" class="remove-skill-keyword-btn"><i class="fas fa-times"></i></button>
+                    `;
+                    container.insertBefore(pill, wrapper);
                 });
             } else {
                 const input = element.querySelector(`.${section}-${key}`) || element.querySelector(`[name="${key}"]`);

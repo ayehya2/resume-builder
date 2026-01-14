@@ -217,13 +217,14 @@ async function run() {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Generate previews for templates 1-4
-    for (let i = 1; i <= 9; i++) {
-        console.log(`Generating preview for template ${i}...`);
-        const html = generateHTML(mockData, i);
+    // Generate previews for templates 1, 2, 4, 8
+    const templateIds = [1, 2, 4, 8];
+    for (const templateId of templateIds) {
+        console.log(`Generating preview for template ${templateId}...`);
+        const html = generateHTML(mockData, templateId);
         await page.setContent(html);
         await page.screenshot({
-            path: path.join(outputDir, `template${i}.jpg`),
+            path: path.join(outputDir, `template${templateId}.jpg`),
             type: 'jpeg',
             quality: 80
         });

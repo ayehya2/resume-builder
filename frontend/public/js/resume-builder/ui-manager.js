@@ -8,10 +8,12 @@ const UIManager = {
         this.initializeSidebarNav();
         this.initializeTemplateSelection();
         this.initializeUpdatePreviewBtn();
+        this.initializeThemeToggle();
         this.initializeMobileNav();
         this.initializeLogout();
         this.initializeNotifications();
         this.initializeDynamicSections();
+        this.initializeDragAndDrop(); // Restore Drag & Drop
 
         // Activate initial section
         const activeItem = document.querySelector('.sidebar-nav-item.active');
@@ -78,6 +80,30 @@ const UIManager = {
         }
     },
 
+
+    initializeThemeToggle: function () {
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                const isDark = document.body.classList.toggle('theme-dark');
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+                const icon = btn.querySelector('i');
+                const text = btn.querySelector('span');
+                if (icon) icon.className = isDark ? 'fas fa-sun me-1' : 'fas fa-moon me-1';
+                if (text) text.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+            });
+
+            // Set initial state
+            if (document.body.classList.contains('theme-dark')) {
+                const icon = btn.querySelector('i');
+                const text = btn.querySelector('span');
+                if (icon) icon.className = 'fas fa-sun me-1';
+                if (text) text.textContent = 'Light Mode';
+            }
+        }
+    },
 
     initializeMobileNav: function () {
         const toggle = document.getElementById('mobileMenuToggle');
@@ -188,12 +214,10 @@ const UIManager = {
                 const section = e.target.closest('.dynamic-section');
                 if (section) {
                     const list = section.parentElement;
-                    // Keep at least one entry if desired, or just remove
                     if (list.querySelectorAll('.dynamic-section').length > 1) {
                         section.remove();
                         window.DataManager.triggerPreviewUpdate();
                     } else {
-                        // Just clear inputs if it's the last one
                         section.querySelectorAll('input, textarea').forEach(i => i.value = '');
                         window.DataManager.triggerPreviewUpdate();
                     }
@@ -201,31 +225,149 @@ const UIManager = {
             }
         });
 
-        // Handle nested dynamic items (bullets, keywords)
+        // Handle Bullet Points (Projects/Work)
         document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.add-bullet-btn, .add-skill-keyword-btn');
+            const btn = e.target.closest('.add-bullet-btn');
             if (btn) {
                 const container = btn.previousElementSibling;
                 if (!container) return;
 
-                const isSkill = btn.classList.contains('add-skill-keyword-btn');
-                const className = isSkill ? 'skill-keyword-input' : 'bullet-point-input';
-                const placeholder = isSkill ? 'e.g. JavaScript' : 'Achievement or responsibility...';
-
                 const wrapper = document.createElement('div');
-                wrapper.className = 'd-flex gap-2 mb-2';
+                wrapper.className = 'd-flex gap-2 mb-2 bullet-point-item';
                 wrapper.innerHTML = `
-                    <input type="text" class="glass-input ${className}" placeholder="${placeholder}">
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-nested-btn"><i class="fas fa-times"></i></button>
+                    <input type="text" class="glass-input bullet-point-input" placeholder="Achievement or responsibility...">
+                    <button type="button" class="remove-bullet-btn"><i class="fas fa-times"></i></button>
                 `;
                 container.appendChild(wrapper);
             }
 
-            if (e.target.closest('.remove-nested-btn')) {
-                e.target.closest('div').remove();
+            if (e.target.closest('.remove-bullet-btn')) {
+                const item = e.target.closest('.bullet-point-item');
+                if (item) item.remove();
                 window.DataManager.triggerPreviewUpdate();
             }
         });
+
+        // Handle Skill Pills Interaction
+
+        // 1. Add Pill on Enter or Tab
+        document.addEventListener('keydown', (e) => {
+            if (e.target.classList.contains('new-skill-keyword')) {
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                    e.preventDefault();
+                    addSkillPill(e.target);
+                }
+            }
+        });
+
+        // 2. Remove Pill
+        document.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.remove-skill-keyword-btn');
+            if (removeBtn) {
+                const pill = removeBtn.closest('.skill-keyword-item');
+                if (pill) {
+                    pill.remove();
+                    window.DataManager.triggerPreviewUpdate();
+                }
+            }
+        });
+
+        function addSkillPill(input) {
+            const value = input.value.trim();
+            if (!value) return;
+
+            const container = input.closest('.skill-keywords-container');
+            const wrapper = input.closest('.new-keyword-input-wrapper');
+
+            const pill = document.createElement('div');
+            pill.className = 'skill-keyword-item';
+            pill.innerHTML = `
+                 <input type="text" class="glass-input skill-keyword-input" name="skill-keyword" value="${value}" style="width: ${value.length + 1}ch">
+                 <button type="button" class="remove-skill-keyword-btn"><i class="fas fa-times"></i></button>
+            `;
+
+            // Insert before the input wrapper
+            container.insertBefore(pill, wrapper);
+
+            // Clear input
+            input.value = '';
+            window.DataManager.triggerPreviewUpdate();
+        }
+    },
+    initializeDragAndDrop: function () {
+        const nav = document.getElementById('nav-sections');
+        if (!nav) return;
+
+        let draggedItem = null;
+        const items = nav.querySelectorAll('.draggable-section');
+
+        items.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                draggedItem = item;
+                setTimeout(() => item.classList.add('dragging'), 0);
+                // Set data for transfer
+                e.dataTransfer.effectAllowed = 'move';
+                // e.dataTransfer.setData('text/html', item.outerHTML); // Not strictly needed for sorting
+            });
+
+            item.addEventListener('dragend', () => {
+                draggedItem = null;
+                item.classList.remove('dragging');
+
+                // Update order in DataManager/Window
+                this.updateSectionOrder();
+            });
+
+            // Required for drop to work
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+
+                const sortableList = document.getElementById('nav-sections');
+                const draggingItem = sortableList.querySelector('.dragging');
+
+                // Find immediate siblings only (don't drag into non-draggable areas)
+                const siblings = [...sortableList.querySelectorAll('.draggable-section:not(.dragging)')];
+
+                const nextSibling = siblings.find(sibling => {
+                    return e.clientY <= sibling.getBoundingClientRect().top + sibling.getBoundingClientRect().height / 2;
+                });
+
+                if (nextSibling) {
+                    sortableList.insertBefore(draggingItem, nextSibling);
+                } else {
+                    // Check if we should append after the last draggable item
+                    const lastDraggable = siblings[siblings.length - 1];
+                    if (lastDraggable) {
+                        sortableList.insertBefore(draggingItem, lastDraggable.nextSibling);
+                    }
+                }
+            });
+        });
+    },
+
+    updateSectionOrder: function () {
+        // Collect current order of sections
+        const sections = [];
+        const navItems = document.querySelectorAll('.nav-sections .sidebar-nav-item');
+
+        // Always keep fixed items at top (Profile, Formatting, Templates) if they exist
+        // But for the resume rendering order, we usually only care about the draggable ones + Profile?
+        // Let's grab all section IDs in current DOM order
+        navItems.forEach(item => {
+            const section = item.dataset.section;
+            if (section && section !== 'templates' && section !== 'formatting') {
+                sections.push(section);
+            }
+        });
+
+        console.log('New Section Order:', sections);
+        window.sectionOrder = sections; // Store for DataManager
+
+        // Trigger generic preview update
+        if (window.DataManager) {
+            window.DataManager.triggerPreviewUpdate();
+        }
     }
 };
 

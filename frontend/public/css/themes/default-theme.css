@@ -1,239 +1,172 @@
-/* TalentScope - Default Theme (with gradient background) */
+/* TalentScope - Professional Light Theme */
 
-/* Default Theme Specific Styles */
+/* Clean, high-contrast light theme variables are inherited from root/defaults */
+/* This file overrides the purple/gradient mess with solid professional colors */
 
-/* Animated Gradient Background - Default Theme Only */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: 
-        radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.15) 0%, rgba(124, 58, 237, 0.05) 35%, transparent 70%),
-        radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0.04) 35%, transparent 70%),
-        radial-gradient(circle at 40% 90%, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 40%, transparent 70%),
-        radial-gradient(circle at 90% 10%, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.03) 40%, transparent 70%),
-        radial-gradient(circle at 10% 70%, rgba(124, 58, 237, 0.08) 0%, rgba(124, 58, 237, 0.02) 50%, transparent 80%);
-    z-index: -3;
-    animation: subtleBreathing 20s ease-in-out infinite alternate;
+/* Background - Solid Light Gray/White */
+body {
+    background-color: #f8f9fa;
+    color: #212529;
 }
 
+/* Remove all animated backgrounds */
+body::before,
 body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: 
-        rgba(0, 0, 0, 0.25),
-        linear-gradient(135deg, rgba(124, 58, 237, 0.03) 0%, transparent 30%),
-        linear-gradient(-45deg, rgba(6, 182, 212, 0.03) 0%, transparent 30%),
-        linear-gradient(45deg, rgba(245, 158, 11, 0.02) 70%, transparent 100%);
-    z-index: -2;
-    animation: subtleShift 30s ease-in-out infinite alternate;
+    display: none !important;
 }
 
-@keyframes subtleBreathing {
-    0% { opacity: 0.8; }
-    100% { opacity: 1; }
+/* Navbar/Sidebar - Professional Dark Blue or Solid White */
+/* Using a clean dark sidebar for contrast in light mode */
+.resume-sidebar {
+    background: #1a1f2c;
+    /* Dark Slate Blue */
+    border-right: 1px solid #2d3748;
 }
 
-@keyframes subtleShift {
-    0% { opacity: 0.6; }
-    100% { opacity: 0.8; }
+/* Navbar (if present anywhere) */
+.navbar {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-/* Default Theme Navbar Only - Purple Theme Color */
-body:not(.theme-dark) .navbar {
-    background: rgba(33, 31, 50, 0.9) !important;
-}
-
-body:not(.theme-dark) .navbar.scrolled {
-    background: rgba(33, 31, 50, 0.95) !important;
-}
-
-/* Default Theme Navigation */
 .navbar-brand {
-    color: var(--text-primary);
-    font-weight: 700;
-    font-size: 1.5rem;
-    text-decoration: none;
-    transition: all 0.25s ease-out;
-}
-
-.navbar-brand:hover {
-    color: var(--primary-light);
-    transform: translateY(-2px);
-}
-
-.brand-logo {
-    display: flex;
-    align-items: center;
-    font-weight: 800;
-    font-size: 1.75rem;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-decoration: none;
-    transition: all 0.25s ease-out;
-    gap: 0.5rem;
-}
-
-.brand-logo:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
+    color: #1a202c !important;
 }
 
 .brand-text {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    font-family: 'Inter', 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1.5rem;
+    background: none;
+    -webkit-text-fill-color: #1a202c;
+    color: #1a202c;
 }
 
-body:not(.theme-dark) .navbar-nav .nav-link {
-    color: var(--text-secondary);
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin: 0 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 12px;
-    transition: all 0.25s ease-out;
-    position: relative;
-    overflow: hidden;
+/* Links and Buttons */
+.nav-link {
+    color: #4a5568 !important;
 }
 
-body:not(.theme-dark) .navbar-nav .nav-link::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
-    transition: left 0.4s ease-out;
+.nav-link:hover {
+    color: #2b6cb0 !important;
+    /* Professional Blue */
 }
 
-body:not(.theme-dark) .navbar-nav .nav-link:hover {
-    color: var(--text-primary);
-    background: var(--interactive-hover);
-    transform: translateY(-2px);
+/* Make buttons standard professional blue */
+.make-button,
+.btn-primary {
+    background: #3182ce !important;
+    /* Solid Blue */
+    background-image: none !important;
+    /* Remove gradients */
+    border: none;
+    box-shadow: 0 2px 4px rgba(49, 130, 206, 0.3);
 }
 
-body:not(.theme-dark) .navbar-nav .nav-link:hover::before {
-    left: 100%;
-}
-
-body:not(.theme-dark) .navbar-nav .nav-link.active {
-    color: white;
-    background: var(--btn-primary-bg);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+.make-button:hover,
+.btn-primary:hover {
+    background: #2c5282 !important;
+    /* Darker Blue */
     transform: translateY(-1px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
 }
 
-/* Default Theme Profile Username Visibility Enhancement */
-body:not(.theme-dark) .profile-name {
-    color: rgba(255, 255, 255, 0.95) !important;
-    font-weight: 600;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+/* Inputs - Clean borders */
+.glass-input,
+.form-control,
+.form-select {
+    background: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    /* Gray-300 */
+    color: #374151 !important;
+    /* Gray-700 */
+    border-radius: 6px;
 }
 
-body:not(.theme-dark) .profile-avatar {
-    color: rgba(255, 255, 255, 0.9) !important;
+.glass-input::placeholder,
+.form-control::placeholder {
+    color: #9ca3af !important;
+    /* Gray-400 */
+    opacity: 1;
 }
 
-body:not(.theme-dark) .nav-link.dropdown-toggle::after {
-    color: rgba(255, 255, 255, 0.8) !important;
+.glass-input:focus,
+.form-control:focus {
+    border-color: #3b82f6 !important;
+    /* Blue-500 */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
 }
 
-body:not(.theme-dark) #profileDropdown:hover .profile-name {
-    color: rgba(255, 255, 255, 1) !important;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+/* Sidebar Nav Items */
+.sidebar-nav-item {
+    color: #cbd5e0;
+    border-left: 3px solid transparent;
 }
 
-body:not(.theme-dark) #profileDropdown:hover .profile-avatar {
-    color: rgba(255, 255, 255, 1) !important;
+.sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
 }
 
-/* Default Theme PDF Viewer */
-body:not(.theme-dark) .pdf-viewer-container {
-    background: var(--glass-bg-tertiary);
-    border: 1px solid var(--glass-border-primary);
+.sidebar-nav-item.active {
+    background: rgba(49, 130, 206, 0.15);
+    /* Subtle Blue Tint */
+    color: #63b3ed;
+    /* Light Blue */
+    border-left: 3px solid #63b3ed;
 }
 
-body:not(.theme-dark) .pdf-toolbar {
-    background: var(--glass-bg-primary);
-    backdrop-filter: var(--glass-blur-xl);
-    -webkit-backdrop-filter: var(--glass-blur-xl);
-    border-bottom: 1px solid var(--glass-border-primary);
+/* PDF Viewer Container */
+.pdf-viewer-container {
+    background: #edf2f7;
+    /* Light Gray */
+    border: 1px solid #e2e8f0;
 }
 
-body:not(.theme-dark) .pdf-btn {
-    background: var(--glass-bg-secondary);
-    border: 1px solid var(--glass-border-secondary);
-    color: var(--glass-text-primary);
+.pdf-toolbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    color: #2d3748;
 }
 
-body:not(.theme-dark) .pdf-btn:hover {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
-    color: var(--glass-text-primary);
+.pdf-btn {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #4a5568;
 }
 
-body:not(.theme-dark) .pdf-filename-input {
-    background: var(--glass-bg-secondary);
-    border: 1px solid var(--glass-border-secondary);
-    color: var(--glass-text-primary);
+.pdf-btn:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+    color: #2d3748;
 }
 
-body:not(.theme-dark) .pdf-filename-input:focus {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-focus-border);
-    color: var(--glass-text-primary);
-    box-shadow: 0 0 0 2px var(--glass-focus-ring);
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.main-title,
+.section-title {
+    color: #1a202c;
+    text-transform: none;
+    /* Remove forced uppercase if any */
 }
 
-body:not(.theme-dark) .pdf-page-info {
-    color: var(--glass-text-primary);
+/* Cards */
+.card,
+.glass-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-body:not(.theme-dark) .pdf-canvas-container {
-    /* background: #f5f5f5; */
+/* Dynamic Section Items */
+.dynamic-section {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
 }
 
-body:not(.theme-dark) .pdf-canvas {
-    background: white;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-/* Dashboard Select Elements - Match Resume Builder Styling */
-body:not(.theme-dark) .dashboard-container .form-select,
-body:not(.theme-dark) .dashboard-container .dashboard-select {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    color: white !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-}
-
-body:not(.theme-dark) .dashboard-container .form-select:focus,
-body:not(.theme-dark) .dashboard-container .dashboard-select:focus {
-    background: rgba(255, 255, 255, 0.25) !important;
-    border-color: rgba(124, 58, 237, 0.5) !important;
-    box-shadow: 0 0 0 0.2rem rgba(124, 58, 237, 0.25) !important;
-    color: white !important;
-}
-
-body:not(.theme-dark) .dashboard-container .form-select option,
-body:not(.theme-dark) .dashboard-container .dashboard-select option {
-    background: #1a1a2e !important;
-    color: white !important;
+/* Remove text shadows */
+* {
+    text-shadow: none !important;
 }

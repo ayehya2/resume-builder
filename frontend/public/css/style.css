@@ -22,8 +22,6 @@
 /* Theme Styles (Load Last) */
 @import url('./themes/default-theme.css');
 @import url('./themes/dark-theme.css');
-@import url('./themes/themes.css');
-@import url('./themes/toggle/toggle.css');
 
 /* Utility Styles */
 @import url('./utilities/utilities.css');
