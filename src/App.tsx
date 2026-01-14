@@ -211,7 +211,7 @@ function App() {
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4',
+        format: 'letter',
       });
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
