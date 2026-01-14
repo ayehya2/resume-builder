@@ -160,9 +160,10 @@ const PreviewManager = {
                             <button class="pdf-btn" id="nextPage"><i class="fas fa-chevron-right"></i></button>
                         </div>
                         <div class="pdf-controls">
-                            <button class="pdf-btn" id="zoomOut"><i class="fas fa-search-minus"></i></button>
-                            <button class="pdf-btn" id="zoomIn"><i class="fas fa-search-plus"></i></button>
-                            <button class="pdf-btn" id="downloadPdf" style="background: #e74c3c !important;"><i class="fas fa-file-pdf me-1"></i>PDF</button>
+                            <button class="pdf-btn" id="zoomOut" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                            <button class="pdf-btn" id="zoomIn" title="Zoom Plus"><i class="fas fa-search-plus"></i></button>
+                            <button class="pdf-btn" id="downloadTex" title="Download LaTeX Source" style="background: #34495e !important;"><i class="fas fa-code me-1"></i>TeX</button>
+                            <button class="pdf-btn" id="downloadPdf" title="Download PDF" style="background: #e74c3c !important;"><i class="fas fa-file-pdf me-1"></i>PDF</button>
                         </div>
                     </div>
                     <div class="pdf-canvas-container">
@@ -210,6 +211,33 @@ const PreviewManager = {
                 a.download = 'resume.pdf';
                 a.click();
                 setTimeout(() => URL.revokeObjectURL(url), 1000);
+            });
+
+            document.getElementById('downloadTex').addEventListener('click', async () => {
+                try {
+                    const resumeData = window.DataManager.collectResumeData();
+                    const response = await fetch('/api/generate-resume-tex', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(resumeData)
+                    });
+
+                    if (response.ok) {
+                        const texSource = await response.text();
+                        const blob = new Blob([texSource], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'resume.tex';
+                        a.click();
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    } else {
+                        alert('Failed to generate LaTeX source.');
+                    }
+                } catch (error) {
+                    console.error('TeX Download Error:', error);
+                    alert('Error downloading LaTeX source.');
+                }
             });
 
             await renderPage(currentPage);

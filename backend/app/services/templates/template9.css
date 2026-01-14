@@ -1,0 +1,42 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+.header {
+    background: #2d3436;
+    color: #fff;
+    padding: 40px 30px;
+    margin-bottom: 30px;
+}
+
+.name {
+    font-size: 28pt;
+    font-weight: 700;
+    color: #fff;
+}
+
+.contact {
+    font-size: 10pt;
+    color: #dfe6e9;
+}
+
+.section {
+    padding: 0 30px;
+    margin: 25px 0;
+}
+
+.section-title {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #2d3436;
+    border-bottom: 2px solid #2d3436;
+    padding-bottom: 3px;
+    margin-bottom: 15px;
+}
+
+.company {
+    color: #2d3436;
+}

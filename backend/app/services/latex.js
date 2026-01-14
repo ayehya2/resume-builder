@@ -22,84 +22,84 @@ const HTML_TEMPLATE_CACHE = new Map();
 
 // Clean up stale PDF generations and cache periodically
 setInterval(() => {
-    const now = Date.now();
+  const now = Date.now();
 
-    // Clean up stale PDF generations
-    for (const [userId, timestamp] of activePdfGenerations.entries()) {
-        if (now - timestamp > config.PDF_STALE_TIMEOUT) {
-            console.log(`⚠️ Cleaning up stale PDF generation for user: ${userId}`);
-            activePdfGenerations.delete(userId);
-        }
+  // Clean up stale PDF generations
+  for (const [userId, timestamp] of activePdfGenerations.entries()) {
+    if (now - timestamp > config.PDF_STALE_TIMEOUT) {
+      console.log(`⚠️ Cleaning up stale PDF generation for user: ${userId}`);
+      activePdfGenerations.delete(userId);
     }
+  }
 
-    // Clean up expired cache entries
-    for (const [key, { timestamp }] of PDF_GENERATION_CACHE.entries()) {
-        if (now - timestamp > CACHE_DURATION) {
-            PDF_GENERATION_CACHE.delete(key);
-        }
+  // Clean up expired cache entries
+  for (const [key, { timestamp }] of PDF_GENERATION_CACHE.entries()) {
+    if (now - timestamp > CACHE_DURATION) {
+      PDF_GENERATION_CACHE.delete(key);
     }
+  }
 
-    // Clean up HTML template cache
-    for (const [key, { timestamp }] of HTML_TEMPLATE_CACHE.entries()) {
-        if (now - timestamp > CACHE_DURATION) {
-            HTML_TEMPLATE_CACHE.delete(key);
-        }
+  // Clean up HTML template cache
+  for (const [key, { timestamp }] of HTML_TEMPLATE_CACHE.entries()) {
+    if (now - timestamp > CACHE_DURATION) {
+      HTML_TEMPLATE_CACHE.delete(key);
     }
+  }
 }, config.PDF_CLEANUP_INTERVAL);
 
 // Graceful shutdown handler
 process.on('SIGTERM', async () => {
-    console.log('🔄 Shutting down gracefully...');
-    isShuttingDown = true;
-    await closeBrowserPool();
-    process.exit(0);
+  console.log('🔄 Shutting down gracefully...');
+  isShuttingDown = true;
+  await closeBrowserPool();
+  process.exit(0);
 });
 
 process.on('SIGINT', async () => {
-    console.log('🔄 Shutting down gracefully...');
-    isShuttingDown = true;
-    await closeBrowserPool();
-    process.exit(0);
+  console.log('🔄 Shutting down gracefully...');
+  isShuttingDown = true;
+  await closeBrowserPool();
+  process.exit(0);
 });
 
 // Helper function to format bullet points into HTML
 function formatBulletPoints(description) {
-    console.log('🔧 formatBulletPoints input:', JSON.stringify(description));
-    
-    if (!description) return '';
-    
-    // Split by newlines and process each line
-    const lines = description.split('\n').map(line => line.trim()).filter(line => line);
-    console.log('🔧 Split lines:', lines);
-    
-    if (lines.length === 0) return '';
-    
-    // Check if this looks like bullet points (starts with • or has multiple lines)
-    const hasBulletPoints = lines.some(line => line.startsWith('•')) || lines.length > 1;
-    console.log('🔧 Has bullet points:', hasBulletPoints);
-    
-    if (hasBulletPoints) {
-        // Convert to HTML list
-        const listItems = lines.map(line => {
-            // Remove leading bullet if present
-            const cleanLine = line.replace(/^[•\-\*]\s*/, '');
-            return `<li>${cleanLine}</li>`;
-        }).join('');
-        
-        const result = `<ul>${listItems}</ul>`;
-        console.log('🔧 formatBulletPoints result:', result);
-        return result;
-    } else {
-        // Single line, just return as is
-        console.log('🔧 Single line, returning as is:', description);
-        return description;
-    }
+  console.log('🔧 formatBulletPoints input:', JSON.stringify(description));
+
+  if (!description) return '';
+
+  // Split by newlines and process each line
+  const lines = description.split('\n').map(line => line.trim()).filter(line => line);
+  console.log('🔧 Split lines:', lines);
+
+  if (lines.length === 0) return '';
+
+  // Check if this looks like bullet points (starts with • or has multiple lines)
+  const hasBulletPoints = lines.some(line => line.startsWith('•')) || lines.length > 1;
+  console.log('🔧 Has bullet points:', hasBulletPoints);
+
+  if (hasBulletPoints) {
+    // Convert to HTML list
+    const listItems = lines.map(line => {
+      // Remove leading bullet if present
+      const cleanLine = line.replace(/^[•\-\*]\s*/, '');
+      return `<li>${cleanLine}</li>`;
+    }).join('');
+
+    const result = `<ul>${listItems}</ul>`;
+    console.log('🔧 formatBulletPoints result:', result);
+    return result;
+  } else {
+    // Single line, just return as is
+    console.log('🔧 Single line, returning as is:', description);
+    return description;
+  }
 }
 
 function generateContactInfo({ email, phone, address, links }) {
   console.log('🔗 generateContactInfo received links:', links);
   const contactItems = [email, phone, address].filter(Boolean);
-  
+
   if (links && Array.isArray(links)) {
     console.log(`📎 Processing ${links.length} links for HTML...`);
     links.forEach((link, index) => {
@@ -114,14 +114,14 @@ function generateContactInfo({ email, phone, address, links }) {
   } else {
     console.log('⚠️ No links found in generateContactInfo or links is not an array');
   }
-  
+
   console.log('🔗 Final contact items:', contactItems);
   return contactItems.join(' • ');
 }
 
 function generateBasicResumeTemplate(resumeData) {
   const { name, email, phone, address, experience = [], education = [], skills = [] } = resumeData;
-  
+
   return stripIndent`
     \\documentclass{article}
     \\usepackage[utf8]{inputenc}
@@ -182,330 +182,190 @@ function generateBasicResumeTemplate(resumeData) {
 
 // Browser pool management
 async function getBrowserFromPool() {
-    if (isShuttingDown) throw new Error('Server is shutting down');
+  if (isShuttingDown) throw new Error('Server is shutting down');
 
-    // Try to get a browser from the pool
-    if (browserPool.length > 0) {
-        const browser = browserPool.pop();
-        try {
-            // Check if browser is still connected
-            await browser.version();
-            console.log('♻️ Reusing browser from pool');
-            return browser;
-        } catch (error) {
-            console.log('🗑️ Browser from pool is dead, creating new one');
-        }
+  // Try to get a browser from the pool
+  if (browserPool.length > 0) {
+    const browser = browserPool.pop();
+    try {
+      // Check if browser is still connected
+      await browser.version();
+      console.log('♻️ Reusing browser from pool');
+      return browser;
+    } catch (error) {
+      console.log('🗑️ Browser from pool is dead, creating new one');
     }
+  }
 
-    // Create new browser if pool is empty or browser is dead
-    return await createNewBrowser();
+  // Create new browser if pool is empty or browser is dead
+  return await createNewBrowser();
 }
 
 async function returnBrowserToPool(browser) {
-    if (isShuttingDown) {
-        try {
-            await browser.close();
-        } catch (e) {}
-        return;
-    }
+  if (isShuttingDown) {
+    try {
+      await browser.close();
+    } catch (e) { }
+    return;
+  }
 
-    if (browserPool.length < MAX_BROWSER_POOL_SIZE) {
-        try {
-            // Check if browser is still alive
-            await browser.version();
-            browserPool.push(browser);
-            console.log(`♻️ Browser returned to pool (${browserPool.length}/${MAX_BROWSER_POOL_SIZE})`);
-        } catch (error) {
-            console.log('🗑️ Browser is dead, not returning to pool');
-            try {
-                await browser.close();
-            } catch (e) {}
-        }
-    } else {
-        // Pool is full, close the browser
-        try {
-            await browser.close();
-            console.log('🗑️ Browser pool full, closing browser');
-        } catch (e) {}
+  if (browserPool.length < MAX_BROWSER_POOL_SIZE) {
+    try {
+      // Check if browser is still alive
+      await browser.version();
+      browserPool.push(browser);
+      console.log(`♻️ Browser returned to pool (${browserPool.length}/${MAX_BROWSER_POOL_SIZE})`);
+    } catch (error) {
+      console.log('🗑️ Browser is dead, not returning to pool');
+      try {
+        await browser.close();
+      } catch (e) { }
     }
+  } else {
+    // Pool is full, close the browser
+    try {
+      await browser.close();
+      console.log('🗑️ Browser pool full, closing browser');
+    } catch (e) { }
+  }
 }
 
 async function closeBrowserPool() {
-    console.log(`🧹 Closing browser pool (${browserPool.length} browsers)`);
-    const closePromises = browserPool.map(browser => {
-        return browser.close().catch(e => console.log('Error closing browser:', e.message));
-    });
-    await Promise.all(closePromises);
-    browserPool = [];
+  console.log(`🧹 Closing browser pool (${browserPool.length} browsers)`);
+  const closePromises = browserPool.map(browser => {
+    return browser.close().catch(e => console.log('Error closing browser:', e.message));
+  });
+  await Promise.all(closePromises);
+  browserPool = [];
 }
 
 async function createNewBrowser() {
-    const isProduction = process.env.NODE_ENV === 'production';
-    const isRender = process.env.RENDER || process.env.RENDER_SERVICE_ID;
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isRender = process.env.RENDER || process.env.RENDER_SERVICE_ID;
 
-    console.log('🚀 Creating new browser instance');
+  console.log('🚀 Creating new browser instance');
 
-    const launchOptions = {
-        headless: 'new',
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--disable-gpu',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding',
-            '--disable-features=TranslateUI',
-            '--disable-ipc-flooding-protection',
-            '--memory-pressure-off',
-            '--disable-extensions',
-            '--disable-plugins',
-            '--disable-images', // Faster loading by disabling image loading
-            '--disable-javascript', // We don't need JS for PDF generation
-            '--no-default-browser-check'
-        ]
-    };
+  const launchOptions = {
+    headless: 'new',
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--disable-gpu',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-features=TranslateUI',
+      '--disable-ipc-flooding-protection',
+      '--memory-pressure-off',
+      '--disable-extensions',
+      '--disable-plugins',
+      '--disable-images', // Faster loading by disabling image loading
+      '--disable-javascript', // We don't need JS for PDF generation
+      '--no-default-browser-check'
+    ]
+  };
 
-    // Platform-specific optimizations
-    if (process.platform !== 'win32' || isProduction || isRender) {
-        launchOptions.args.push('--single-process', '--no-zygote');
+  // Platform-specific optimizations
+  if (process.platform !== 'win32' || isProduction || isRender) {
+    launchOptions.args.push('--single-process', '--no-zygote');
+  }
+
+  // Production Chrome path detection (optimized)
+  if (isProduction || isRender) {
+    const chromePath = await findChromePath();
+    if (chromePath) {
+      launchOptions.executablePath = chromePath;
     }
+  }
 
-    // Production Chrome path detection (optimized)
-    if (isProduction || isRender) {
-        const chromePath = await findChromePath();
-        if (chromePath) {
-            launchOptions.executablePath = chromePath;
-        }
-    }
-
-    return await puppeteer.launch(launchOptions);
+  return await puppeteer.launch(launchOptions);
 }
 
 async function findChromePath() {
-    const possiblePaths = [
-        process.env.PUPPETEER_EXECUTABLE_PATH,
-        process.env.CHROME_BIN,
-        '/usr/bin/chromium-browser',
-        '/usr/bin/chromium',
-        '/usr/bin/google-chrome',
-        '/usr/bin/google-chrome-stable'
-    ].filter(Boolean);
+  const possiblePaths = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    process.env.CHROME_BIN,
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable'
+  ].filter(Boolean);
 
-    // Check project cache directory
-    const projectCacheDir = `${process.cwd()}/.puppeteer_cache`;
-    try {
-        const glob = require('glob');
-        const cachedChromes = glob.sync(`${projectCacheDir}/chrome/*/chrome-linux64/chrome`);
-        possiblePaths.unshift(...cachedChromes);
-    } catch (e) {}
+  // Check project cache directory
+  const projectCacheDir = `${process.cwd()}/.puppeteer_cache`;
+  try {
+    const glob = require('glob');
+    const cachedChromes = glob.sync(`${projectCacheDir}/chrome/*/chrome-linux64/chrome`);
+    possiblePaths.unshift(...cachedChromes);
+  } catch (e) { }
 
-    for (const path of possiblePaths) {
-        if (fs.existsSync(path)) {
-            console.log(`✅ Found Chrome at: ${path}`);
-            return path;
-        }
+  for (const path of possiblePaths) {
+    if (fs.existsSync(path)) {
+      console.log(`✅ Found Chrome at: ${path}`);
+      return path;
     }
+  }
 
-    console.log('⚠️ No Chrome found, will use default');
-    return null;
+  console.log('⚠️ No Chrome found, will use default');
+  return null;
 }
 
 // Generate cache key for PDF generation
 function generateCacheKey(resumeData) {
-    const keyData = {
-        name: resumeData.name,
-        experience: resumeData.experience,
-        education: resumeData.education,
-        skills: resumeData.skills,
-        projects: resumeData.projects,
-        awards: resumeData.awards,
-        selectedTemplate: resumeData.selectedTemplate,
-        formatting: resumeData.formatting,
-        sections: resumeData.sections // ✅ FIXED: Include sections order in cache key
-    };
-    return require('crypto').createHash('md5').update(JSON.stringify(keyData)).digest('hex');
+  const keyData = {
+    name: resumeData.name,
+    experience: resumeData.experience,
+    education: resumeData.education,
+    skills: resumeData.skills,
+    projects: resumeData.projects,
+    awards: resumeData.awards,
+    selectedTemplate: resumeData.selectedTemplate,
+    formatting: resumeData.formatting,
+    sections: resumeData.sections // ✅ FIXED: Include sections order in cache key
+  };
+  return require('crypto').createHash('md5').update(JSON.stringify(keyData)).digest('hex');
 }
 
 // Optimized HTML generation with caching
 function generateResumeHTMLCached(resumeData) {
-    const cacheKey = generateCacheKey(resumeData);
-    const cached = HTML_TEMPLATE_CACHE.get(cacheKey);
+  const cacheKey = generateCacheKey(resumeData);
+  const cached = HTML_TEMPLATE_CACHE.get(cacheKey);
 
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        console.log('📋 Using cached HTML template');
-        return cached.html;
-    }
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    console.log('📋 Using cached HTML template');
+    return cached.html;
+  }
 
-    const html = generateResumeHTML(resumeData);
-    HTML_TEMPLATE_CACHE.set(cacheKey, {
-        html,
-        timestamp: Date.now()
-    });
+  const html = generateResumeHTML(resumeData);
+  HTML_TEMPLATE_CACHE.set(cacheKey, {
+    html,
+    timestamp: Date.now()
+  });
 
-    return html;
+  return html;
 }
 
 function getTemplateStyles(templateId) {
-  switch(parseInt(templateId)) {
-    case 1: // Classic/Template 1
-      return `
-        body { font-family: 'Times New Roman', serif; margin: 0; padding: 20px; color: #000; line-height: 1.5; font-size: 11pt; -webkit-print-color-adjust: exact; color-adjust: exact; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .name { font-size: 24pt; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .contact { font-size: 10pt; margin-bottom: 3px; }
-        .section { margin: 20px 0; }
-        .section-title { 
-          font-size: 12pt; 
-          font-weight: bold; 
-          text-transform: uppercase; 
-          margin-bottom: 8px; 
-          border-bottom: 2px solid #000;
-          padding-bottom: 2px;
-          -webkit-print-color-adjust: exact;
-        }
-        .job, .edu-item { margin-bottom: 12px; }
-        .job-header, .edu-header { margin-bottom: 3px; }
-        .company, .institution { font-weight: bold; font-size: 11pt; }
-        .position, .degree { font-style: italic; }
-        .date, .location { font-size: 10pt; }
-        .skills-grid { }
-        .skill-category { font-weight: bold; display: inline; }
-        .skill-items { display: inline; margin-left: 5px; }
-      `;
-    
-    case 2: // Awesome CV
-      return `
-        body { font-family: 'Roboto', 'Source Sans Pro', sans-serif; margin: 0; padding: 20px; color: #333; line-height: 1.4; font-size: 10pt; -webkit-print-color-adjust: exact; color-adjust: exact; }
-        .header { 
-          text-align: left; 
-          margin-bottom: 30px; 
-          padding-bottom: 15px; 
-          border-bottom: 3px solid #2b83ba !important;
-          -webkit-print-color-adjust: exact;
-        }
-        .header::after {
-          content: "";
-          display: block;
-          width: 100%;
-          height: 3px;
-          background: #2b83ba;
-          margin-top: 15px;
-        }
-        .name { font-size: 28pt; font-weight: 300; margin-bottom: 5px; color: #2b83ba; }
-        .contact { font-size: 9pt; color: #666; margin-bottom: 2px; }
-        .section { margin: 25px 0; }
-        .section-title { font-size: 14pt; font-weight: 500; color: #2b83ba; margin-bottom: 10px; text-transform: uppercase; }
-        .job, .edu-item { 
-          margin-bottom: 15px; 
-          padding-left: 15px; 
-          border-left: 2px solid #e0e0e0 !important;
-          -webkit-print-color-adjust: exact;
-          position: relative;
-        }
-        .job::before, .edu-item::before {
-          content: "";
-          position: absolute;
-          left: 0;
-          top: 0;
-          bottom: 0;
-          width: 2px;
-          background: #e0e0e0;
-        }
-        .company, .institution { font-weight: 600; font-size: 11pt; color: #2b83ba; }
-        .position, .degree { font-weight: 400; color: #666; }
-        .date, .location { font-size: 9pt; color: #888; }
-        .skills-grid { display: flex; flex-wrap: wrap; gap: 15px; }
-        .skill-category { font-weight: 600; color: #2b83ba; }
-      `;
-      
-    case 3: // Banking/Professional
-      return `
-        body { font-family: 'Arial', sans-serif; margin: 0; padding: 20px; color: #000; line-height: 1.4; font-size: 10pt; -webkit-print-color-adjust: exact; color-adjust: exact; }
-        .header { 
-          text-align: center; 
-          margin-bottom: 25px; 
-          padding-bottom: 10px; 
-          border-bottom: 1px solid #000 !important;
-          -webkit-print-color-adjust: exact;
-        }
-        .header::after {
-          content: "";
-          display: block;
-          width: 100%;
-          height: 1px;
-          background: #000;
-          margin-top: 10px;
-        }
-        .name { font-size: 20pt; font-weight: bold; margin-bottom: 8px; }
-        .contact { font-size: 9pt; margin-bottom: 3px; }
-        .section { margin: 20px 0; }
-        .section-title { 
-          font-size: 11pt; 
-          font-weight: bold; 
-          margin-bottom: 8px; 
-          text-decoration: underline;
-          border-bottom: 1px solid #000;
-          padding-bottom: 2px;
-          -webkit-print-color-adjust: exact;
-        }
-        .job, .edu-item { margin-bottom: 10px; }
-        .company, .institution { font-weight: bold; font-size: 10pt; }
-        .position, .degree { font-style: normal; }
-        .date, .location { font-size: 9pt; }
-        .skills-grid { }
-        .skill-category { font-weight: bold; }
-      `;
-      
-    case 4: // Deedy
-      return `
-        body { font-family: 'Lato', sans-serif; margin: 0; padding: 20px; color: #333; line-height: 1.3; font-size: 10pt; background: #fff; -webkit-print-color-adjust: exact; color-adjust: exact; }
-        .header { text-align: left; margin-bottom: 20px; }
-        .name { font-size: 32pt; font-weight: 300; margin-bottom: 5px; color: #000; }
-        .contact { font-size: 10pt; color: #666; margin-bottom: 2px; }
-        .section { margin: 20px 0; }
-        .section-title { 
-          font-size: 12pt; 
-          font-weight: 600; 
-          color: #000; 
-          margin-bottom: 8px; 
-          text-transform: uppercase; 
-          letter-spacing: 0.5px;
-          border-bottom: 1px solid #ccc;
-          padding-bottom: 2px;
-          -webkit-print-color-adjust: exact;
-        }
-        .job, .edu-item { margin-bottom: 12px; }
-        .company, .institution { font-weight: 600; font-size: 11pt; }
-        .position, .degree { font-weight: 400; font-style: italic; }
-        .date, .location { font-size: 9pt; color: #666; }
-        .skills-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-        .skill-category { font-weight: 600; }
-      `;
-      
-    default:
-      return `
-        body { font-family: 'Times New Roman', serif; margin: 0; padding: 20px; color: #000; line-height: 1.5; font-size: 11pt; -webkit-print-color-adjust: exact; color-adjust: exact; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .name { font-size: 24pt; font-weight: bold; margin-bottom: 8px; }
-        .contact { font-size: 10pt; margin-bottom: 3px; }
-        .section { margin: 20px 0; }
-        .section-title { 
-          font-size: 12pt; 
-          font-weight: bold; 
-          margin-bottom: 8px;
-          border-bottom: 1px solid #000;
-          padding-bottom: 2px;
-          -webkit-print-color-adjust: exact;
-        }
-        .job, .edu-item { margin-bottom: 12px; }
-        .company, .institution { font-weight: bold; }
-        .position, .degree { font-style: italic; }
-        .skills-grid { }
-        .skill-category { font-weight: bold; }
-      `;
+  try {
+    const templatePath = path.join(__dirname, 'templates', `template${templateId}.css`);
+    if (fs.existsSync(templatePath)) {
+      console.log(`🎨 Loading style for template ${templateId} from: ${templatePath}`);
+      return fs.readFileSync(templatePath, 'utf8');
+    }
+    console.warn(`⚠️ Template ${templateId} style file not found at: ${templatePath}, falling back to basic`);
+    // Fallback to basic style if file is missing
+    return `
+            body { font-family: 'Times New Roman', serif; margin: 0; padding: 20px; color: #000; line-height: 1.5; font-size: 11pt; }
+            .header { text-align: center; margin-bottom: 25px; }
+            .name { font-size: 24pt; font-weight: bold; margin-bottom: 8px; }
+            .section-title { font-size: 12pt; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 2px; }
+        `;
+  } catch (error) {
+    console.error('Error reading template style:', error);
+    return '';
   }
 }
 
@@ -613,55 +473,55 @@ function getFormattingStyles(formatting) {
   return `
     /* Custom formatting overrides */
     body {
-      font-family: ${fontFamilyMap[fontFamily]} !important;
-      font-size: ${baseFontSize} !important;
-      line-height: ${lineSpacing} !important;
-      padding: ${margins} !important;
+      font-family: ${fontFamilyMap[fontFamily]};
+      font-size: ${baseFontSize};
+      line-height: ${lineSpacing};
+      padding: ${margins};
     }
 
     .header {
-      text-align: ${headerAlignment} !important;
-      margin-bottom: ${sectionSpacingMap[sectionSpacing]} !important;
+      text-align: ${headerAlignment};
+      margin-bottom: ${sectionSpacingMap[sectionSpacing]};
     }
 
     .name {
-      font-size: ${nameSizeMap[nameSize]} !important;
-      color: ${primaryColor} !important;
+      font-size: ${nameSizeMap[nameSize]};
+      color: ${primaryColor};
     }
 
     .section {
-      margin: ${sectionSpacingMap[sectionSpacing]} 0 !important;
+      margin: ${sectionSpacingMap[sectionSpacing]} 0;
     }
 
     .section-title {
-      font-size: ${sectionTitleSizeMap[sectionTitleSize]} !important;
-      font-weight: ${sectionTitleBold ? 'bold' : 'normal'} !important;
-      text-decoration: ${sectionTitleUnderline ? 'underline' : 'none'} !important;
-      font-variant: ${sectionTitleSmallCaps ? 'small-caps' : 'normal'} !important;
-      color: ${primaryColor} !important;
+      font-size: ${sectionTitleSizeMap[sectionTitleSize]};
+      font-weight: ${sectionTitleBold ? 'bold' : 'normal'};
+      text-decoration: ${sectionTitleUnderline ? 'underline' : 'none'};
+      font-variant: ${sectionTitleSmallCaps ? 'small-caps' : 'normal'};
+      color: ${primaryColor};
       border-bottom: ${sectionDividers === 'line' ? `1px solid ${primaryColor}` :
-                      sectionDividers === 'double' ? `3px double ${primaryColor}` :
-                      sectionDividers === 'thick' ? `2px solid ${primaryColor}` :
-                      sectionDividers === 'dotted' ? `1px dotted ${primaryColor}` : 'none'} !important;
+      sectionDividers === 'double' ? `3px double ${primaryColor}` :
+        sectionDividers === 'thick' ? `2px solid ${primaryColor}` :
+          sectionDividers === 'dotted' ? `1px dotted ${primaryColor}` : 'none'};
     }
 
     .company, .institution {
-      font-weight: ${companyBold ? 'bold' : 'normal'} !important;
-      font-style: ${companyItalic ? 'italic' : 'normal'} !important;
+      font-weight: ${companyBold ? 'bold' : 'normal'};
+      font-style: ${companyItalic ? 'italic' : 'normal'};
     }
 
     .job, .edu-item {
-      margin-bottom: ${paragraphSpacingMap[paragraphSpacing]} !important;
+      margin-bottom: ${paragraphSpacingMap[paragraphSpacing]};
     }
 
     .description ul {
-      margin: ${listMarginVertical}mm 0 !important;
-      padding-left: ${listMarginLeft}mm !important;
+      margin: ${listMarginVertical}mm 0;
+      padding-left: ${listMarginLeft}mm;
       list-style-type: ${bulletStyle === 'bullet' ? 'disc' :
-                        bulletStyle === 'dash' ? 'none' :
-                        bulletStyle === 'arrow' ? 'none' :
-                        bulletStyle === 'circle' ? 'circle' :
-                        bulletStyle === 'square' ? 'square' : 'disc'} !important;
+      bulletStyle === 'dash' ? 'none' :
+        bulletStyle === 'arrow' ? 'none' :
+          bulletStyle === 'circle' ? 'circle' :
+            bulletStyle === 'square' ? 'square' : 'disc'};
     }
 
     .description li {
@@ -701,19 +561,19 @@ function generateResumeHTML(resumeData) {
   // Handle sections - if it's an object, convert to array of keys
   const sectionsArray = Array.isArray(sections) ? sections :
     (sections && typeof sections === 'object') ?
-    ['profile', 'education', 'work', 'skills', 'projects', 'awards'] :
-    ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
+      ['profile', 'education', 'work', 'skills', 'projects', 'awards'] :
+      ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
 
   const baseStyles = getTemplateStyles(selectedTemplate);
   const customStyles = getFormattingStyles(formatting);
-  
+
   // Ensure arrays are actually arrays
   const safeExperience = Array.isArray(experience) ? experience : [];
   const safeEducation = Array.isArray(education) ? education : [];
   const safeSkills = Array.isArray(skills) ? skills : [];
   const safeProjects = Array.isArray(projects) ? projects : [];
   const safeAwards = Array.isArray(awards) ? awards : [];
-  
+
   return stripIndent`
     <!DOCTYPE html>
     <html>
@@ -746,27 +606,27 @@ function generateResumeHTML(resumeData) {
         <div class="header">
             <div class="name">${name || 'Your Name'}</div>
             <div class="contact">${[
-                email, 
-                phone, 
-                address,
-                ...(websites.map(website => `<a href="${website.url}" target="_blank">${website.name}</a>`))
-            ].filter(Boolean).join(' • ')}</div>
+      email,
+      phone,
+      address,
+      ...(websites.map(website => `<a href="${website.url}" target="_blank">${website.name}</a>`))
+    ].filter(Boolean).join(' • ')}</div>
         </div>
 
         ${sectionsArray.map(section => {
-          console.log('Processing section:', section);
-          switch(section) {
-            case 'profile':
-              return ''; // Profile is already in header
-            
-            case 'work':
-            case 'experience':
-              return safeExperience && safeExperience.length > 0 ? `
+      console.log('Processing section:', section);
+      switch (section) {
+        case 'profile':
+          return ''; // Profile is already in header
+
+        case 'work':
+        case 'experience':
+          return safeExperience && safeExperience.length > 0 ? `
               <div class="section">
                   <div class="section-title">Experience</div>
                   ${safeExperience.map(job => {
-                      console.log('🔥 SERVER: Processing job description:', JSON.stringify(job.description));
-                      return `
+            console.log('🔥 SERVER: Processing job description:', JSON.stringify(job.description));
+            return `
                       <div class="job">
                           <div class="job-header">
                               <div>
@@ -781,12 +641,12 @@ function generateResumeHTML(resumeData) {
                           ${job.description ? `<div class="description" style="margin-top: 8px;">
                               <table style="width: 100%; border: none; border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0;">
                                   ${job.description.split('\n').filter(line => line.trim()).map(line => {
-                                      const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
-                                      return cleanLine ? `<tr style="border: none; margin: 0; padding: 0;">
+              const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+              return cleanLine ? `<tr style="border: none; margin: 0; padding: 0;">
                                           <td style="border: none; padding: 0; margin: 0; vertical-align: top; width: 15px; text-align: left;">•</td>
                                           <td style="border: none; padding: 0 0 4px 5px; margin: 0; vertical-align: top; width: auto;">${cleanLine}</td>
                                       </tr>` : '';
-                                  }).join('')}
+            }).join('')}
                               </table>
                           </div>` : ''}
                           ${job.highlights && job.highlights.length > 0 ? `
@@ -795,11 +655,12 @@ function generateResumeHTML(resumeData) {
                               </ul>
                           ` : ''}
                       </div>
-                  `; }).join('')}
+                  `;
+          }).join('')}
               </div>` : '';
 
-            case 'education':
-              return safeEducation && safeEducation.length > 0 ? `
+        case 'education':
+          return safeEducation && safeEducation.length > 0 ? `
               <div class="section">
                   <div class="section-title">Education</div>
                   ${safeEducation.map(school => `
@@ -818,20 +679,20 @@ function generateResumeHTML(resumeData) {
                           ${school.description ? `<div class="description" style="margin-top: 8px;">
                               <table style="width: 100%; border: none; border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0;">
                                   ${school.description.split('\n').filter(line => line.trim()).map(line => {
-                                      const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
-                                      return cleanLine ? `<tr style="border: none; margin: 0; padding: 0;">
+            const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+            return cleanLine ? `<tr style="border: none; margin: 0; padding: 0;">
                                           <td style="border: none; padding: 0; margin: 0; vertical-align: top; width: 15px; text-align: left;">•</td>
                                           <td style="border: none; padding: 0 0 4px 5px; margin: 0; vertical-align: top; width: auto;">${cleanLine}</td>
                                       </tr>` : '';
-                                  }).join('')}
+          }).join('')}
                               </table>
                           </div>` : ''}
                       </div>
                   `).join('')}
               </div>` : '';
 
-            case 'skills':
-              return safeSkills && safeSkills.length > 0 ? `
+        case 'skills':
+          return safeSkills && safeSkills.length > 0 ? `
               <div class="section">
                   <div class="section-title">Skills</div>
                   <div class="skills-grid">
@@ -844,9 +705,9 @@ function generateResumeHTML(resumeData) {
                   </div>
               </div>` : '';
 
-            case 'projects':
-              console.log('Projects section - safeProjects:', safeProjects, 'length:', safeProjects?.length);
-              return safeProjects && safeProjects.length > 0 ? `
+        case 'projects':
+          console.log('Projects section - safeProjects:', safeProjects, 'length:', safeProjects?.length);
+          return safeProjects && safeProjects.length > 0 ? `
               <div class="section">
                   <div class="section-title">Projects</div>
                   ${safeProjects.map(project => `
@@ -864,21 +725,21 @@ function generateResumeHTML(resumeData) {
                           ${project.description ? `<div class="description" style="margin-top: 8px;">
                               <table style="width: 100%; border: none; border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0;">
                                   ${project.description.split('\n').filter(line => line.trim()).map(line => {
-                                      const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
-                                      return cleanLine ? `<tr style="border: none; margin: 0; padding: 0;">
+            const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+            return cleanLine ? `<tr style="border: none; margin: 0; padding: 0;">
                                           <td style="border: none; padding: 0; margin: 0; vertical-align: top; width: 15px; text-align: left;">•</td>
                                           <td style="border: none; padding: 0 0 4px 5px; margin: 0; vertical-align: top; width: auto;">${cleanLine}</td>
                                       </tr>` : '';
-                                  }).join('')}
+          }).join('')}
                               </table>
                           </div>` : ''}
                       </div>
                   `).join('')}
               </div>` : '';
 
-            case 'awards':
-              console.log('Awards section - safeAwards:', safeAwards, 'length:', safeAwards?.length);
-              return safeAwards && safeAwards.length > 0 ? `
+        case 'awards':
+          console.log('Awards section - safeAwards:', safeAwards, 'length:', safeAwards?.length);
+          return safeAwards && safeAwards.length > 0 ? `
               <div class="section">
                   <div class="section-title">Awards</div>
                   ${safeAwards.map(award => `
@@ -895,22 +756,22 @@ function generateResumeHTML(resumeData) {
                           ${award.summary ? `<div class="description" style="margin-top: 8px;">
                               <table style="width: 100%; border: none; border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0;">
                                   ${award.summary.split('\n').filter(line => line.trim()).map(line => {
-                                      const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
-                                      return cleanLine ? `<tr style="border: none; margin: 0; padding: 0;">
+            const cleanLine = line.replace(/^[•\-\*]\s*/, '').trim();
+            return cleanLine ? `<tr style="border: none; margin: 0; padding: 0;">
                                           <td style="border: none; padding: 0; margin: 0; vertical-align: top; width: 15px; text-align: left;">•</td>
                                           <td style="border: none; padding: 0 0 4px 5px; margin: 0; vertical-align: top; width: auto;">${cleanLine}</td>
                                       </tr>` : '';
-                                  }).join('')}
+          }).join('')}
                               </table>
                           </div>` : ''}
                       </div>
                   `).join('')}
               </div>` : '';
 
-            default:
-              return '';
-          }
-        }).join('')}
+        default:
+          return '';
+      }
+    }).join('')}
     </body>
     </html>
   `;
@@ -948,13 +809,13 @@ async function generateResumePDF(resumeData, userId = 'anonymous') {
     // Generate HTML content with caching
     console.log('🎨 Generating optimized HTML...');
     const htmlContent = generateResumeHTMLCached(resumeData);
-    
+
     // Get browser from pool (much faster than launching new browser)
     console.log('🔄 Getting browser from pool...');
     browser = await getBrowserFromPool();
 
     page = await browser.newPage();
-    
+
     // Optimized page setup
     await Promise.all([
       page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 1 }),
@@ -980,7 +841,7 @@ async function generateResumePDF(resumeData, userId = 'anonymous') {
     });
 
     // No additional delays - we're optimized now!
-    
+
     console.log('⚡ Generating PDF (ultra-fast mode)...');
 
     // Extract margin values with defaults
@@ -1015,7 +876,7 @@ async function generateResumePDF(resumeData, userId = 'anonymous') {
     });
 
     return pdfBuffer;
-    
+
   } catch (error) {
     // Clean up tracking on error
     activePdfGenerations.delete(userId);
@@ -1025,7 +886,7 @@ async function generateResumePDF(resumeData, userId = 'anonymous') {
     console.error('Error stack:', error.stack);
     const isProduction = process.env.NODE_ENV === 'production';
     const isRender = process.env.RENDER || process.env.RENDER_SERVICE_ID;
-    
+
     console.error('Environment info:', {
       platform: os.platform(),
       arch: os.arch(),
@@ -1034,15 +895,15 @@ async function generateResumePDF(resumeData, userId = 'anonymous') {
       isRender,
       memoryUsage: process.memoryUsage()
     });
-    
+
     // More specific error detection
     const errorMessage = error.message.toLowerCase();
-    const isLaunchError = errorMessage.includes('failed to launch') || 
-                         errorMessage.includes('could not find browser') ||
-                         errorMessage.includes('no usable sandbox') ||
-                         errorMessage.includes('connect') ||
-                         errorMessage.includes('timeout');
-    
+    const isLaunchError = errorMessage.includes('failed to launch') ||
+      errorMessage.includes('could not find browser') ||
+      errorMessage.includes('no usable sandbox') ||
+      errorMessage.includes('connect') ||
+      errorMessage.includes('timeout');
+
     if (isLaunchError) {
       console.error('🔍 This appears to be a browser launch issue on hosting platform');
       const fallbackError = new Error(
@@ -1052,7 +913,7 @@ async function generateResumePDF(resumeData, userId = 'anonymous') {
       fallbackError.code = 'HOSTING_LIMITATION';
       throw fallbackError;
     }
-    
+
     throw new Error(`PDF generation failed: ${error.message}`);
   } finally {
     // Always clean up tracking
@@ -1085,49 +946,39 @@ async function generateResumePDF(resumeData, userId = 'anonymous') {
 
 async function generateResumeTeX(resumeData) {
   try {
-    // Try to transform the data to match the template format if needed
-    let transformedData = resumeData;
-    
-    // Check if we need to transform the data format
-    if (resumeData.formData) {
-      transformedData = resumeData.formData;
+    console.log('📄 Generating LaTeX source for template:', resumeData.selectedTemplate);
+
+    // Ensure section order is present
+    if (!resumeData.sections) {
+      resumeData.sections = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
     }
-    
-    // If the data doesn't have sections array, create a default one
-    if (!transformedData.sections) {
-      transformedData.sections = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
-    }
-    
-    // Ensure basic structure exists
-    if (!transformedData.basics) {
-      transformedData.basics = {
-        name: transformedData.name || 'Your Name',
-        email: transformedData.email || '',
-        phone: transformedData.phone || '',
-        location: { address: transformedData.address || '' },
-        websites: transformedData.websites || []
-      };
-    }
-    
-    // Transform other fields if needed
-    if (!transformedData.education) transformedData.education = [];
-    if (!transformedData.work) transformedData.work = transformedData.experience || [];
-    if (!transformedData.skills) transformedData.skills = [];
-    if (!transformedData.projects) transformedData.projects = [];
-    if (!transformedData.awards) transformedData.awards = [];
-    if (!transformedData.headings) transformedData.headings = {};
-    
+
+    // Prepare data for LaTeX generators
+    const transformedData = {
+      ...resumeData,
+      basics: {
+        name: resumeData.name || '',
+        email: resumeData.email || '',
+        phone: resumeData.phone || '',
+        location: { address: resumeData.address || '' },
+        websites: resumeData.websites || []
+      },
+      work: resumeData.experience || [],
+      education: resumeData.education || [],
+      skills: resumeData.skills || [],
+      projects: resumeData.projects || [],
+      awards: resumeData.awards || []
+    };
+
     // Use the template system for LaTeX generation
-    // const { texDoc, opts } = getTemplateData(transformedData);
-    // return texDoc;
-    
-    // Fall back to basic template for now
-    return generateBasicResumeTemplate(resumeData);
-    
+    const getTemplateData = require('./templates');
+    const { texDoc } = getTemplateData(transformedData);
+    return texDoc;
+
   } catch (error) {
     console.error('TeX generation error:', error);
-    // Fall back to basic template
-    return generateBasicResumeTemplate(resumeData);
+    // Minimal fallback
+    return `% Error generating TeX: ${error.message}\n\\documentclass{article}\n\\begin{document}\nResume generation failed.\n\\end{document}`;
   }
 }
 

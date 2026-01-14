@@ -1,0 +1,52 @@
+body {
+    font-family: 'Verdana', sans-serif;
+    margin: 0;
+    padding: 30px;
+    color: #444;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 4px solid #3498db;
+    padding-bottom: 20px;
+    margin-bottom: 40px;
+}
+
+.name {
+    font-size: 30pt;
+    font-weight: 300;
+    color: #3498db;
+}
+
+.contact {
+    font-size: 9pt;
+    text-align: right;
+    line-height: 1.4;
+}
+
+.section {
+    display: flex;
+    margin: 25px 0;
+}
+
+.section-title {
+    width: 150px;
+    min-width: 150px;
+    font-size: 12pt;
+    font-weight: bold;
+    color: #3498db;
+    text-transform: uppercase;
+    border: none;
+}
+
+.section-content {
+    flex-grow: 1;
+}
+
+.job-header,
+.edu-header {
+    flex-direction: column;
+    align-items: flex-start;
+}
