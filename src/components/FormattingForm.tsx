@@ -177,7 +177,7 @@ export function FormattingForm() {
                                 min="0.25"
                                 max="2"
                                 step="0.1"
-                                value={formatting[key as keyof typeof formatting]}
+                                value={String(formatting[key as keyof typeof formatting])}
                                 onChange={(e) => updateFormatting({ [key]: e.target.value })}
                                 className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-bold`}
                             />
@@ -265,10 +265,10 @@ export function FormattingForm() {
                             key={theme}
                             onClick={() => updateFormatting({ colorTheme: theme })}
                             className={`px-4 py-3 rounded-lg font-bold border-2 ${formatting.colorTheme === theme
-                                    ? 'border-violet-600 bg-violet-100 text-black'
-                                    : darkMode
-                                        ? 'border-gray-600 bg-black hover:border-violet-400 text-white'
-                                        : 'border-slate-300 bg-white hover:border-violet-300 text-black'
+                                ? 'border-violet-600 bg-violet-100 text-black'
+                                : darkMode
+                                    ? 'border-gray-600 bg-black hover:border-violet-400 text-white'
+                                    : 'border-slate-300 bg-white hover:border-violet-300 text-black'
                                 }`}
                         >
                             <div className="w-full h-6 rounded mb-2" style={{
@@ -295,10 +295,10 @@ export function FormattingForm() {
                             key={align}
                             onClick={() => updateFormatting({ headerAlignment: align })}
                             className={`flex-1 px-4 py-2 rounded-lg font-bold border-2 ${formatting.headerAlignment === align
-                                    ? 'border-violet-600 bg-violet-100 text-black'
-                                    : darkMode
-                                        ? 'border-gray-600 bg-black hover:border-violet-400 text-white'
-                                        : 'border-slate-300 bg-white hover:border-violet-300 text-black'
+                                ? 'border-violet-600 bg-violet-100 text-black'
+                                : darkMode
+                                    ? 'border-gray-600 bg-black hover:border-violet-400 text-white'
+                                    : 'border-slate-300 bg-white hover:border-violet-300 text-black'
                                 }`}
                         >
                             {align.charAt(0).toUpperCase() + align.slice(1)}
