@@ -31,7 +31,7 @@ export interface WorkExperience {
     location: string;
     startDate: string;
     endDate: string;
-    description: string;
+    bullets: string[];
 }
 
 export interface Education {
@@ -51,7 +51,7 @@ export interface Skill {
 
 export interface Project {
     name: string;
-    description: string;
+    bullets: string[];
     keywords: string[];
     url?: string;
     urlName?: string;
@@ -98,10 +98,12 @@ export interface FormattingOptions {
     marginLeft: string;
     marginRight: string;
     bulletStyle: BulletStyle;
+    bulletIndent: BulletIndent;
     bulletSpacing: Spacing;
     colorTheme: ColorTheme;
     customColor: string;
     sectionDividers: SectionDivider;
+    headerLineStyle: HeaderLineStyle;
     headerAlignment: Alignment;
 }
 
@@ -111,8 +113,10 @@ export type SectionTitleSize = 'large' | 'normal' | 'small';
 export type Spacing = 'tight' | 'normal' | 'relaxed' | 'spacious';
 export type PageMargins = 'narrow' | 'normal' | 'wide' | 'custom';
 export type BulletStyle = 'bullet' | 'dash' | 'arrow' | 'circle' | 'square' | 'diamond' | 'star' | 'chevron';
+export type BulletIndent = 'none' | 'small' | 'medium' | 'large';
 export type ColorTheme = 'black' | 'navy' | 'darkblue' | 'darkgreen' | 'maroon' | 'purple' | 'custom';
 export type SectionDivider = 'none' | 'line' | 'double' | 'thick' | 'dotted';
+export type HeaderLineStyle = 'none' | 'thin' | 'medium' | 'thick' | 'double' | 'dotted' | 'dashed';
 export type Alignment = 'left' | 'center' | 'right';
 
 // API Types

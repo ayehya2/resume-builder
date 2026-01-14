@@ -1,4 +1,5 @@
 import { useResumeStore } from '../store';
+import { BulletList } from './BulletList';
 
 export function ProjectsForm() {
     const { resumeData, addProject, updateProject, removeProject } = useResumeStore();
@@ -59,13 +60,11 @@ export function ProjectsForm() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-black mb-1">Description (use • for bullets)</label>
-                        <textarea
-                            value={project.description}
-                            onChange={(e) => updateProject(index, { description: e.target.value })}
-                            className="w-full px-3 py-2 border-2 border-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-black font-medium"
-                            rows={3}
-                            placeholder="• Built full-stack application&#10;• Implemented real-time features"
+                        <label className="block text-sm font-semibold text-black mb-1">Project Details</label>
+                        <BulletList
+                            bullets={project.bullets}
+                            onChange={(bullets) => updateProject(index, { bullets })}
+                            placeholder="Built full-stack application"
                         />
                     </div>
 

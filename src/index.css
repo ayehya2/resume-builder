@@ -88,3 +88,134 @@ code {
 .border-indigo-900 {
   border-color: #312e81 !important;
 }
+
+/* ==========================================
+   DARK MODE - TRUE BLACK THEME
+   ========================================== */
+
+/* Dark mode base colors */
+.dark {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.dark body {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* Text colors */
+.dark .text-black {
+  color: #ffffff !important;
+}
+
+.dark .text-white {
+  color: #ffffff !important;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-700,
+.dark .text-slate-900 {
+  color: #ffffff !important;
+}
+
+.dark .text-gray-200,
+.dark .text-gray-300 {
+  color: #ffffff !important;
+}
+
+/* Background colors */
+.dark .bg-white {
+  background-color: #000000 !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-slate-200 {
+  background-color: #000000 !important;
+}
+
+.dark .bg-zinc-900 {
+  background-color: #000000 !important;
+}
+
+.dark .bg-black {
+  background-color: #000000 !important;
+}
+
+.dark .bg-gray-800,
+.dark .bg-gray-900 {
+  background-color: #000000 !important;
+}
+
+/* Input fields */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="tel"],
+.dark input[type="number"],
+.dark input[type="url"],
+.dark textarea,
+.dark select {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #4b5563 !important;
+}
+
+.dark input[type="text"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="tel"]:focus,
+.dark input[type="number"]:focus,
+.dark input[type="url"]:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #6b7280 !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Borders */
+.dark .border-slate-300,
+.dark .border-slate-400 {
+  border-color: #4b5563 !important;
+}
+
+.dark .border-gray-600,
+.dark .border-gray-700,
+.dark .border-gray-800 {
+  border-color: #4b5563 !important;
+}
+
+/* Section backgrounds */
+.dark .bg-slate-50,
+.dark .bg-blue-50,
+.dark .bg-red-50,
+.dark .bg-green-100 {
+  background-color: #000000 !important;
+  border-color: #4b5563 !important;
+}
+
+/* Buttons in dark mode */
+.dark button:not(.bg-indigo-600):not(.bg-violet-600):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600):not(.bg-purple-600):not(.bg-yellow-500) {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+}
+
+.dark button:hover:not(.bg-indigo-600):not(.bg-violet-600):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600):not(.bg-purple-600):not(.bg-yellow-500) {
+  background-color: #374151 !important;
+}
+
+/* Specific dark mode overrides */
+.dark .bg-indigo-700 {
+  background-color: #000000 !important;
+}
+
+.dark .border-green-300,
+.dark .border-blue-200,
+.dark .border-red-200 {
+  border-color: #4b5563 !important;
+}

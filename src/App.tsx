@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useResumeStore } from './store'
 import { BasicsForm } from './components/BasicsForm'
 import { WorkForm } from './components/WorkForm'
@@ -15,6 +15,7 @@ import { DndContext, closestCenter } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkMode, loadDarkMode } from './utils/storage'
 import './index.css'
 
 
@@ -56,12 +57,12 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
         w-full flex items-center gap-3 px-4 py-4 font-bold transition-all border-l-4
         ${isActive
           ? 'bg-indigo-600 text-white border-indigo-900 shadow-lg'
-          : 'bg-slate-100 text-black border-transparent hover:bg-slate-200 hover:border-indigo-300'
+          : 'bg-slate-100 text-black border-transparent hover:bg-slate-200 hover:border-indigo-300 dark:bg-black dark:text-white dark:hover:bg-gray-900'
         }
       `}
     >
       {tab.draggable && (
-        <span {...attributes} {...listeners} className="cursor-move text-slate-500 hover:text-indigo-600">
+        <span {...attributes} {...listeners} className="cursor-move text-slate-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400">
           ☰
         </span>
       )}
@@ -75,6 +76,67 @@ function App() {
   const { resumeData, setTemplate, setSections, loadSampleData, reset } = useResumeStore()
   const [activeTab, setActiveTab] = useState<TabKey>('templates')
   const [previewScale, setPreviewScale] = useState(0.75)
+  const [darkMode, setDarkMode] = useState(false)
+
+  // Load saved data and dark mode on mount
+  useEffect(() => {
+    const savedData = loadResumeData();
+    if (savedData) {
+      useResumeStore.setState({ resumeData: savedData });
+    }
+    setDarkMode(loadDarkMode());
+  }, []);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      saveResumeData(resumeData);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [resumeData]);
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    saveDarkMode(newMode);
+    document.documentElement.classList.toggle('dark', newMode);
+  };
+
+  // Export JSON
+  const handleExport = () => {
+    const json = exportToJSON(resumeData);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `resume-${resumeData.basics.name || 'data'}.json`.replace(/[^a-z0-9-_.]/gi, '_');
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Import JSON
+  const handleImport = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = importFromJSON(event.target?.result as string);
+          useResumeStore.setState({ resumeData: data });
+          alert('Resume data imported successfully!');
+        } catch (error) {
+          alert('Failed to import: Invalid JSON format');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
 
 
   // Map sections to tabs dynamically
@@ -92,8 +154,8 @@ function App() {
 
   const tabs: TabItem[] = [
     { key: 'templates', label: 'Template', icon: '📐', draggable: false },
-    ...sectionTabs,
     { key: 'formatting', label: 'Formatting', icon: '🎨', draggable: false },
+    ...sectionTabs,
   ];
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -174,11 +236,11 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className={`min-h-screen flex ${darkMode ? 'bg-black' : 'bg-white'}`}>
       {/* Main Content - NO HEADER */}
       <div className="flex-1 flex w-full">
         {/* Left Sidebar - Tabs */}
-        <aside className="w-56 bg-slate-100 border-r-4 border-slate-300 flex-shrink-0">
+        <aside className={`w-56 flex-shrink-0 border-r-4 ${darkMode ? 'bg-black border-gray-600' : 'bg-slate-100 border-slate-300'}`}>
           <div className="sticky top-0">
             <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={tabs.map(t => t.key)} strategy={verticalListSortingStrategy}>
@@ -196,7 +258,7 @@ function App() {
         </aside>
 
         {/* Center - Form Content */}
-        <main className="flex-1 p-6 overflow-y-auto bg-white">
+        <main className={`flex-1 p-6 overflow-y-auto ${darkMode ? 'bg-black text-white' : 'bg-white'}`}>
           <div className="w-full max-w-5xl mx-auto">
             {activeTab === 'basics' && <BasicsForm />}
             {activeTab === 'work' && <WorkForm />}
@@ -207,7 +269,7 @@ function App() {
             {activeTab === 'formatting' && <FormattingForm />}
             {activeTab === 'templates' && (
               <div className="space-y-4">
-                <h3 className="text-lg font-bold text-black">Choose Template</h3>
+                <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-black'}`}>Choose Template</h3>
                 <div className="grid grid-cols-2 gap-4">
                   {templates.map((template) => (
                     <button
@@ -217,13 +279,15 @@ function App() {
                         p-6 rounded-xl border-4 transition-all text-center
                         ${resumeData.selectedTemplate === template.id
                           ? 'border-indigo-600 bg-indigo-50 shadow-xl'
-                          : 'border-slate-300 bg-white hover:border-indigo-300 hover:shadow-lg'
+                          : darkMode
+                            ? 'border-gray-600 bg-black hover:border-indigo-300 hover:shadow-lg'
+                            : 'border-slate-300 bg-white hover:border-indigo-300 hover:shadow-lg'
                         }
                       `}
                     >
                       <div className="text-5xl mb-2">{template.icon}</div>
-                      <div className="font-bold text-black text-lg">{template.name}</div>
-                      <div className="text-sm text-slate-600 font-semibold mt-1">Template {template.id}</div>
+                      <div className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-black'}`}>{template.name}</div>
+                      <div className={`text-sm font-semibold mt-1 ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>Template {template.id}</div>
                     </button>
                   ))}
                 </div>
@@ -233,23 +297,23 @@ function App() {
         </main>
 
         {/* Right - Live Preview */}
-        <aside className="w-[900px] bg-slate-50 border-l-4 border-slate-300 flex-shrink-0">
+        <aside className={`w-[900px] border-l-4 flex-shrink-0 ${darkMode ? 'bg-black border-gray-600' : 'bg-slate-50 border-slate-300'}`}>
           <div className="sticky top-0 h-screen flex flex-col">
             {/* Preview Header with Buttons */}
-            <div className="p-3 bg-indigo-700 text-white border-b-4 border-indigo-900 flex justify-between items-center">
+            <div className={`p-3 border-b-4 flex justify-between items-center ${darkMode ? 'bg-black border-gray-600' : 'bg-indigo-700 border-indigo-900'} text-white`}>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPreviewScale(Math.max(0.4, previewScale - 0.05))}
-                  className="px-3 py-1 text-sm bg-white text-indigo-700 hover:bg-indigo-50 rounded font-bold"
+                  className={`px-3 py-1 text-sm rounded font-bold ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-indigo-700 hover:bg-indigo-50'}`}
                 >
                   −
                 </button>
-                <span className="px-3 py-1 text-sm bg-indigo-800 rounded font-bold">
+                <span className={`px-3 py-1 text-sm rounded font-bold ${darkMode ? 'bg-gray-800' : 'bg-indigo-800'}`}>
                   {Math.round(previewScale * 100)}%
                 </span>
                 <button
                   onClick={() => setPreviewScale(Math.min(1, previewScale + 0.05))}
-                  className="px-3 py-1 text-sm bg-white text-indigo-700 hover:bg-indigo-50 rounded font-bold"
+                  className={`px-3 py-1 text-sm rounded font-bold ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-indigo-700 hover:bg-indigo-50'}`}
                 >
                   +
                 </button>
@@ -257,8 +321,27 @@ function App() {
 
               <div className="flex gap-2">
                 <button
+                  onClick={toggleDarkMode}
+                  className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-black rounded text-xs font-bold transition-colors"
+                  title="Toggle Dark Mode"
+                >
+                  {darkMode ? '☀️' : '🌙'}
+                </button>
+                <button
+                  onClick={handleImport}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors"
+                >
+                  📁 Import
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-bold transition-colors"
+                >
+                  💾 Export
+                </button>
+                <button
                   onClick={loadSampleData}
-                  className="px-3 py-1.5 bg-white text-indigo-700 hover:bg-indigo-50 rounded text-xs font-bold transition-colors"
+                  className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${darkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-white text-indigo-700 hover:bg-indigo-50'}`}
                 >
                   📋 Load Sample
                 </button>
@@ -278,7 +361,7 @@ function App() {
             </div>
 
             {/* Preview Content - ALWAYS FULL A4 SIZE */}
-            <div className="flex-1 p-6 overflow-auto bg-slate-200">
+            <div className={`flex-1 p-6 overflow-auto ${darkMode ? 'bg-black' : 'bg-slate-200'}`}>
               <div
                 id="resume-preview"
                 className="bg-white shadow-xl mx-auto border-4 border-slate-400"
@@ -295,8 +378,8 @@ function App() {
             </div>
 
             {/* Preview Footer */}
-            <div className="p-3 bg-green-100 border-t-4 border-green-300">
-              <p className="text-sm text-black font-bold text-center">
+            <div className={`p-3 border-t-4 ${darkMode ? 'bg-black border-gray-600' : 'bg-green-100 border-green-300'}`}>
+              <p className={`text-sm font-bold text-center ${darkMode ? 'text-white' : 'text-black'}`}>
                 ✅ Full A4 Page (8.5" × 11") • Updates Live!
               </p>
             </div>

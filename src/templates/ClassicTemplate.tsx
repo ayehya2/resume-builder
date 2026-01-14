@@ -1,21 +1,23 @@
 import { useResumeStore } from '../store';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getSectionDividerStyle, getNameSize, getSectionTitleSize, getSpacingValue } from '../utils/formatting';
 
 export function ClassicTemplate() {
     const { resumeData } = useResumeStore();
-    const { basics, work, education, skills, projects, awards, sections } = resumeData;
+    const { basics, work, education, skills, projects, awards, sections, formatting } = resumeData;
     const separator = basics.separator || '•';
+    const bulletSymbol = getBulletSymbol(formatting.bulletStyle);
 
     return (
         <div style={{
-            fontFamily: '"Times New Roman", Times, serif',
-            fontSize: '11pt',
-            lineHeight: '1.15',
-            padding: '0.5in',
-            color: '#000000'
+            fontFamily: getFontFamilyCSS(formatting.fontFamily),
+            fontSize: formatting.baseFontSize,
+            lineHeight: formatting.lineSpacing,
+            padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,
+            color: getColorValue(formatting.colorTheme, formatting.customColor)
         }}>
             {/* Header */}
-            <div style={{ textAlign: 'center', marginBottom: '8pt' }}>
-                <h1 style={{ fontSize: '20pt', fontWeight: 'bold', margin: '0 0 4pt 0', textTransform: 'uppercase' }}>
+            <div style={{ textAlign: formatting.headerAlignment, marginBottom: getSpacingValue(formatting.sectionSpacing) }}>
+                <h1 style={{ fontSize: getNameSize(formatting.nameSize), fontWeight: 'bold', margin: '0 0 4pt 0', textTransform: 'uppercase' }}>
                     {basics.name}
                 </h1>
                 <div style={{ fontSize: '10pt', margin: '0' }}>
@@ -41,12 +43,12 @@ export function ClassicTemplate() {
                     return (
                         <div key="education" style={{ marginBottom: '12pt' }}>
                             <h2 style={{
-                                fontSize: '12pt',
-                                fontWeight: 'bold',
+                                fontSize: getSectionTitleSize(formatting.sectionTitleSize),
+                                fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
-                                borderBottom: '1.5pt solid #000',
-                                margin: '0 0 6pt 0',
-                                paddingBottom: '2pt'
+                                ...getSectionDividerStyle(formatting.sectionDividers),
+                                margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
                             }}>
                                 EDUCATION
                             </h2>
@@ -68,12 +70,12 @@ export function ClassicTemplate() {
                     return (
                         <div key="work" style={{ marginBottom: '12pt' }}>
                             <h2 style={{
-                                fontSize: '12pt',
-                                fontWeight: 'bold',
+                                fontSize: getSectionTitleSize(formatting.sectionTitleSize),
+                                fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
-                                borderBottom: '1.5pt solid #000',
-                                margin: '0 0 6pt 0',
-                                paddingBottom: '2pt'
+                                ...getSectionDividerStyle(formatting.sectionDividers),
+                                margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
                             }}>
                                 EXPERIENCE
                             </h2>
@@ -87,10 +89,10 @@ export function ClassicTemplate() {
                                         {job.position}
                                         {job.location && `, ${job.location}`}
                                     </div>
-                                    {job.description && (
+                                    {job.bullets && job.bullets.length > 0 && (
                                         <div style={{ margin: '2pt 0 0 0' }}>
-                                            {job.description.split('\n').map((line, i) => (
-                                                <div key={i} style={{ margin: '1pt 0' }}>{line}</div>
+                                            {job.bullets.map((bullet, i) => (
+                                                <div key={i} style={{ margin: '1pt 0' }}>{bulletSymbol} {bullet}</div>
                                             ))}
                                         </div>
                                     )}
@@ -104,12 +106,12 @@ export function ClassicTemplate() {
                     return (
                         <div key="skills" style={{ marginBottom: '12pt' }}>
                             <h2 style={{
-                                fontSize: '12pt',
-                                fontWeight: 'bold',
+                                fontSize: getSectionTitleSize(formatting.sectionTitleSize),
+                                fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
-                                borderBottom: '1.5pt solid #000',
-                                margin: '0 0 6pt 0',
-                                paddingBottom: '2pt'
+                                ...getSectionDividerStyle(formatting.sectionDividers),
+                                margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
                             }}>
                                 SKILLS
                             </h2>
@@ -127,12 +129,12 @@ export function ClassicTemplate() {
                     return (
                         <div key="projects" style={{ marginBottom: '12pt' }}>
                             <h2 style={{
-                                fontSize: '12pt',
-                                fontWeight: 'bold',
+                                fontSize: getSectionTitleSize(formatting.sectionTitleSize),
+                                fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
-                                borderBottom: '1.5pt solid #000',
-                                margin: '0 0 6pt 0',
-                                paddingBottom: '2pt'
+                                ...getSectionDividerStyle(formatting.sectionDividers),
+                                margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
                             }}>
                                 PROJECTS
                             </h2>
@@ -146,10 +148,10 @@ export function ClassicTemplate() {
                                             </span>
                                         )}
                                     </div>
-                                    {project.description && (
+                                    {project.bullets && project.bullets.length > 0 && (
                                         <div style={{ margin: '2pt 0 0 0' }}>
-                                            {project.description.split('\n').map((line, i) => (
-                                                <div key={i} style={{ margin: '1pt 0' }}>{line}</div>
+                                            {project.bullets.map((bullet, i) => (
+                                                <div key={i} style={{ margin: '1pt 0' }}>{bulletSymbol} {bullet}</div>
                                             ))}
                                         </div>
                                     )}
@@ -163,12 +165,12 @@ export function ClassicTemplate() {
                     return (
                         <div key="awards" style={{ marginBottom: '12pt' }}>
                             <h2 style={{
-                                fontSize: '12pt',
-                                fontWeight: 'bold',
+                                fontSize: getSectionTitleSize(formatting.sectionTitleSize),
+                                fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
                                 textTransform: 'uppercase',
-                                borderBottom: '1.5pt solid #000',
-                                margin: '0 0 6pt 0',
-                                paddingBottom: '2pt'
+                                ...getSectionDividerStyle(formatting.sectionDividers),
+                                margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
+                                textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none'
                             }}>
                                 AWARDS
                             </h2>

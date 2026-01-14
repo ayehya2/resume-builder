@@ -1,4 +1,5 @@
 import { useResumeStore } from '../store';
+import { BulletList } from './BulletList';
 
 export function WorkForm() {
     const { resumeData, addWork, updateWork, removeWork } = useResumeStore();
@@ -94,13 +95,11 @@ export function WorkForm() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-black mb-1">Description (use • for bullets)</label>
-                        <textarea
-                            value={job.description}
-                            onChange={(e) => updateWork(index, { description: e.target.value })}
-                            className="w-full px-3 py-2 border-2 border-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-black font-medium"
-                            rows={4}
-                            placeholder="• Led team of 5 developers&#10;• Improved performance by 40%"
+                        <label className="block text-sm font-semibold text-black mb-1">Responsibilities & Achievements</label>
+                        <BulletList
+                            bullets={job.bullets}
+                            onChange={(bullets) => updateWork(index, { bullets })}
+                            placeholder="Led team of 5 developers"
                         />
                     </div>
                 </div>

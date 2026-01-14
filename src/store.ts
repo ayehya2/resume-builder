@@ -34,10 +34,12 @@ const getDefaultResumeData = (): ResumeData => ({
         marginLeft: '0.8',
         marginRight: '0.8',
         bulletStyle: 'bullet',
+        bulletIndent: 'small',
         bulletSpacing: 'normal',
         colorTheme: 'black',
         customColor: '#000000',
         sectionDividers: 'line',
+        headerLineStyle: 'thin',
         headerAlignment: 'center',
     },
 });
@@ -113,7 +115,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
                         location: '',
                         startDate: '',
                         endDate: '',
-                        description: '',
+                        bullets: [''],
                     },
                 ],
             },
@@ -212,7 +214,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
                     ...state.resumeData.projects,
                     {
                         name: '',
-                        description: '',
+                        bullets: [''],
                         keywords: [],
                     },
                 ],
@@ -329,7 +331,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
                         location: 'San Francisco, CA',
                         startDate: 'Jan 2020',
                         endDate: 'Present',
-                        description: '• Led team of 5 developers\n• Improved performance by 40%',
+                        bullets: ['Led team of 5 developers', 'Improved performance by 40%', 'Architected scalable microservices'],
                     },
                 ],
                 education: [
@@ -349,7 +351,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
                 projects: [
                     {
                         name: 'E-commerce Platform',
-                        description: '• Built full-stack e-commerce site\n• Implemented payment processing',
+                        bullets: ['Built full-stack e-commerce site', 'Implemented payment processing', 'Integrated Stripe API'],
                         keywords: ['React', 'Node.js', 'Stripe'],
                     },
                 ],
