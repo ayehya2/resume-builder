@@ -11,7 +11,7 @@ const app = express();
 
 // Import route modules
 const resumeRoutes = require('./routes/resume');
-const aiRoutes = require('./routes/ai');
+// const aiRoutes = require('./routes/ai'); 
 
 // Basic Express configuration
 app.set('view engine', 'ejs');
@@ -67,7 +67,6 @@ app.get('/', (req, res) => {
 
 // Mount route modules
 app.use('/', resumeRoutes);            // Resume builder and management
-app.use('/', aiRoutes);                // AI-powered features
 
 // 404 handler
 app.use('*', (req, res) => {

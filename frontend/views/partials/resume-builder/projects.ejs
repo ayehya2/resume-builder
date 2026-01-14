@@ -1,0 +1,60 @@
+<div class="section-content" id="projects-section">
+    <h2 class="section-title">Projects</h2>
+    <div id="projectsList">
+        <div class="dynamic-section project-item">
+            <button type="button" class="remove-button">Remove</button>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Project Name</label>
+                    <input type="text" class="glass-input project-name" name="project-name"
+                        placeholder="Portfolio Website">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">URL</label>
+                    <input type="url" class="glass-input project-url" name="project-url"
+                        placeholder="https://github.com/username/project">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">URL Display Name (optional)</label>
+                    <input type="text" class="glass-input project-url-name" name="project-url-name"
+                        placeholder="View on GitHub">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Technologies</label>
+                    <input type="text" class="glass-input project-keywords" name="project-keywords"
+                        placeholder="React, Node.js, MongoDB">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="month" class="glass-input project-start" name="project-start">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="month" class="glass-input project-end" name="project-end">
+                </div>
+            </div>
+            <div class="form-row-full">
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <div class="bullet-points-container project-bullets">
+                        <div class="bullet-point-item">
+                            <input type="text" class="glass-input bullet-point-input" name="project-bullet-point"
+                                placeholder="• Describe project features and achievements...">
+                            <button type="button" class="remove-bullet-btn">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-bullet-btn" data-target="project-bullets">
+                        <i class="fas fa-plus"></i> Add bullet point
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="button" class="add-button" data-target="projectsList">
+        <i class="fas fa-plus me-1"></i>Add Project
+    </button>
+</div>

@@ -1,0 +1,66 @@
+<div class="section-content" id="education-section">
+    <h2 class="section-title">Education</h2>
+    <div id="educationList">
+        <div class="dynamic-section education-item">
+            <button type="button" class="remove-button">Remove</button>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Institution</label>
+                    <input type="text" class="glass-input education-institution" name="education-institution"
+                        placeholder="University of Technology">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="glass-input education-location" name="education-location"
+                        placeholder="Boston, MA">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Study Type</label>
+                    <input type="text" class="glass-input education-degree" name="education-degree"
+                        placeholder="Bachelor of Science">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Area</label>
+                    <input type="text" class="glass-input education-area" name="education-area"
+                        placeholder="Computer Science">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="month" class="glass-input education-start" name="education-start">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="month" class="glass-input education-end" name="education-end">
+                </div>
+            </div>
+            <div class="form-row-full">
+                <div class="form-group">
+                    <label class="form-label">Score/GPA</label>
+                    <input type="text" class="glass-input education-gpa" name="education-gpa" placeholder="3.8">
+                </div>
+            </div>
+            <div class="form-row-full">
+                <div class="form-group">
+                    <label class="form-label">Additional Details</label>
+                    <div class="bullet-points-container education-bullets">
+                        <div class="bullet-point-item">
+                            <input type="text" class="glass-input bullet-point-input" name="education-bullet-point"
+                                placeholder="• Relevant coursework, achievements, activities...">
+                            <button type="button" class="remove-bullet-btn">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-bullet-btn" data-target="education-bullets">
+                        <i class="fas fa-plus"></i> Add bullet point
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="button" class="add-button" data-target="educationList">
+        <i class="fas fa-plus me-1"></i>Add Education
+    </button>
+</div>

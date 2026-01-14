@@ -138,15 +138,23 @@
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
+
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 .drag-handle {
     color: var(--glass-text-muted);
     cursor: grab;
     margin-right: 8px;
-    user-select: none; /* Prevent text selection */
+    user-select: none;
+    /* Prevent text selection */
 }
 
 .drag-handle:hover {
@@ -155,7 +163,8 @@
 
 .draggable-section {
     cursor: grab;
-    user-select: none; /* Prevent text selection during drag */
+    user-select: none;
+    /* Prevent text selection during drag */
 }
 
 .draggable-section:active {
@@ -192,7 +201,10 @@
     margin-bottom: 0.5rem;
 }
 
-.form-control, .form-select, textarea.form-control, .glass-input {
+.form-control,
+.form-select,
+textarea.form-control,
+.glass-input {
     background: var(--glass-bg-secondary) !important;
     border: 1px solid var(--glass-border-secondary) !important;
     color: var(--glass-text-primary) !important;
@@ -200,14 +212,19 @@
     -webkit-backdrop-filter: var(--glass-blur-md);
 }
 
-.form-control:focus, .form-select:focus, textarea.form-control:focus, .glass-input:focus {
+.form-control:focus,
+.form-select:focus,
+textarea.form-control:focus,
+.glass-input:focus {
     background: var(--glass-bg-primary) !important;
     border-color: var(--glass-focus-border) !important;
     box-shadow: 0 0 0 0.2rem var(--glass-focus-ring) !important;
     color: var(--glass-text-primary) !important;
 }
 
-.form-control::placeholder, textarea.form-control::placeholder, .glass-input::placeholder {
+.form-control::placeholder,
+textarea.form-control::placeholder,
+.glass-input::placeholder {
     color: var(--glass-text-muted) !important;
 }
 
@@ -798,12 +815,35 @@
     height: 120px;
     background: var(--glass-bg-secondary);
     border-radius: 8px;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
-    color: var(--glass-text-muted);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.template-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    transition: transform 0.3s ease;
+}
+
+.template-option:hover .template-thumbnail {
+    transform: scale(1.05);
+}
+
+.template-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--glass-text-secondary);
+}
+
+.template-option.active .template-label {
+    color: var(--glass-text-primary);
 }
 
 /* Glass inputs specific styling */
@@ -827,29 +867,29 @@
 }
 
 /* Responsive Design - Resume specific overrides */
-@media (max-width: 1024px) {    
+@media (max-width: 1024px) {
     .mobile-preview-button {
         display: block;
     }
 }
 
 @media (max-width: 768px) {
-    
+
     .pdf-toolbar {
         flex-direction: column;
         gap: 8px;
         padding: 8px 12px;
     }
-    
+
     .pdf-controls {
         gap: 8px;
     }
-    
+
     .pdf-btn {
         font-size: 12px;
         padding: 6px 10px;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
         gap: 0.5rem;

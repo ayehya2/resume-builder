@@ -1,0 +1,31 @@
+<div class="section-content" id="skills-section">
+    <h2 class="section-title">Skills</h2>
+    <div id="skillsList">
+        <div class="dynamic-section skill-item">
+            <button type="button" class="remove-button">Remove</button>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" class="glass-input skill-name" name="skill-name"
+                        placeholder="Programming Languages">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Keywords</label>
+                    <div class="skill-keywords-container">
+                        <div class="skill-keyword-item">
+                            <input type="text" class="glass-input skill-keyword-input" name="skill-keyword"
+                                placeholder="Add a skill...">
+                            <button type="button" class="remove-skill-keyword-btn">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-skill-keyword-btn">
+                        <i class="fas fa-plus"></i> Add keyword
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="button" class="add-button" data-target="skillsList">
+        <i class="fas fa-plus me-1"></i>Add Skill
+    </button>
+</div>

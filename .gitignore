@@ -119,3 +119,7 @@ cookies.txt
 tmp/
 temp/
 nul
+
+# Guides & Docs
+ARCH-GUIDE.md
+MODERNIZATION_GUIDE.md

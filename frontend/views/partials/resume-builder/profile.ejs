@@ -1,0 +1,63 @@
+<div class="section-content" id="profile-section">
+    <h2 class="section-title">Profile</h2>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="glass-input" id="fullName" name="fullName" placeholder="John Doe">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="glass-input" id="email" name="email" placeholder="john@example.com">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="tel" class="glass-input" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Address</label>
+            <input type="text" class="glass-input" id="address" name="address" placeholder="City, State, Country">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label class="form-label">LinkedIn</label>
+            <input type="url" class="glass-input" id="linkedin" name="linkedin" placeholder="linkedin.com/in/johndoe">
+        </div>
+        <div class="form-group">
+            <label class="form-label">GitHub</label>
+            <input type="url" class="glass-input" id="github" name="github" placeholder="github.com/johndoe">
+        </div>
+    </div>
+
+    <div class="form-group mb-4">
+        <label class="form-label">Professional Summary</label>
+        <textarea class="glass-input" id="summary" name="summary" rows="4"
+            placeholder="Briefly describe your professional background..."></textarea>
+    </div>
+
+    <h3 class="subsection-title mt-4">Websites & Links</h3>
+    <div id="websitesList">
+        <div class="dynamic-section website-item">
+            <button type="button" class="remove-button">Remove</button>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">URL</label>
+                    <input type="url" class="glass-input website-url" name="website-url"
+                        placeholder="https://johndoe.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" class="glass-input website-name" name="website-name" placeholder="Portfolio">
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="button" class="add-button mt-2" data-target="websitesList">
+        <i class="fas fa-plus"></i> Add Website/Link
+    </button>
+</div>
