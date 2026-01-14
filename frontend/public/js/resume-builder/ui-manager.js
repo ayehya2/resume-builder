@@ -8,6 +8,7 @@ const UIManager = {
         this.initializeSidebarNav();
         this.initializeTemplateSelection();
         this.initializeUpdatePreviewBtn();
+        this.initializeLoadExampleBtn();
         this.initializeMobileNav();
         this.initializeLogout();
         this.initializeNotifications();
@@ -74,6 +75,17 @@ const UIManager = {
                     btn.innerHTML = originalHtml;
                     btn.disabled = false;
                 }, 2000);
+            });
+        }
+    },
+
+    initializeLoadExampleBtn: function () {
+        const btn = document.getElementById('loadExampleDataBtn');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                if (confirm('This will overwrite current form data with example data. Continue?')) {
+                    window.DataManager.loadExampleData();
+                }
             });
         }
     },

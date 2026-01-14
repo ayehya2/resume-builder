@@ -339,6 +339,89 @@ const DataManager = {
     },
 
     /**
+     * Loads example data into the form
+     */
+    loadExampleData: function () {
+        const exampleData = {
+            name: "John Doe",
+            email: "john.doe@example.com",
+            phone: "(555) 123-4567",
+            address: "San Francisco, CA",
+            websites: [
+                { name: "Portfolio", url: "https://johndoe.design" },
+                { name: "LinkedIn", url: "https://linkedin.com/in/johndoe" }
+            ],
+            education: [
+                {
+                    institution: "University of Technology",
+                    degree: "Bachelor of Science",
+                    area: "Computer Science",
+                    startDate: "2018-09",
+                    endDate: "2022-05",
+                    score: "3.8 GPA",
+                    location: "Boston, MA"
+                }
+            ],
+            experience: [
+                {
+                    company: "Tech Solutions Inc.",
+                    position: "Senior Software Engineer",
+                    location: "San Francisco, CA",
+                    startDate: "2022-06",
+                    endDate: "",
+                    description: "• Led a team of 5 engineers to develop a cloud-based highly scalable application.\n• Improved system performance by 40% through code optimization and caching strategies.\n• Mentored junior developers and conducted code reviews."
+                },
+                {
+                    company: "Startup Lab",
+                    position: "Full Stack Developer",
+                    location: "New York, NY",
+                    startDate: "2020-01",
+                    endDate: "2022-05",
+                    description: "• Built and launched a MVP for a fintech product using React and Node.js.\n• Integrated third-party payment gateways and designed a secure RESTful API."
+                }
+            ],
+            skills: [
+                {
+                    category: "Languages",
+                    items: ["JavaScript", "TypeScript", "Python", "SQL", "HTML/CSS"]
+                },
+                {
+                    category: "Frameworks",
+                    items: ["React", "Node.js", "Express", "Next.js", "PostgreSQL"]
+                }
+            ],
+            projects: [
+                {
+                    name: "E-Commerce Platform",
+                    description: "• Developed a full-featured e-commerce site with cart, checkout, and admin dashboard.\n• Implemented secure authentication and Stripe payment integration.",
+                    keywords: ["React", "Redux", "Node.js", "Stripe"],
+                    url: "https://github.com/johndoe/ecommerce",
+                    urlName: "Source Code"
+                },
+                {
+                    name: "Task Management App",
+                    description: "• Created a real-time task collaboration tool using WebSockets.",
+                    keywords: ["Vue.js", "Firebase", "Socket.io"],
+                    url: "https://taskapp.demo",
+                    urlName: "Live Demo"
+                }
+            ],
+            awards: [
+                {
+                    title: "Best Innovation Award",
+                    awarder: "Tech Hackathon 2023",
+                    date: "2023-11",
+                    summary: "Recognized for creating the most innovative solution using AI."
+                }
+            ]
+        };
+
+        this.populateForm(exampleData);
+        if (window.showNotification) window.showNotification('Example data loaded!', 'success');
+        this.triggerPreviewUpdate();
+    },
+
+    /**
      * Debounce utility
      */
     debounce: function (func, wait) {
