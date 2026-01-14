@@ -17,7 +17,11 @@ export function ModernTemplate() {
                 lineHeight: formatting.lineSpacing,
                 padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,
                 color: '#000000',
-                textAlign: 'left'
+                textAlign: 'left',
+                width: '8.5in',
+                height: '11in',
+                overflow: 'hidden',
+                boxSizing: 'border-box'
             }}
         >
             {/* Header */}

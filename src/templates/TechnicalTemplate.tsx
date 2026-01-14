@@ -15,7 +15,11 @@ export function TechnicalTemplate() {
                 fontFamily: getFontFamilyCSS(formatting.fontFamily),
                 fontSize: formatting.baseFontSize,
                 lineHeight: formatting.lineSpacing,
-                padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`
+                padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,
+                width: '8.5in',
+                height: '11in',
+                overflow: 'hidden',
+                boxSizing: 'border-box'
             }}
         >
             {/* Header */}

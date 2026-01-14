@@ -14,7 +14,12 @@ export function ClassicTemplate() {
             fontSize: formatting.baseFontSize,
             lineHeight: formatting.lineSpacing,
             padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,
-            color: colorValue
+            color: colorValue,
+            width: '8.5in',
+            height: '11in',
+            backgroundColor: 'white',
+            overflow: 'hidden',
+            boxSizing: 'border-box'
         }}>
             {/* Header */}
             <div style={{

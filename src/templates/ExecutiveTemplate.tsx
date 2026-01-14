@@ -16,7 +16,11 @@ export function ExecutiveTemplate() {
                 fontSize: formatting.baseFontSize,
                 lineHeight: formatting.lineSpacing,
                 padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,
-                color: '#000000'
+                color: '#000000',
+                width: '8.5in',
+                height: '11in',
+                overflow: 'hidden',
+                boxSizing: 'border-box'
             }}
         >
             {/* Header */}
@@ -90,7 +94,7 @@ export function ExecutiveTemplate() {
                     );
                 }
 
-                if (section === 'education' && education.length > 0) {
+                if (sectionKey === 'education' && education.length > 0) {
                     return (
                         <div key="education" className="mb-6 text-left">
                             <h2 className="text-left text-lg font-bold mb-3 pb-1 border-b border-black uppercase tracking-wider" style={{ borderBottomColor: colorValue }}>
@@ -114,7 +118,7 @@ export function ExecutiveTemplate() {
                     );
                 }
 
-                if (section === 'skills' && skills.length > 0) {
+                if (sectionKey === 'skills' && skills.length > 0) {
                     return (
                         <div key="skills" className="mb-6 text-left">
                             <h2 className="text-left text-lg font-bold mb-3 pb-1 border-b border-black uppercase tracking-wider" style={{ borderBottomColor: colorValue }}>
@@ -132,7 +136,7 @@ export function ExecutiveTemplate() {
                     );
                 }
 
-                if (section === 'projects' && projects.length > 0) {
+                if (sectionKey === 'projects' && projects.length > 0) {
                     return (
                         <div key="projects" className="mb-6 text-left">
                             <h2 className="text-left text-lg font-bold mb-3 pb-1 border-b border-black uppercase tracking-wider" style={{ borderBottomColor: colorValue }}>
@@ -172,7 +176,7 @@ export function ExecutiveTemplate() {
                     );
                 }
 
-                if (section === 'awards' && awards.length > 0) {
+                if (sectionKey === 'awards' && awards.length > 0) {
                     return (
                         <div key="awards" className="mb-6 text-left">
                             <h2 className="text-left text-lg font-bold mb-3 pb-1 border-b border-black uppercase tracking-wider" style={{ borderBottomColor: colorValue }}>
