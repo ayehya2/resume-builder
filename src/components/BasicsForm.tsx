@@ -1,17 +1,43 @@
 import { useResumeStore } from '../store';
-import { formatPhoneNumber, capitalizeWords } from '../utils/formatters';
+import { useState } from 'react';
+import { emailSchema, phoneSchema, urlSchema, formatPhoneNumber } from '../utils/validation';
+import { capitalizeWords } from '../utils/formatters';
 
 export function BasicsForm() {
     const { resumeData, updateBasics } = useResumeStore();
     const { basics } = resumeData;
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const validateAndUpdate = (field: string, value: any, schema: any) => {
+        const result = schema.safeParse(value);
+
+        if (result.success) {
+            setErrors(prev => ({ ...prev, [field]: '' }));
+            return result.data;
+        } else {
+            setErrors(prev => ({ ...prev, [field]: result.error.issues[0]?.message || 'Invalid' }));
+            return value;
+        }
+    };
+
     const handleNameChange = (value: string) => {
         updateBasics({ name: capitalizeWords(value) });
     };
 
+    const handleEmailBlur = () => {
+        validateAndUpdate('email', basics.email, emailSchema);
+    };
+
     const handlePhoneChange = (value: string) => {
-        const formatted = formatPhoneNumber(value);
-        updateBasics({ phone: formatted });
+        updateBasics({ phone: value });
+    };
+
+    const handlePhoneBlur = () => {
+        const validatedPhone = validateAndUpdate('phone', basics.phone, phoneSchema);
+        if (validatedPhone) {
+            updateBasics({ phone: validatedPhone });
+        }
     };
 
     return (
@@ -36,9 +62,14 @@ export function BasicsForm() {
                         type="email"
                         value={basics.email}
                         onChange={(e) => updateBasics({ email: e.target.value })}
-                        className="w-full px-3 py-2 border-2 border-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-black font-medium"
-                        placeholder="john@example.com"
+                        onBlur={handleEmailBlur}
+                        className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-black font-medium ${errors.email ? 'border-red-500' : 'border-slate-400'
+                            }`}
+                        paragraph placeholder="john@example.com"
                     />
+                    {errors.email && (
+                        <p className="text-red-600 text-sm mt-1 font-semibold">⚠️ {errors.email}</p>
+                    )}
                 </div>
 
                 <div>
@@ -47,10 +78,15 @@ export function BasicsForm() {
                         type="tel"
                         value={basics.phone}
                         onChange={(e) => handlePhoneChange(e.target.value)}
-                        className="w-full px-3 py-2 border-2 border-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-black font-medium"
+                        onBlur={handlePhoneBlur}
+                        className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-black font-medium ${errors.phone ? 'border-red-500' : 'border-slate-400'
+                            }`}
                         placeholder="(123) 456-7890"
                         maxLength={14}
                     />
+                    {errors.phone && (
+                        <p className="text-red-600 text-sm mt-1 font-semibold">⚠️ {errors.phone}</p>
+                    )}
                 </div>
             </div>
 
