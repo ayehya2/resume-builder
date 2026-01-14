@@ -79,6 +79,10 @@ interface ResumeStore {
     // Template
     setTemplate: (templateId: TemplateId) => void;
 
+    // Formatting
+    updateFormatting: (formatting: Partial<import('./types').FormattingOptions>) => void;
+    resetFormatting: () => void;
+
     // Utility
     loadSampleData: () => void;
     reset: () => void;
@@ -282,6 +286,23 @@ export const useResumeStore = create<ResumeStore>((set) => ({
             resumeData: {
                 ...state.resumeData,
                 selectedTemplate: templateId,
+            },
+        })),
+
+    // Formatting
+    updateFormatting: (formatting) =>
+        set((state) => ({
+            resumeData: {
+                ...state.resumeData,
+                formatting: { ...state.resumeData.formatting, ...formatting },
+            },
+        })),
+
+    resetFormatting: () =>
+        set((state) => ({
+            resumeData: {
+                ...state.resumeData,
+                formatting: getDefaultResumeData().formatting,
             },
         })),
 
