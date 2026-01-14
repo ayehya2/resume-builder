@@ -10,10 +10,23 @@ import { FormattingForm } from './components/FormattingForm'
 import { TemplateRenderer } from './templates/TemplateRenderer'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-import type { TemplateId } from './types'
+import type { TemplateId, SectionKey } from './types'
+import { DndContext, closestCenter } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import './index.css'
 
+
 type TabKey = 'basics' | 'work' | 'education' | 'skills' | 'projects' | 'awards' | 'templates' | 'formatting';
+
+interface TabItem {
+  key: TabKey;
+  label: string;
+  icon: string;
+  draggable?: boolean;
+  sectionKey?: SectionKey;
+}
 
 const templates: Array<{ id: TemplateId; name: string; icon: string }> = [
   { id: 1, name: 'Classic', icon: '📄' },
@@ -22,21 +35,93 @@ const templates: Array<{ id: TemplateId; name: string; icon: string }> = [
   { id: 8, name: 'Executive', icon: '💼' },
 ];
 
+function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boolean; onClick: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: tab.key,
+    disabled: !tab.draggable,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <button
+      ref={setNodeRef}
+      style={style}
+      onClick={onClick}
+      className={`
+        w-full flex items-center gap-3 px-4 py-4 font-bold transition-all border-l-4
+        ${isActive
+          ? 'bg-indigo-600 text-white border-indigo-900 shadow-lg'
+          : 'bg-slate-100 text-black border-transparent hover:bg-slate-200 hover:border-indigo-300'
+        }
+      `}
+    >
+      {tab.draggable && (
+        <span {...attributes} {...listeners} className="cursor-move text-slate-500 hover:text-indigo-600">
+          ☰
+        </span>
+      )}
+      <span className="text-2xl">{tab.icon}</span>
+      <span className="text-sm">{tab.label}</span>
+    </button>
+  );
+}
+
 function App() {
-  const { resumeData, setTemplate, loadSampleData, reset } = useResumeStore()
+  const { resumeData, setTemplate, setSections, loadSampleData, reset } = useResumeStore()
   const [activeTab, setActiveTab] = useState<TabKey>('templates')
   const [previewScale, setPreviewScale] = useState(0.75)
 
-  const tabs: Array<{ key: TabKey; label: string; icon: string }> = [
-    { key: 'templates', label: 'Template', icon: '📐' },
-    { key: 'basics', label: 'Profile', icon: '👤' },
-    { key: 'work', label: 'Experience', icon: '💼' },
-    { key: 'education', label: 'Education', icon: '🎓' },
-    { key: 'skills', label: 'Skills', icon: '⚡' },
-    { key: 'projects', label: 'Projects', icon: '🚀' },
-    { key: 'awards', label: 'Awards', icon: '🏆' },
-    { key: 'formatting', label: 'Formatting', icon: '🎨' },
-  ]
+
+  // Map sections to tabs dynamically
+  const sectionTabs: TabItem[] = resumeData.sections.map(sectionKey => {
+    const tabMap: Record<SectionKey, TabItem> = {
+      profile: { key: 'basics', label: 'Profile', icon: '👤', draggable: false },
+      work: { key: 'work', label: 'Experience', icon: '💼', draggable: true, sectionKey: 'work' },
+      education: { key: 'education', label: 'Education', icon: '🎓', draggable: true, sectionKey: 'education' },
+      skills: { key: 'skills', label: 'Skills', icon: '⚡', draggable: true, sectionKey: 'skills' },
+      projects: { key: 'projects', label: 'Projects', icon: '🚀', draggable: true, sectionKey: 'projects' },
+      awards: { key: 'awards', label: 'Awards', icon: '🏆', draggable: true, sectionKey: 'awards' },
+    };
+    return tabMap[sectionKey];
+  });
+
+  const tabs: TabItem[] = [
+    { key: 'templates', label: 'Template', icon: '📐', draggable: false },
+    ...sectionTabs,
+    { key: 'formatting', label: 'Formatting', icon: '🎨', draggable: false },
+  ];
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = tabs.findIndex(t => t.key === active.id);
+    const newIndex = tabs.findIndex(t => t.key === over.id);
+
+    // Only allow dragging between draggable items
+    if (!tabs[oldIndex]?.draggable || !tabs[newIndex]?.draggable) return;
+
+    const newSections = [...resumeData.sections];
+    const activeSection = tabs[oldIndex].sectionKey;
+    const overSection = tabs[newIndex].sectionKey;
+
+    if (!activeSection || !overSection) return;
+
+    const activeSectionIndex = newSections.indexOf(activeSection);
+    const overSectionIndex = newSections.indexOf(overSection);
+
+    // Swap sections
+    [newSections[activeSectionIndex], newSections[overSectionIndex]] =
+      [newSections[overSectionIndex], newSections[activeSectionIndex]];
+
+    setSections(newSections);
+  };
 
   const handleDownloadPDF = async () => {
     const element = document.getElementById('resume-preview');
@@ -95,22 +180,18 @@ function App() {
         {/* Left Sidebar - Tabs */}
         <aside className="w-56 bg-slate-100 border-r-4 border-slate-300 flex-shrink-0">
           <div className="sticky top-0">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`
-                  w-full flex items-center gap-3 px-4 py-4 font-bold transition-all border-l-4
-                  ${activeTab === tab.key
-                    ? 'bg-indigo-600 text-white border-indigo-900 shadow-lg'
-                    : 'bg-slate-100 text-black border-transparent hover:bg-slate-200 hover:border-indigo-300'
-                  }
-                `}
-              >
-                <span className="text-2xl">{tab.icon}</span>
-                <span className="text-sm">{tab.label}</span>
-              </button>
-            ))}
+            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={tabs.map(t => t.key)} strategy={verticalListSortingStrategy}>
+                {tabs.map((tab) => (
+                  <SidebarItem
+                    key={tab.key}
+                    tab={tab}
+                    isActive={activeTab === tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           </div>
         </aside>
 
