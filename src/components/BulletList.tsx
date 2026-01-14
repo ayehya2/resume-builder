@@ -28,13 +28,18 @@ export function BulletList({ bullets, onChange, placeholder }: BulletListProps) 
     return (
         <div className="space-y-2">
             {bullets.map((bullet, idx) => (
-                <div key={idx} className="flex gap-2 items-start">
-                    <span className="text-xl font-bold mt-1.5 dark:text-white">•</span>
+                <div key={idx} className="flex gap-2 items-center">
+                    <span className="text-xl leading-none text-black dark:text-white">•</span>
                     <input
                         type="text"
                         value={bullet}
                         onChange={(e) => updateBullet(idx, e.target.value)}
-                        className="flex-1 px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 font-medium border-slate-400 text-black dark:border-gray-600 dark:bg-black dark:text-white"
+                        className={`
+                            flex-1 px-2 py-1.5 border rounded
+                            focus:outline-none focus:ring-2 focus:ring-violet-500
+                            bg-white border-gray-300 text-black
+                            dark:bg-black dark:border-gray-600 dark:text-white
+                        `}
                         placeholder={placeholder || 'Enter bullet point'}
                     />
                     {bullets.length > 1 && (

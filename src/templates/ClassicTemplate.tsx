@@ -33,7 +33,7 @@ export function ClassicTemplate() {
                     {basics.address && <span>{basics.address}</span>}
                     {basics.websites.length > 0 && basics.websites.map((site, idx) => (
                         <span key={idx}>
-                            <span> {formatting.separator} </span>
+                            {(basics.email || basics.phone || basics.address || idx > 0) && <span> {formatting.separator} </span>}
                             <a href={site.url} target="_blank" rel="noopener noreferrer" style={{ color: colorValue, textDecoration: 'underline' }}>
                                 {site.name || site.url}
                             </a>

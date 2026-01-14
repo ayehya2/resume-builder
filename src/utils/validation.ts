@@ -1,20 +1,28 @@
 import { z } from 'zod';
 
 // Email validation
-export const emailSchema = z.string()
-    .email('Invalid email format')
+export const emailSchema = z
+    .string()
+    .email('Please enter a valid email address')
     .min(1, 'Email is required');
 
-// Phone validation - accepts various formats
-export const phoneSchema = z.string()
-    .min(1, 'Phone number is required')
-    .regex(/^[\d\s\-\(\)\+]+$/, 'Phone number contains invalid characters')
-    .transform((val) => formatPhoneNumber(val));
+// Phone validation (US format)
+export const phoneSchema = z
+    .string()
+    .regex(/^\(\d{3}\) \d{3}-\d{4}$/, 'Phone must be in format: (123) 456-7890')
+    .min(1, 'Phone number is required');
 
 // URL validation
-export const urlSchema = z.string()
-    .url('Invalid URL format')
-    .or(z.literal(''));
+export const urlSchema = z
+    .string()
+    .url('Please enter a valid URL (e.g., https://example.com)')
+    .or(z.literal('')); // Allow empty for optional fields
+
+// Name validation
+export const nameSchema = z
+    .string()
+    .min(1, 'Name is required')
+    .max(100, 'Name must be less than 100 characters');
 
 // Date validation - flexible format (Mon YYYY, MM/YYYY, etc.)
 export const dateSchema = z.string()
