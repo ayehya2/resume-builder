@@ -1,92 +1,142 @@
-# Professional Resume Builder
+# Resume Builder v2
 
-A clean, modular resume builder with high-quality templates and PDF generation.
+A modern, professional resume builder built with **TypeScript**, **React**, and **Tailwind CSS**.
 
 ## ✨ Features
 
-- **🎨 4 High-Quality Templates** - Classic, Modern, Technical, and Executive layouts
-- **👁️ Live PDF Preview** - Real-time preview with smart debouncing
-- **🛠️ Formatting Controls** - Full control over fonts, margins, colors, and styles
-- **📄 Professional PDFs** - High-quality PDF generation using Puppeteer
-- **💾 Auto-Save** - Automatically saves your progress
-- **🎯 Modular Architecture** - Clean, maintainable codebase ready for scaling
+- 📝 **Complete Resume Builder** - All sections: Profile, Experience, Education, Skills, Projects, Awards
+- 🎨 **4 Professional Templates** - Classic, Modern, Technical, Executive
+- 👁️ **Live Preview** - See your resume update in real-time as you type
+- 📥 **PDF Export** - Download your resume as a high-quality PDF
+- 🔄 **Section Reordering** - Drag and drop to rearrange resume sections
+- ✅ **Auto-Formatting** - Phone numbers, name capitalization, and more
+- 💾 **State Management** - Built with Zustand for reliable state handling
+- 🎯 **Type Safety** - 100% TypeScript for fewer bugs
 
 ## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
 
 ```bash
 # Install dependencies
 npm install
 
-# Start the development server
+# Start development server
 npm run dev
 ```
 
-Open `http://localhost:3001` in your browser.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-## 📐 Templates
+### Build for Production
 
-| Template | Style | Best For |
-|----------|-------|----------|
-| **Classic** | Traditional serif | Conservative roles, academia |
-| **Modern** | Colorful accents | Creative fields, startups |
-| **Technical** | Two-column layout | Software engineers, developers |
-| **Executive** | Professional corporate | Business, executive positions |
-
-## 🏗️ Architecture
-
-The project uses a clean modular architecture:
-
-### Frontend
-- **DataManager** - Form data collection and normalization
-- **UIManager** - Interactive elements and notifications
-- **PreviewManager** - PDF preview lifecycle and rendering
-- **FormattingManager** - Visual styling and typography
-
-### Backend
-- **Express Server** - Lightweight API
-- **Puppeteer Engine** - HTML to PDF conversion
-- **Template System** - Modular template architecture
-
-## 📁 Project Structure
-
-```
-resume-builder/
-├── backend/app/
-│   ├── app.js              # Express server
-│   ├── routes/             # API routes
-│   └── services/
-│       ├── latex.js        # PDF generation
-│       └── templates/      # 4 template modules
-├── frontend/
-│   ├── views/              # EJS templates
-│   └── public/
-│       ├── css/            # Modern UI styles
-│       └── js/
-│           └── resume-builder/  # Modular managers
-└── package.json
+```bash
+npm run build
+npm run preview
 ```
 
-## 📝 Resume Sections
+## 🏗️ Tech Stack
 
-- **Profile** - Name, contact details, social links
-- **Education** - Schools, degrees, coursework
-- **Work Experience** - Positions, companies, achievements
-- **Skills** - Categorized skill keywords
-- **Projects** - Project details, URLs, descriptions
-- **Awards** - Certifications, honors
+- **Frontend Framework:** React 18 + TypeScript
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS v4
+- **State Management:** Zustand
+- **Drag & Drop:** @dnd-kit
+- **PDF Generation:** jsPDF + html2canvas
+- **Type Safety:** TypeScript 5.x
 
-## 🎯 Next Steps
+## 📋 Project Structure
 
-This project has been cleaned and is ready for modernization:
+```
+src/
+├── components/          # React components
+│   ├── BasicsForm.tsx   # Profile information form
+│   ├── WorkForm.tsx     # Work experience form
+│   ├── EducationForm.tsx
+│   ├── SkillsForm.tsx
+│   ├── ProjectsForm.tsx
+│   ├── AwardsForm.tsx
+│   ├── SectionReorder.tsx
+│   └── FormattingForm.tsx
+├── templates/           # Resume templates
+│   ├── ClassicTemplate.tsx
+│   ├── ModernTemplate.tsx
+│   ├── TechnicalTemplate.tsx
+│   ├── ExecutiveTemplate.tsx
+│   └── TemplateRenderer.tsx
+├── utils/               # Utility functions
+│   ├── formatters.ts    # Input formatting
+│   └── styles.ts        # Shared styles
+├── App.tsx              # Main application
+├── store.ts             # Zustand state store
+├── types.ts             # TypeScript types
+└── index.css            # Global styles
+```
 
-1. **TypeScript Migration** - Add type safety
-2. **React/TSX** - Component-based architecture
-3. **Theme System** - Proper light/dark themes
-4. **API Layer** - RESTful API for integration
-5. **TalentScope** - Module integration
+## 🎨 Templates
 
-See `CLEANUP_COMPLETE.md` for details on the recent cleanup.
+1. **Classic** - Traditional serif font, centered layout
+2. **Modern** - Blue accents, left-aligned, contemporary
+3. **Technical** - Compact, engineering-focused
+4. **Executive** - Professional, corporate style
+
+## 🛠️ Features in Detail
+
+### Auto-Formatting
+- Phone numbers automatically format to (123) 456-7890
+- Names auto-capitalize (john doe → John Doe)
+- Input validation on all fields
+
+### Live Preview
+- 75% default scale (adjustable with +/- buttons)
+- Real-time updates as you type
+- Zoom from 40% to 100%
+- Scrollable for multi-page resumes
+
+### Section Management
+- Drag and drop to reorder sections
+- Show/hide sections dynamically
+- Customizable section order per template
+
+## 📝 Usage
+
+1. **Click "Load Sample"** to see example data
+2. **Fill out your information** in each tab:
+   - Profile: Name, contact info, websites
+   - Experience: Work history with bullets
+   - Education: Degrees and schools
+   - Skills: Organized by category
+   - Projects: Side projects with tech stacks
+   - Awards: Certifications and honors
+3. **Choose a template** from 4 professional designs
+4. **Reorder sections** via drag-and-drop
+5. **Download PDF** when ready!
+
+## 🔜 Upcoming Features
+
+- [ ] More templates
+- [ ] Font customization
+- [ ] Color theme options
+- [ ] Local storage auto-save
+- [ ] Export/Import JSON
+- [ ] Server-side PDF generation (Puppeteer)
+- [ ] Multi-page resume support
 
 ## 📄 License
 
-MIT
+MIT License - feel free to use for personal or commercial projects!
+
+## 🤝 Contributing
+
+Contributions welcome! Please open an issue or PR.
+
+## 🙏 Acknowledgments
+
+Built with modern web technologies and best practices for a seamless user experience.
+
+---
+
+**Made with ❤️ using React + TypeScript**
