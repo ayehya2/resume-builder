@@ -1,8 +1,9 @@
 import { useResumeStore } from '../store';
+import { getBulletIndentValue } from '../utils/formatting';
 
 export function ModernTemplate() {
     const { resumeData } = useResumeStore();
-    const { basics, work, education, skills, projects, awards, sections } = resumeData;
+    const { basics, work, education, skills, projects, awards, sections, formatting } = resumeData;
 
     return (
         <div style={{
@@ -92,7 +93,7 @@ export function ModernTemplate() {
                                         {job.position}{job.location && `, ${job.location}`}
                                     </div>
                                     {job.bullets && job.bullets.length > 0 && (
-                                        <div style={{ margin: '2pt 0 0 0', fontSize: '10pt' }}>
+                                        <div style={{ margin: '2pt 0 0 0', fontSize: '10pt', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
                                             {job.bullets.map((line: string, i: number) => (
                                                 <div key={i} style={{ margin: '1pt 0' }}>• {line}</div>
                                             ))}
@@ -151,7 +152,7 @@ export function ModernTemplate() {
                                         )}
                                     </div>
                                     {project.bullets && project.bullets.length > 0 && (
-                                        <div style={{ margin: '2pt 0 0 0', fontSize: '10pt' }}>
+                                        <div style={{ margin: '2pt 0 0 0', fontSize: '10pt', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
                                             {project.bullets.map((line: string, i: number) => (
                                                 <div key={i} style={{ margin: '1pt 0' }}>• {line}</div>
                                             ))}

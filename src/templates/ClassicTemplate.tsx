@@ -1,10 +1,11 @@
 import { useResumeStore } from '../store';
-import { getFontFamilyCSS, getBulletSymbol, getColorValue, getSectionDividerStyle, getNameSize, getSectionTitleSize, getSpacingValue } from '../utils/formatting';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getSectionDividerStyle, getNameSize, getSectionTitleSize, getSpacingValue, getBulletIndentValue } from '../utils/formatting';
 
 export function ClassicTemplate() {
     const { resumeData } = useResumeStore();
     const { basics, work, education, skills, projects, awards, sections, formatting } = resumeData;
-    const separator = basics.separator || '•';
+
+    const colorValue = getColorValue(formatting.colorTheme, formatting.customColor);
     const bulletSymbol = getBulletSymbol(formatting.bulletStyle);
 
     return (
@@ -13,23 +14,27 @@ export function ClassicTemplate() {
             fontSize: formatting.baseFontSize,
             lineHeight: formatting.lineSpacing,
             padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,
-            color: getColorValue(formatting.colorTheme, formatting.customColor)
+            color: colorValue
         }}>
             {/* Header */}
-            <div style={{ textAlign: formatting.headerAlignment, marginBottom: getSpacingValue(formatting.sectionSpacing) }}>
-                <h1 style={{ fontSize: getNameSize(formatting.nameSize), fontWeight: 'bold', margin: '0 0 4pt 0', textTransform: 'uppercase' }}>
+            <div style={{
+                textAlign: formatting.headerAlignment,
+                marginBottom: getSpacingValue(formatting.sectionSpacing),
+                ...getSectionDividerStyle(formatting.sectionDividers)
+            }}>
+                <h1 style={{ fontSize: getNameSize(formatting.nameSize), fontWeight: 'bold', margin: '0 0 4pt 0', color: colorValue }}>
                     {basics.name}
                 </h1>
-                <div style={{ fontSize: '10pt', margin: '0' }}>
+                <div style={{ fontSize: '10pt', margin: '0', color: '#000000' }}>
                     {basics.email && <span>{basics.email}</span>}
-                    {basics.email && basics.phone && <span> {separator} </span>}
+                    {basics.email && basics.phone && <span> {formatting.separator} </span>}
                     {basics.phone && <span>{basics.phone}</span>}
-                    {(basics.email || basics.phone) && basics.address && <span> {separator} </span>}
+                    {(basics.email || basics.phone) && basics.address && <span> {formatting.separator} </span>}
                     {basics.address && <span>{basics.address}</span>}
                     {basics.websites.length > 0 && basics.websites.map((site, idx) => (
                         <span key={idx}>
-                            <span> {separator} </span>
-                            <a href={site.url} target="_blank" rel="noopener noreferrer" style={{ color: '#0000EE', textDecoration: 'underline' }}>
+                            <span> {formatting.separator} </span>
+                            <a href={site.url} target="_blank" rel="noopener noreferrer" style={{ color: colorValue, textDecoration: 'underline' }}>
                                 {site.name || site.url}
                             </a>
                         </span>
@@ -90,7 +95,7 @@ export function ClassicTemplate() {
                                         {job.location && `, ${job.location}`}
                                     </div>
                                     {job.bullets && job.bullets.length > 0 && (
-                                        <div style={{ margin: '2pt 0 0 0' }}>
+                                        <div style={{ margin: '2pt 0 0 0', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
                                             {job.bullets.map((bullet, i) => (
                                                 <div key={i} style={{ margin: '1pt 0' }}>{bulletSymbol} {bullet}</div>
                                             ))}
@@ -159,7 +164,7 @@ export function ClassicTemplate() {
                                         )}
                                     </div>
                                     {project.bullets && project.bullets.length > 0 && (
-                                        <div style={{ margin: '2pt 0 0 0' }}>
+                                        <div style={{ margin: '2pt 0 0 0', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
                                             {project.bullets.map((bullet, i) => (
                                                 <div key={i} style={{ margin: '1pt 0' }}>{bulletSymbol} {bullet}</div>
                                             ))}

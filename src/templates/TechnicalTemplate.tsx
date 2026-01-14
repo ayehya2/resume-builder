@@ -1,8 +1,9 @@
 import { useResumeStore } from '../store';
+import { getBulletIndentValue } from '../utils/formatting';
 
 export function TechnicalTemplate() {
     const { resumeData } = useResumeStore();
-    const { basics, work, education, skills, projects, awards, sections } = resumeData;
+    const { basics, work, education, skills, projects, awards, sections, formatting } = resumeData;
 
     return (
         <div className="bg-white p-6 font-sans text-slate-900" style={{ fontSize: '10pt', lineHeight: '1.3' }}>
@@ -41,7 +42,7 @@ export function TechnicalTemplate() {
                                         <span className="text-xs">{job.location}</span>
                                     </div>
                                     {job.bullets && job.bullets.length > 0 && (
-                                        <div className="mt-1 text-xs text-slate-800">
+                                        <div className="mt-1 text-xs text-slate-800" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
                                             {job.bullets.map((line: string, i: number) => (
                                                 <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
                                             ))}
@@ -106,7 +107,7 @@ export function TechnicalTemplate() {
                                         )}
                                     </div>
                                     {project.bullets && project.bullets.length > 0 && (
-                                        <div className="mt-1 text-xs text-slate-800">
+                                        <div className="mt-1 text-xs text-slate-800" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
                                             {project.bullets.map((line: string, i: number) => (
                                                 <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
                                             ))}

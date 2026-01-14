@@ -9,7 +9,6 @@ const getDefaultResumeData = (): ResumeData => ({
         phone: '',
         address: '',
         websites: [],
-        separator: '•',
     },
     education: [],
     work: [],
@@ -38,6 +37,7 @@ const getDefaultResumeData = (): ResumeData => ({
         bulletSpacing: 'normal',
         colorTheme: 'black',
         customColor: '#000000',
+        separator: '•',
         sectionDividers: 'line',
         headerLineStyle: 'thin',
         headerAlignment: 'center',
@@ -318,7 +318,6 @@ export const useResumeStore = create<ResumeStore>((set) => ({
                     email: 'john.doe@example.com',
                     phone: '(123) 456-7890',
                     address: 'New York, NY',
-                    separator: '•',
                     websites: [
                         { name: 'Portfolio', url: 'https://johndoe.com' },
                         { name: 'GitHub', url: 'https://github.com/johndoe' },

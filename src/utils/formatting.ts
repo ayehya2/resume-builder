@@ -78,6 +78,17 @@ export function getSpacingValue(spacing: Spacing): string {
     return spacingMap[spacing] || '12pt';
 }
 
+// Bullet indentation to inches
+export function getBulletIndentValue(indent: import('../types').BulletIndent): string {
+    const indentMap = {
+        none: '0',
+        small: '0.2in',
+        medium: '0.4in',
+        large: '0.6in',
+    };
+    return indentMap[indent] || '0';
+}
+
 // Name size to pt
 export function getNameSize(nameSize: import('../types').NameSize): string {
     const sizeMap = {

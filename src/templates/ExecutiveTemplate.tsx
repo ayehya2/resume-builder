@@ -1,8 +1,9 @@
 import { useResumeStore } from '../store';
+import { getBulletIndentValue } from '../utils/formatting';
 
 export function ExecutiveTemplate() {
     const { resumeData } = useResumeStore();
-    const { basics, work, education, skills, projects, awards, sections } = resumeData;
+    const { basics, work, education, skills, projects, awards, sections, formatting } = resumeData;
 
     return (
         <div className="bg-white p-8 font-sans text-slate-900" style={{ fontSize: '11pt', lineHeight: '1.4' }}>
@@ -47,7 +48,7 @@ export function ExecutiveTemplate() {
                                         <span className="text-sm text-slate-600">{job.location}</span>
                                     </div>
                                     {job.bullets && job.bullets.length > 0 && (
-                                        <div className="mt-1 text-xs leading-relaxed">
+                                        <div className="mt-1 text-xs leading-relaxed" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
                                             {job.bullets.map((line: string, i: number) => (
                                                 <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
                                             ))}
@@ -107,7 +108,7 @@ export function ExecutiveTemplate() {
                                 <div key={idx} className="mb-3">
                                     <div className="font-semibold">{project.name}</div>
                                     {project.bullets && project.bullets.length > 0 && (
-                                        <div className="mt-1 text-xs leading-relaxed">
+                                        <div className="mt-1 text-xs leading-relaxed" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
                                             {project.bullets.map((line: string, i: number) => (
                                                 <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
                                             ))}

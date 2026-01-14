@@ -223,6 +223,23 @@ export function FormattingForm() {
                     </div>
 
                     <div>
+                        <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>
+                            Contact Info Separator
+                        </label>
+                        <select
+                            value={formatting.separator}
+                            onChange={(e) => updateFormatting({ separator: e.target.value as '•' | '|' })}
+                            className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-bold`}
+                        >
+                            <option value="•">Bullet (•)</option>
+                            <option value="|">Pipe (|)</option>
+                        </select>
+                        <p className={`text-xs mt-1 font-semibold ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
+                            Used throughout resume for contact info and separators
+                        </p>
+                    </div>
+
+                    <div>
                         <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>Header Line Style</label>
                         <select
                             value={formatting.headerLineStyle}

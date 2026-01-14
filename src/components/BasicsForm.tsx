@@ -110,21 +110,6 @@ export function BasicsForm() {
             </div>
 
             <div>
-                <label className={`block text-sm font-semibold mb-1 ${darkMode ? 'text-white' : 'text-black'}`}>Contact Separator</label>
-                <select
-                    value={basics.separator || '•'}
-                    onChange={(e) => updateBasics({ separator: e.target.value as '•' | '|' })}
-                    className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-bold ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'}`}
-                >
-                    <option value="•">Bullet (•)</option>
-                    <option value="|">Pipe (|)</option>
-                </select>
-                <p className={`text-xs mt-1 font-semibold ${darkMode ? 'text-gray-400' : 'text-slate-600'}`}>
-                    Preview: {basics.email} {basics.separator || '•'} {basics.phone} {basics.separator || '•'} {basics.address}
-                </p>
-            </div>
-
-            <div>
                 <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>Websites / Links</label>
                 {basics.websites.map((website, index) => (
                     <div key={index} className="flex gap-2 mb-2">

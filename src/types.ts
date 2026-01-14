@@ -17,7 +17,6 @@ export interface Basics {
     phone: string;
     address: string;
     websites: Website[];
-    separator: '•' | '|';
 }
 
 export interface Website {
@@ -105,6 +104,7 @@ export interface FormattingOptions {
     sectionDividers: SectionDivider;
     headerLineStyle: HeaderLineStyle;
     headerAlignment: Alignment;
+    separator: '•' | '|'; // Universal separator for contact info and lists
 }
 
 export type FontFamily = 'default' | 'times' | 'arial' | 'calibri' | 'georgia' | 'helvetica' | 'palatino' | 'garamond';
