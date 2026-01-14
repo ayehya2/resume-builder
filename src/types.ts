@@ -17,6 +17,7 @@ export interface Basics {
     phone: string;
     address: string;
     websites: Website[];
+    separator: '•' | '|';
 }
 
 export interface Website {

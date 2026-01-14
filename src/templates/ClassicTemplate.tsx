@@ -3,6 +3,7 @@ import { useResumeStore } from '../store';
 export function ClassicTemplate() {
     const { resumeData } = useResumeStore();
     const { basics, work, education, skills, projects, awards, sections } = resumeData;
+    const separator = basics.separator || '•';
 
     return (
         <div style={{
@@ -19,23 +20,19 @@ export function ClassicTemplate() {
                 </h1>
                 <div style={{ fontSize: '10pt', margin: '0' }}>
                     {basics.email && <span>{basics.email}</span>}
-                    {basics.email && basics.phone && <span> • </span>}
+                    {basics.email && basics.phone && <span> {separator} </span>}
                     {basics.phone && <span>{basics.phone}</span>}
-                    {(basics.email || basics.phone) && basics.address && <span> • </span>}
+                    {(basics.email || basics.phone) && basics.address && <span> {separator} </span>}
                     {basics.address && <span>{basics.address}</span>}
+                    {basics.websites.length > 0 && basics.websites.map((site, idx) => (
+                        <span key={idx}>
+                            <span> {separator} </span>
+                            <a href={site.url} target="_blank" rel="noopener noreferrer" style={{ color: '#0000EE', textDecoration: 'underline' }}>
+                                {site.name || site.url}
+                            </a>
+                        </span>
+                    ))}
                 </div>
-                {basics.websites.length > 0 && (
-                    <div style={{ fontSize: '10pt', margin: '2pt 0 0 0' }}>
-                        {basics.websites.map((site, idx) => (
-                            <span key={idx}>
-                                {idx > 0 && ' • '}
-                                <a href={site.url} target="_blank" rel="noopener noreferrer" style={{ color: '#0000EE', textDecoration: 'underline' }}>
-                                    {site.name || site.url}
-                                </a>
-                            </span>
-                        ))}
-                    </div>
-                )}
             </div>
 
             {/* Sections */}

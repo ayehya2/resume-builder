@@ -9,6 +9,7 @@ const getDefaultResumeData = (): ResumeData => ({
         phone: '',
         address: '',
         websites: [],
+        separator: '•',
     },
     education: [],
     work: [],
@@ -294,6 +295,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
                     email: 'john.doe@example.com',
                     phone: '(123) 456-7890',
                     address: 'New York, NY',
+                    separator: '•',
                     websites: [
                         { name: 'Portfolio', url: 'https://johndoe.com' },
                         { name: 'GitHub', url: 'https://github.com/johndoe' },

@@ -66,6 +66,21 @@ export function BasicsForm() {
             </div>
 
             <div>
+                <label className="block text-sm font-semibold mb-1 text-black">Contact Separator</label>
+                <select
+                    value={basics.separator || '•'}
+                    onChange={(e) => updateBasics({ separator: e.target.value as '•' | '|' })}
+                    className="w-full px-3 py-2 border-2 border-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-black font-bold"
+                >
+                    <option value="•">Bullet (•)</option>
+                    <option value="|">Pipe (|)</option>
+                </select>
+                <p className="text-xs text-slate-600 font-semibold mt-1">
+                    Preview: {basics.email} {basics.separator || '•'} {basics.phone} {basics.separator || '•'} {basics.address}
+                </p>
+            </div>
+
+            <div>
                 <label className="block text-sm font-semibold mb-2 text-black">Websites / Links</label>
                 {basics.websites.map((website, index) => (
                     <div key={index} className="flex gap-2 mb-2">

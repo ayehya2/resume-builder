@@ -6,7 +6,6 @@ import { EducationForm } from './components/EducationForm'
 import { SkillsForm } from './components/SkillsForm'
 import { ProjectsForm } from './components/ProjectsForm'
 import { AwardsForm } from './components/AwardsForm'
-import { SectionReorder } from './components/SectionReorder'
 import { FormattingForm } from './components/FormattingForm'
 import { TemplateRenderer } from './templates/TemplateRenderer'
 import html2canvas from 'html2canvas'
@@ -14,7 +13,7 @@ import jsPDF from 'jspdf'
 import type { TemplateId } from './types'
 import './index.css'
 
-type TabKey = 'basics' | 'work' | 'education' | 'skills' | 'projects' | 'awards' | 'sections' | 'templates' | 'formatting';
+type TabKey = 'basics' | 'work' | 'education' | 'skills' | 'projects' | 'awards' | 'templates' | 'formatting';
 
 const templates: Array<{ id: TemplateId; name: string; icon: string }> = [
   { id: 1, name: 'Classic', icon: '📄' },
@@ -25,19 +24,18 @@ const templates: Array<{ id: TemplateId; name: string; icon: string }> = [
 
 function App() {
   const { resumeData, setTemplate, loadSampleData, reset } = useResumeStore()
-  const [activeTab, setActiveTab] = useState<TabKey>('basics')
+  const [activeTab, setActiveTab] = useState<TabKey>('templates')
   const [previewScale, setPreviewScale] = useState(0.75)
 
   const tabs: Array<{ key: TabKey; label: string; icon: string }> = [
+    { key: 'templates', label: 'Template', icon: '📐' },
     { key: 'basics', label: 'Profile', icon: '👤' },
     { key: 'work', label: 'Experience', icon: '💼' },
     { key: 'education', label: 'Education', icon: '🎓' },
     { key: 'skills', label: 'Skills', icon: '⚡' },
     { key: 'projects', label: 'Projects', icon: '🚀' },
     { key: 'awards', label: 'Awards', icon: '🏆' },
-    { key: 'sections', label: 'Sections', icon: '📋' },
     { key: 'formatting', label: 'Formatting', icon: '🎨' },
-    { key: 'templates', label: 'Template', icon: '📐' },
   ]
 
   const handleDownloadPDF = async () => {
@@ -91,38 +89,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="bg-indigo-700 text-white border-b-4 border-indigo-900 py-4 px-6 shadow-lg">
-        <div className="max-w-screen-2xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">Resume Builder v2</h1>
-            <p className="text-sm text-indigo-100 font-semibold">Professional Resume Creator</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={loadSampleData}
-              className="px-4 py-2 bg-white text-indigo-700 hover:bg-indigo-50 rounded-lg text-sm font-bold transition-colors border-2 border-indigo-200"
-            >
-              📋 Load Sample
-            </button>
-            <button
-              onClick={reset}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-colors border-2 border-red-800"
-            >
-              🗑️ Reset
-            </button>
-            <button
-              onClick={handleDownloadPDF}
-              className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold transition-all shadow-lg border-2 border-green-800"
-            >
-              📥 Download PDF
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
+    <div className="min-h-screen bg-white flex">
+      {/* Main Content - NO HEADER */}
       <div className="flex-1 flex w-full">
         {/* Left Sidebar - Tabs */}
         <aside className="w-56 bg-slate-100 border-r-4 border-slate-300 flex-shrink-0">
@@ -155,7 +123,6 @@ function App() {
             {activeTab === 'skills' && <SkillsForm />}
             {activeTab === 'projects' && <ProjectsForm />}
             {activeTab === 'awards' && <AwardsForm />}
-            {activeTab === 'sections' && <SectionReorder />}
             {activeTab === 'formatting' && <FormattingForm />}
             {activeTab === 'templates' && (
               <div className="space-y-4">
@@ -185,14 +152,13 @@ function App() {
         </main>
 
         {/* Right - Live Preview */}
-        <aside className="w-[700px] bg-slate-50 border-l-4 border-slate-300 flex-shrink-0">
+        <aside className="w-[900px] bg-slate-50 border-l-4 border-slate-300 flex-shrink-0">
           <div className="sticky top-0 h-screen flex flex-col">
-            {/* Preview Header */}
-            <div className="p-4 bg-indigo-700 text-white border-b-4 border-indigo-900 flex justify-between items-center">
-              <h3 className="font-bold text-lg">📄 Live Preview</h3>
+            {/* Preview Header with Buttons */}
+            <div className="p-3 bg-indigo-700 text-white border-b-4 border-indigo-900 flex justify-between items-center">
               <div className="flex gap-2">
                 <button
-                  onClick={() => setPreviewScale(Math.max(0.5, previewScale - 0.05))}
+                  onClick={() => setPreviewScale(Math.max(0.4, previewScale - 0.05))}
                   className="px-3 py-1 text-sm bg-white text-indigo-700 hover:bg-indigo-50 rounded font-bold"
                 >
                   −
@@ -205,6 +171,27 @@ function App() {
                   className="px-3 py-1 text-sm bg-white text-indigo-700 hover:bg-indigo-50 rounded font-bold"
                 >
                   +
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={loadSampleData}
+                  className="px-3 py-1.5 bg-white text-indigo-700 hover:bg-indigo-50 rounded text-xs font-bold transition-colors"
+                >
+                  📋 Load Sample
+                </button>
+                <button
+                  onClick={reset}
+                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold transition-colors"
+                >
+                  🗑️ Reset
+                </button>
+                <button
+                  onClick={handleDownloadPDF}
+                  className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-bold transition-all shadow-lg"
+                >
+                  📥 Download PDF
                 </button>
               </div>
             </div>
