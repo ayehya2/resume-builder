@@ -324,6 +324,77 @@ export function FormattingForm() {
                 </div>
             </div>
 
+            {/* Advanced Section (Collapsible) */}
+            <details className={`mt-6 p-4 border-2 rounded-lg ${darkMode ? 'bg-black border-gray-600' : 'bg-white border-slate-300'}`}>
+                <summary className={`cursor-pointer font-bold text-lg ${darkMode ? 'text-white' : 'text-black'}`}>
+                    ⚙️ Advanced Options
+                </summary>
+
+                <div className="mt-4 space-y-4">
+                    <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-slate-600'}`}>
+                        Fine-tune advanced formatting settings for maximum control
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>
+                                Letter Spacing
+                            </label>
+                            <select
+                                value={formatting.lineSpacing}
+                                onChange={(e) => updateFormatting({ lineSpacing: e.target.value })}
+                                className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-bold`}
+                            >
+                                <option value="1.0">Tight (1.0)</option>
+                                <option value="1.15">Normal (1.15)</option>
+                                <option value="1.5">Relaxed (1.5)</option>
+                                <option value="2.0">Spacious (2.0)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>
+                                Bullet Spacing
+                            </label>
+                            <select
+                                value={formatting.bulletSpacing}
+                                onChange={(e) => updateFormatting({ bulletSpacing: e.target.value as any })}
+                                className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-bold`}
+                            >
+                                <option value="tight">Tight (6pt)</option>
+                                <option value="normal">Normal (12pt)</option>
+                                <option value="relaxed">Relaxed (18pt)</option>
+                                <option value="spacious">Spacious (24pt)</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formatting.sectionTitleBold}
+                                onChange={(e) => updateFormatting({ sectionTitleBold: e.target.checked })}
+                                className="w-5 h-5"
+                            />
+                            <label className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>
+                                Bold Section Titles
+                            </label>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={formatting.sectionTitleUnderline}
+                                onChange={(e) => updateFormatting({ sectionTitleUnderline: e.target.checked })}
+                                className="w-5 h-5"
+                            />
+                            <label className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>
+                                Underline Section Titles
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
             {/* Reset Button */}
             <div className={`p-4 rounded-lg border-2 ${darkMode ? 'bg-black border-red-600' : 'bg-red-50 border-red-200'}`}>
                 <button
@@ -341,6 +412,6 @@ export function FormattingForm() {
                     💡 <strong>Tip:</strong> Preview changes in real-time! Experiment to find your perfect style.
                 </p>
             </div>
-        </div>
+        </div >
     );
 }
