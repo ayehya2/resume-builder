@@ -40,9 +40,9 @@ export function TechnicalTemplate() {
                                         <span className="italic">{job.position}</span>
                                         <span className="text-xs">{job.location}</span>
                                     </div>
-                                    {job.description && (
+                                    {job.bullets && job.bullets.length > 0 && (
                                         <div className="mt-1 text-xs text-slate-800">
-                                            {job.description.split('\n').filter(Boolean).map((line, i) => (
+                                            {job.bullets.map((line: string, i: number) => (
                                                 <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
                                             ))}
                                         </div>
@@ -105,9 +105,9 @@ export function TechnicalTemplate() {
                                             </span>
                                         )}
                                     </div>
-                                    {project.description && (
+                                    {project.bullets && project.bullets.length > 0 && (
                                         <div className="mt-1 text-xs text-slate-800">
-                                            {project.description.split('\n').filter(Boolean).map((line, i) => (
+                                            {project.bullets.map((line: string, i: number) => (
                                                 <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
                                             ))}
                                         </div>

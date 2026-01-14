@@ -91,9 +91,9 @@ export function ModernTemplate() {
                                     <div style={{ fontStyle: 'italic', margin: '1pt 0', fontSize: '10pt' }}>
                                         {job.position}{job.location && `, ${job.location}`}
                                     </div>
-                                    {job.description && (
+                                    {job.bullets && job.bullets.length > 0 && (
                                         <div style={{ margin: '2pt 0 0 0', fontSize: '10pt' }}>
-                                            {job.description.split('\n').map((line, i) => (
+                                            {job.bullets.map((line: string, i: number) => (
                                                 <div key={i} style={{ margin: '1pt 0' }}>• {line}</div>
                                             ))}
                                         </div>
@@ -150,9 +150,9 @@ export function ModernTemplate() {
                                             </span>
                                         )}
                                     </div>
-                                    {project.description && (
+                                    {project.bullets && project.bullets.length > 0 && (
                                         <div style={{ margin: '2pt 0 0 0', fontSize: '10pt' }}>
-                                            {project.description.split('\n').map((line, i) => (
+                                            {project.bullets.map((line: string, i: number) => (
                                                 <div key={i} style={{ margin: '1pt 0' }}>• {line}</div>
                                             ))}
                                         </div>

@@ -141,7 +141,17 @@ export function ClassicTemplate() {
                             {projects.map((project, idx) => (
                                 <div key={idx} style={{ marginBottom: '6pt' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                                        <span>{project.name}</span>
+                                        <span>
+                                            {project.name}
+                                            {project.url && (
+                                                <span>
+                                                    {' '}•{' '}
+                                                    <a href={project.url} target="_blank" rel="noopener noreferrer" style={{ color: '#0000EE', textDecoration: 'underline', fontWeight: 'normal' }}>
+                                                        {project.urlName || 'Link'}
+                                                    </a>
+                                                </span>
+                                            )}
+                                        </span>
                                         {project.keywords && project.keywords.length > 0 && (
                                             <span style={{ fontWeight: 'normal', fontStyle: 'italic' }}>
                                                 {project.keywords.join(', ')}

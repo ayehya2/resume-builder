@@ -46,10 +46,10 @@ export function ExecutiveTemplate() {
                                         <span className="italic text-slate-700">{job.position}</span>
                                         <span className="text-sm text-slate-600">{job.location}</span>
                                     </div>
-                                    {job.description && (
-                                        <div className="text-sm leading-relaxed">
-                                            {job.description.split('\n').filter(Boolean).map((line, i) => (
-                                                <div key={i} className="mb-1">• {line.replace(/^[•\-\*]\s*/, '')}</div>
+                                    {job.bullets && job.bullets.length > 0 && (
+                                        <div className="mt-1 text-xs leading-relaxed">
+                                            {job.bullets.map((line: string, i: number) => (
+                                                <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
                                             ))}
                                         </div>
                                     )}
@@ -106,9 +106,9 @@ export function ExecutiveTemplate() {
                             {projects.map((project, idx) => (
                                 <div key={idx} className="mb-3">
                                     <div className="font-semibold">{project.name}</div>
-                                    {project.description && (
-                                        <div className="text-sm mt-1">
-                                            {project.description.split('\n').filter(Boolean).map((line, i) => (
+                                    {project.bullets && project.bullets.length > 0 && (
+                                        <div className="mt-1 text-xs leading-relaxed">
+                                            {project.bullets.map((line: string, i: number) => (
                                                 <div key={i}>• {line.replace(/^[•\-\*]\s*/, '')}</div>
                                             ))}
                                         </div>
