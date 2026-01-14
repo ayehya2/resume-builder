@@ -39,7 +39,7 @@ const getDefaultResumeData = (): ResumeData => ({
         customColor: '#000000',
         separator: '|',
         sectionDividers: 'line',
-        headerLineStyle: 'thin',
+        headerLineStyle: 'none',
         headerAlignment: 'center',
     },
 });

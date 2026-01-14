@@ -19,8 +19,7 @@ export function ClassicTemplate() {
             {/* Header */}
             <div style={{
                 textAlign: formatting.headerAlignment,
-                marginBottom: getSpacingValue(formatting.sectionSpacing),
-                ...getSectionDividerStyle(formatting.sectionDividers)
+                marginBottom: getSpacingValue(formatting.sectionSpacing)
             }}>
                 <h1 style={{ fontSize: getNameSize(formatting.nameSize), fontWeight: 'bold', margin: '0 0 4pt 0', color: colorValue }}>
                     {basics.name}
