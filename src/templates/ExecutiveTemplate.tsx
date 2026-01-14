@@ -18,8 +18,8 @@ export function ExecutiveTemplate() {
                 padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,
                 color: '#000000',
                 width: '8.5in',
-                height: '11in',
-                overflow: 'hidden',
+                minHeight: '11in',
+                height: 'auto',
                 boxSizing: 'border-box'
             }}
         >

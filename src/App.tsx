@@ -216,14 +216,27 @@ function App() {
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
+
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / (imgWidth * 0.264583), pdfHeight / (imgHeight * 0.264583));
 
-      const scaledWidth = imgWidth * 0.264583 * ratio;
-      const scaledHeight = imgHeight * 0.264583 * ratio;
+      // Calculate how many PDF pages we need
+      // First, find out what the scaled height of the image will be when width matches pdfWidth
+      const scaledHeight = (imgHeight * pdfWidth) / imgWidth;
+      let heightLeft = scaledHeight;
+      let position = 0;
 
-      pdf.addImage(imgData, 'PNG', 0, 0, scaledWidth, scaledHeight);
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
+      heightLeft -= pdfHeight;
+
+      // Add subsequent pages if content is longer than one page
+      while (heightLeft > 0) {
+        position = heightLeft - scaledHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
+        heightLeft -= pdfHeight;
+      }
 
       const fileName = `${resumeData.basics.name || 'resume'}.pdf`.replace(/[^a-z0-9-_\.]/gi, '_');
       pdf.save(fileName);

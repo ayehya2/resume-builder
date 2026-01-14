@@ -19,8 +19,8 @@ export function ModernTemplate() {
                 color: '#000000',
                 textAlign: 'left',
                 width: '8.5in',
-                height: '11in',
-                overflow: 'hidden',
+                minHeight: '11in',
+                height: 'auto',
                 boxSizing: 'border-box'
             }}
         >
