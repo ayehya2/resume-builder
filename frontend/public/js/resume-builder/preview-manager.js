@@ -107,6 +107,21 @@ const PreviewManager = {
         const resumeData = window.DataManager.collectResumeData();
         if (!resumeData) return;
 
+        // Auto-inject sample data for preview only if form is effectively empty
+        if (!resumeData.name && (!resumeData.experience || resumeData.experience.length === 0) && (!resumeData.education || resumeData.education.length === 0)) {
+            console.log('👀 Form empty, using sample data for preview');
+            // We use the same sample data structure from DataManager, but we need to duplicate it here or expose it
+            // For simplicity and dependency reduction, we'll define a lightweight sample set here or ask DataManager
+            if (window.DataManager.getExampleData) {
+                const sample = window.DataManager.getExampleData();
+                // Merge sample data but keep the selected template/formatting
+                Object.assign(resumeData, sample, {
+                    selectedTemplate: resumeData.selectedTemplate,
+                    formatting: resumeData.formatting
+                });
+            }
+        }
+
         const currentHash = this.hashObject(resumeData);
         if (this.lastResumeDataHash === currentHash && this.lastPDFBlob) {
             await this.renderPDFWithCustomViewer(this.lastPDFBlob, previewContainer);

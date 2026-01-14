@@ -171,10 +171,14 @@ const DataManager = {
             const entries = data[targetKey] || data.sections?.[section] || [];
 
             if (list && entries.length > 0) {
-                list.innerHTML = '';
-                entries.forEach(entry => {
-                    this.addSectionEntry(section, entry);
-                });
+                // capture template before wiping
+                const template = list.querySelector('.dynamic-section');
+                if (template) {
+                    list.innerHTML = '';
+                    entries.forEach(entry => {
+                        this.addSectionEntry(section, entry, template);
+                    });
+                }
             }
         });
 
@@ -215,12 +219,12 @@ const DataManager = {
     /**
      * Helper to add a section entry (work, edu, etc.)
      */
-    addSectionEntry: function (section, data = {}) {
+    addSectionEntry: function (section, data = {}, providedTemplate = null) {
         const list = document.getElementById(section + 'List');
         if (!list) return;
 
-        // Find the template (first item in the list)
-        const templateItem = list.querySelector('.dynamic-section');
+        // Find the template (first item in the list) or use provided one
+        const templateItem = providedTemplate || list.querySelector('.dynamic-section');
         if (!templateItem) {
             console.error('No template item found for section:', section);
             return;
@@ -341,8 +345,11 @@ const DataManager = {
     /**
      * Loads example data into the form
      */
-    loadExampleData: function () {
-        const exampleData = {
+    /**
+     * Returns example data object
+     */
+    getExampleData: function () {
+        return {
             name: "John Doe",
             email: "john.doe@example.com",
             phone: "(555) 123-4567",
@@ -415,7 +422,13 @@ const DataManager = {
                 }
             ]
         };
+    },
 
+    /**
+     * Loads example data into the form
+     */
+    loadExampleData: function () {
+        const exampleData = this.getExampleData();
         this.populateForm(exampleData);
         if (window.showNotification) window.showNotification('Example data loaded!', 'success');
         this.triggerPreviewUpdate();
