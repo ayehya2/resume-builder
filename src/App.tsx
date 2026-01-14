@@ -9,8 +9,7 @@ import { AwardsForm } from './components/AwardsForm'
 import { FormattingForm } from './components/FormattingForm'
 import { TemplateRenderer } from './templates/TemplateRenderer'
 import { TemplateThumbnail } from './components/TemplateThumbnail'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf';
 import type { TemplateId, SectionKey } from './types'
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
@@ -197,57 +196,150 @@ function App() {
     const originalText = button?.textContent;
     if (button) button.textContent = '⏳ Generating...';
 
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+    // Store original styles
+    const originalTransform = element.style.transform;
+    const originalBackgroundImage = element.style.backgroundImage;
+    const originalBoxShadow = element.style.boxShadow;
+    const originalWidth = element.style.width;
+    const originalHeight = element.style.height;
+    const originalMinHeight = element.style.minHeight;
 
+    // Prepare element for clean PDF export
+    element.style.transform = 'none';
+    element.style.backgroundImage = 'none';
+    element.style.boxShadow = 'none';
+    element.style.width = '816px'; // 8.5in at 96dpi - matches capture width
+    element.style.height = 'auto';
+    element.style.minHeight = 'auto';
+
+    try {
+      // Wait for reflow
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Extract hyperlinks AFTER resize so coordinates match capture
+      const links: Array<{ href: string; rect: DOMRect }> = [];
+      const anchors = element.querySelectorAll('a[href]');
+      anchors.forEach((anchor) => {
+        const a = anchor as HTMLAnchorElement;
+        const rect = a.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        links.push({
+          href: a.href,
+          rect: new DOMRect(
+            rect.left - elementRect.left,
+            rect.top - elementRect.top,
+            rect.width,
+            rect.height
+          )
+        });
+      });
+
+      // Import html2canvas dynamically
+      const html2canvas = (await import('html2canvas')).default;
+
+      // Capture the entire element as a canvas
+      // Use fixed 816px width (8.5in at 96dpi) for consistent capture
+      const captureWidth = 816;
       const canvas = await html2canvas(element, {
-        scale: 3,
+        scale: 2, // Higher resolution
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        width: captureWidth,
+        windowWidth: captureWidth,
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      // PDF dimensions
+      const pdfWidth = 612; // 8.5in in points
+      const pdfHeight = 792; // 11in in points
+
+      // Canvas dimensions
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+
+      // Scale factor from canvas to PDF
+      const scale = pdfWidth / canvasWidth;
+      const scaledPageHeight = pdfHeight / scale; // height of one page in canvas pixels
+
+      // Calculate total pages
+      const totalPages = Math.ceil(canvasHeight / scaledPageHeight);
+
+      // Create PDF
       const pdf = new jsPDF({
         orientation: 'portrait',
-        unit: 'mm',
+        unit: 'pt',
         format: 'letter',
       });
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
+      // Add each page
+      for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+        if (pageNum > 0) {
+          pdf.addPage();
+        }
 
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
+        // Calculate the portion of canvas for this page
+        const sourceY = pageNum * scaledPageHeight;
+        const sourceHeight = Math.min(scaledPageHeight, canvasHeight - sourceY);
 
-      // Calculate how many PDF pages we need
-      // First, find out what the scaled height of the image will be when width matches pdfWidth
-      const scaledHeight = (imgHeight * pdfWidth) / imgWidth;
-      let heightLeft = scaledHeight;
-      let position = 0;
+        // Create a temporary canvas for this page slice
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvasWidth;
+        pageCanvas.height = Math.ceil(sourceHeight);
+        const ctx = pageCanvas.getContext('2d');
 
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
-      heightLeft -= pdfHeight;
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          ctx.drawImage(
+            canvas,
+            0, sourceY, canvasWidth, sourceHeight, // source
+            0, 0, canvasWidth, sourceHeight // destination
+          );
 
-      // Add subsequent pages if content is longer than one page
-      while (heightLeft > 0) {
-        position = heightLeft - scaledHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
-        heightLeft -= pdfHeight;
+          // Add the page image to PDF
+          const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+          const destHeight = sourceHeight * scale;
+          pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, destHeight);
+        }
       }
+
+      // Add hyperlinks as PDF annotations
+      // Links are captured at 816px DOM width, need to scale to 612pt PDF width
+      const linkScale = pdfWidth / captureWidth; // 612 / 816 = 0.75
+      links.forEach((link) => {
+        const x = link.rect.x * linkScale;
+        const y = link.rect.y * linkScale;
+        const width = link.rect.width * linkScale;
+        const height = link.rect.height * linkScale;
+
+        // Determine which page this link is on
+        const pageNum = Math.floor(y / pdfHeight) + 1;
+        const yOnPage = y % pdfHeight;
+
+        if (pageNum <= totalPages) {
+          pdf.setPage(pageNum);
+          pdf.link(x, yOnPage, width, height, { url: link.href });
+        }
+      });
 
       const fileName = `${resumeData.basics.name || 'resume'}.pdf`.replace(/[^a-z0-9-_\.]/gi, '_');
       pdf.save(fileName);
+
     } catch (error) {
       console.error('PDF generation error:', error);
-      const err = error as Error;
-      alert(`PDF failed: ${err.message || 'Unknown error'}`);
+      alert('PDF generation failed. Please try again or contact support.');
     } finally {
+      // Restore original styles
+      element.style.transform = originalTransform;
+      element.style.backgroundImage = originalBackgroundImage;
+      element.style.boxShadow = originalBoxShadow;
+      element.style.width = originalWidth;
+      element.style.height = originalHeight;
+      element.style.minHeight = originalMinHeight;
       if (button && originalText) button.textContent = originalText;
     }
   };
+
 
   return (
     <div className={`min-h-screen flex ${darkMode ? 'bg-black' : 'bg-white'}`}>
@@ -415,13 +507,17 @@ function App() {
             <div className={`flex-1 p-6 overflow-auto ${darkMode ? 'bg-black' : 'bg-slate-200'}`}>
               <div
                 id="resume-preview"
-                className="bg-white shadow-xl mx-auto border-4 border-slate-400"
+                className="bg-white shadow-xl mx-auto"
                 style={{
                   transform: `scale(${previewScale})`,
-                  width: '816px',  /* 8.5" at 96 DPI */
-                  minHeight: '1056px', /* 11" at 96 DPI */
+                  width: '8.5in', // Standard Letter Width
+                  minHeight: '11in', // Standard Letter Height
+                  height: 'auto',
                   transformOrigin: 'top center',
-                  marginBottom: `${1056 * previewScale * 0.1}px`
+                  marginBottom: '2in',
+                  position: 'relative',
+                  backgroundImage: 'linear-gradient(to bottom, transparent 10.99in, #cbd5e1 10.99in, #cbd5e1 11.01in, transparent 11.01in)',
+                  backgroundSize: '100% 11in',
                 }}
               >
                 <TemplateRenderer templateId={resumeData.selectedTemplate} />

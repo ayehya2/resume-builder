@@ -61,12 +61,12 @@ export function ModernTemplate() {
 
                 if (sectionKey === 'education' && education.length > 0) {
                     return (
-                        <div key="education" className="mb-6">
-                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider" style={{ color: colorValue, borderLeftColor: colorValue }}>
+                        <div key="education" className="mb-6" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider" style={{ color: colorValue, borderLeftColor: colorValue, breakInside: 'avoid' }}>
                                 Education
                             </h2>
                             {education.map((edu, idx) => (
-                                <div key={idx} className="mb-4 pl-3">
+                                <div key={idx} className="mb-4 pl-3" style={{ breakInside: 'avoid' }}>
                                     <div className="flex justify-between items-baseline font-bold text-lg">
                                         <span>{edu.institution}</span>
                                         <span className="text-sm font-normal text-slate-500">{edu.graduationDate}</span>
@@ -83,12 +83,12 @@ export function ModernTemplate() {
 
                 if (sectionKey === 'work' && work.length > 0) {
                     return (
-                        <div key="work" className="mb-6">
-                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider" style={{ color: colorValue, borderLeftColor: colorValue }}>
+                        <div key="work" className="mb-6" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider" style={{ color: colorValue, borderLeftColor: colorValue, breakInside: 'avoid' }}>
                                 Experience
                             </h2>
                             {work.map((job, idx) => (
-                                <div key={idx} className="mb-5 pl-3">
+                                <div key={idx} className="mb-5 pl-3" style={{ breakInside: 'avoid' }}>
                                     <div className="flex justify-between items-baseline font-bold text-lg">
                                         <span>{job.company}</span>
                                         <span className="text-sm font-normal text-slate-500">{job.startDate} — {job.endDate}</span>
@@ -96,10 +96,10 @@ export function ModernTemplate() {
                                     <div className="italic text-slate-700 mb-2">
                                         {job.position}{job.location && `, ${job.location}`}
                                     </div>
-                                    {job.bullets && job.bullets.length > 0 && (
+                                    {job.bullets && job.bullets.filter(b => b.trim() !== '').length > 0 && (
                                         <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {job.bullets.map((line: string, i: number) => (
-                                                <li key={i} className="flex gap-2 text-sm items-start mb-1">
+                                            {job.bullets.filter(b => b.trim() !== '').map((line: string, i: number) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start mb-1" style={{ breakInside: 'avoid' }}>
                                                     <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
                                                     <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
                                                 </li>
@@ -114,13 +114,13 @@ export function ModernTemplate() {
 
                 if (sectionKey === 'skills' && skills.length > 0) {
                     return (
-                        <div key="skills" className="mb-6 text-left">
-                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider text-left" style={{ color: colorValue, borderLeftColor: colorValue }}>
+                        <div key="skills" className="mb-6 text-left" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider text-left" style={{ color: colorValue, borderLeftColor: colorValue, breakInside: 'avoid' }}>
                                 Skills
                             </h2>
                             <div className="pl-3 space-y-1 text-left">
                                 {skills.map((skillGroup, idx) => (
-                                    <div key={idx} className="text-sm text-left">
+                                    <div key={idx} className="text-sm text-left" style={{ breakInside: 'avoid' }}>
                                         <span className="font-bold">{skillGroup.category}: </span>
                                         <span className="text-slate-700">{skillGroup.items.join(', ')}</span>
                                     </div>
@@ -132,12 +132,12 @@ export function ModernTemplate() {
 
                 if (sectionKey === 'projects' && projects.length > 0) {
                     return (
-                        <div key="projects" className="mb-6 text-left">
-                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider text-left" style={{ color: colorValue, borderLeftColor: colorValue }}>
+                        <div key="projects" className="mb-6 text-left" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider text-left" style={{ color: colorValue, borderLeftColor: colorValue, breakInside: 'avoid' }}>
                                 Projects
                             </h2>
                             {projects.map((project, idx) => (
-                                <div key={idx} className="mb-4 pl-3 text-left">
+                                <div key={idx} className="mb-4 pl-3 text-left" style={{ breakInside: 'avoid' }}>
                                     <div className="flex justify-between items-baseline font-bold text-lg">
                                         <div className="flex items-center gap-2">
                                             {project.name}
@@ -152,10 +152,10 @@ export function ModernTemplate() {
                                     <div className="text-sm italic text-slate-600 mb-2">
                                         {project.keywords.join(' • ')}
                                     </div>
-                                    {project.bullets && project.bullets.length > 0 && (
+                                    {project.bullets && project.bullets.filter(b => b.trim() !== '').length > 0 && (
                                         <ul className="list-none space-y-1" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {project.bullets.map((bullet, i) => (
-                                                <li key={i} className="flex gap-2 text-sm items-start text-left">
+                                            {project.bullets.filter(b => b.trim() !== '').map((bullet, i) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start text-left" style={{ breakInside: 'avoid' }}>
                                                     <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
                                                     <span className="text-slate-700">{bullet.replace(/^[•\-\*]\s*/, '')}</span>
                                                 </li>
@@ -170,13 +170,13 @@ export function ModernTemplate() {
 
                 if (sectionKey === 'awards' && awards.length > 0) {
                     return (
-                        <div key="awards" className="mb-6 text-left">
-                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider text-left" style={{ color: colorValue, borderLeftColor: colorValue }}>
+                        <div key="awards" className="mb-6 text-left" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="text-xl font-black mb-3 border-l-8 pl-3 uppercase tracking-wider text-left" style={{ color: colorValue, borderLeftColor: colorValue, breakInside: 'avoid' }}>
                                 Awards
                             </h2>
                             <div className="pl-3 space-y-2 text-left">
                                 {awards.map((award, idx) => (
-                                    <div key={idx} className="text-sm text-left">
+                                    <div key={idx} className="text-sm text-left" style={{ breakInside: 'avoid' }}>
                                         <div className="font-bold text-left">{award.title} {award.date && <span className="font-normal opacity-60 ml-1">— {award.date}</span>}</div>
                                         {award.awarder && <div className="italic text-slate-600 text-left">{award.awarder}</div>}
                                         {award.summary && <div className="text-xs mt-1 text-slate-500 text-left">{award.summary}</div>}

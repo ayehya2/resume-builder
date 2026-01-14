@@ -12,7 +12,7 @@ export function TemplateThumbnail({ templateId }: TemplateThumbnailProps) {
                 style={{
                     width: '816px', // A4 width
                     height: '1056px', // A4 height
-                    transform: 'scale(0.55)', // Increased from 0.28 to fill card width
+                    transform: 'scale(0.48)', // Increased from 0.28 to fill card width
                     transformOrigin: 'top center',
                     position: 'absolute',
                     top: 0,

@@ -64,24 +64,21 @@ export function ExecutiveTemplate() {
 
                 if (sectionKey === 'work' && work.length > 0) {
                     return (
-                        <div key="work" className="mb-6 text-left">
-                            <h2 className="text-left text-lg font-bold mb-3 pb-1 border-b border-black uppercase tracking-wider" style={{ borderBottomColor: colorValue }}>
+                        <div key="work" className="mb-6 text-left" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="text-left text-lg font-bold border-y-2 border-black py-1 mb-3 uppercase tracking-widest" style={{ borderColor: colorValue, breakInside: 'avoid' }}>
                                 Professional Experience
                             </h2>
                             {work.map((job, idx) => (
-                                <div key={idx} className="mb-5 text-left">
+                                <div key={idx} className="mb-4" style={{ breakInside: 'avoid' }}>
                                     <div className="flex justify-between items-baseline mb-1">
-                                        <span className="font-bold text-lg uppercase tracking-tight">{job.company}</span>
-                                        <span className="text-sm font-semibold whitespace-nowrap ml-4">{job.startDate} — {job.endDate}</span>
+                                        <div className="font-bold text-lg text-left">{job.company}</div>
+                                        <span className="text-sm font-normal opacity-70 whitespace-nowrap ml-4">{job.startDate} — {job.endDate}</span>
                                     </div>
-                                    <div className="flex justify-between items-baseline mb-2 italic text-slate-700">
-                                        <span>{job.position}</span>
-                                        <span className="text-sm">{job.location}</span>
-                                    </div>
-                                    {job.bullets && job.bullets.length > 0 && (
+                                    <div className="italic text-slate-700 mb-2 text-left">{job.position} {job.location && <span> | {job.location}</span>}</div>
+                                    {job.bullets && job.bullets.filter(b => b.trim() !== '').length > 0 && (
                                         <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {job.bullets.map((line: string, i: number) => (
-                                                <li key={i} className="flex gap-2 text-sm items-start mb-1.5 leading-relaxed text-left">
+                                            {job.bullets.filter(b => b.trim() !== '').map((line, i) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5" style={{ breakInside: 'avoid' }}>
                                                     <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
                                                     <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
                                                 </li>
@@ -96,21 +93,18 @@ export function ExecutiveTemplate() {
 
                 if (sectionKey === 'education' && education.length > 0) {
                     return (
-                        <div key="education" className="mb-6 text-left">
-                            <h2 className="text-left text-lg font-bold mb-3 pb-1 border-b border-black uppercase tracking-wider" style={{ borderBottomColor: colorValue }}>
+                        <div key="education" className="mb-6 text-left" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="text-left text-lg font-bold border-y-2 border-black py-1 mb-3 uppercase tracking-widest" style={{ borderColor: colorValue, breakInside: 'avoid' }}>
                                 Education
                             </h2>
                             {education.map((edu, idx) => (
-                                <div key={idx} className="mb-4">
+                                <div key={idx} className="mb-2" style={{ breakInside: 'avoid' }}>
                                     <div className="flex justify-between items-baseline">
-                                        <div className="font-bold text-lg">{edu.institution}</div>
-                                        <div className="text-sm font-semibold">{edu.graduationDate}</div>
+                                        <div className="font-bold text-left">{edu.institution}</div>
+                                        <span className="text-sm font-normal opacity-70 ml-4">{edu.graduationDate}</span>
                                     </div>
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <div className="italic font-medium text-slate-800">{edu.degree} in {edu.field}</div>
-                                        <div className="text-sm opacity-80">{edu.location}</div>
-                                    </div>
-                                    {edu.gpa && <div className="text-sm font-semibold">GPA: {edu.gpa}</div>}
+                                    <div className="text-sm text-left">{edu.degree} in {edu.field}</div>
+                                    {edu.gpa && <div className="text-xs italic text-slate-600 text-left">GPA: {edu.gpa}</div>}
                                     {edu.description && <div className="text-sm mt-1 opacity-90 leading-relaxed text-left">{edu.description}</div>}
                                 </div>
                             ))}
@@ -126,7 +120,7 @@ export function ExecutiveTemplate() {
                             </h2>
                             <div className="grid grid-cols-1 gap-2 pl-1">
                                 {skills.map((skill, idx) => (
-                                    <div key={idx} className="text-sm text-left">
+                                    <div key={idx} className="text-sm text-left" style={{ breakInside: 'avoid' }}>
                                         <span className="font-bold uppercase text-[9pt] tracking-widest text-slate-600 mr-3 inline-block w-24">{skill.category}</span>
                                         <span className="text-slate-800 font-medium">{skill.items.join('  •  ')}</span>
                                     </div>
@@ -138,32 +132,32 @@ export function ExecutiveTemplate() {
 
                 if (sectionKey === 'projects' && projects.length > 0) {
                     return (
-                        <div key="projects" className="mb-6 text-left">
-                            <h2 className="text-left text-lg font-bold mb-3 pb-1 border-b border-black uppercase tracking-wider" style={{ borderBottomColor: colorValue }}>
+                        <div key="projects" className="mb-6 text-left" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="text-left text-lg font-bold border-y-2 border-black py-1 mb-3 uppercase tracking-widest" style={{ borderColor: colorValue, breakInside: 'avoid' }}>
                                 Key Projects
                             </h2>
                             {projects.map((project, idx) => (
-                                <div key={idx} className="mb-4 text-left">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <div className="flex items-center gap-3">
-                                            <span className="font-bold uppercase tracking-tight">{project.name}</span>
+                                <div key={idx} className="mb-4" style={{ breakInside: 'avoid' }}>
+                                    <div className="font-bold flex justify-between items-center text-left">
+                                        <div className="flex items-center gap-2 text-left">
+                                            {project.name}
                                             {project.url && (
-                                                <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-xs font-normal hover:underline" style={{ color: colorValue }}>
+                                                <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-xs font-normal text-indigo-600 hover:underline">
                                                     [{project.urlName || 'Link'}]
                                                 </a>
                                             )}
                                         </div>
-                                        <span className="text-xs font-semibold whitespace-nowrap ml-4">{project.startDate} — {project.endDate}</span>
+                                        <span className="text-xs font-normal opacity-70 whitespace-nowrap ml-4">{project.startDate} — {project.endDate}</span>
                                     </div>
                                     {project.keywords.length > 0 && (
-                                        <div className="text-xs italic opacity-70 mb-2 text-left">
+                                        <div className="text-xs italic text-slate-600 mb-1 text-left">
                                             Technologies: {project.keywords.join(', ')}
                                         </div>
                                     )}
-                                    {project.bullets && project.bullets.length > 0 && (
+                                    {project.bullets && project.bullets.filter(b => b.trim() !== '').length > 0 && (
                                         <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {project.bullets.map((line: string, i: number) => (
-                                                <li key={i} className="flex gap-2 text-sm items-start mb-1.5 leading-relaxed text-left">
+                                            {project.bullets.filter(b => b.trim() !== '').map((line, i) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5" style={{ breakInside: 'avoid' }}>
                                                     <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
                                                     <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
                                                 </li>
@@ -178,12 +172,12 @@ export function ExecutiveTemplate() {
 
                 if (sectionKey === 'awards' && awards.length > 0) {
                     return (
-                        <div key="awards" className="mb-6 text-left">
-                            <h2 className="text-left text-lg font-bold mb-3 pb-1 border-b border-black uppercase tracking-wider" style={{ borderBottomColor: colorValue }}>
+                        <div key="awards" className="mb-6 text-left" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="text-left text-lg font-bold border-y-2 border-black py-1 mb-3 uppercase tracking-widest text-left" style={{ borderColor: colorValue, breakInside: 'avoid' }}>
                                 Honors & Awards
                             </h2>
                             {awards.map((award, idx) => (
-                                <div key={idx} className="mb-4 text-sm text-left">
+                                <div key={idx} className="text-sm mb-1" style={{ breakInside: 'avoid' }}>
                                     <div className="font-bold uppercase tracking-tight leading-tight text-left">
                                         {award.title} {award.date && <span className="font-normal normal-case opacity-60 ml-2">({award.date})</span>}
                                     </div>

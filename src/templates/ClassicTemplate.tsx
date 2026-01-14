@@ -50,7 +50,7 @@ export function ClassicTemplate() {
             {sections.map((sectionKey) => {
                 if (sectionKey === 'education' && education.length > 0) {
                     return (
-                        <div key="education" style={{ marginBottom: '12pt', textAlign: 'left' }}>
+                        <div key="education" style={{ marginBottom: '12pt', textAlign: 'left', breakInside: 'avoid-page' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
@@ -58,12 +58,13 @@ export function ClassicTemplate() {
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
                                 textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
-                                textAlign: 'left'
+                                textAlign: 'left',
+                                breakInside: 'avoid'
                             }}>
                                 EDUCATION
                             </h2>
                             {education.map((edu, idx) => (
-                                <div key={idx} style={{ marginBottom: '6pt' }}>
+                                <div key={idx} style={{ marginBottom: '6pt', breakInside: 'avoid' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
                                         <span>{edu.institution}</span>
                                         <span>{edu.graduationDate}</span>
@@ -78,7 +79,7 @@ export function ClassicTemplate() {
 
                 if (sectionKey === 'work' && work.length > 0) {
                     return (
-                        <div key="work" style={{ marginBottom: '12pt', textAlign: 'left' }}>
+                        <div key="work" style={{ marginBottom: '12pt', textAlign: 'left', breakInside: 'avoid-page' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
@@ -86,12 +87,13 @@ export function ClassicTemplate() {
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
                                 textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
-                                textAlign: 'left'
+                                textAlign: 'left',
+                                breakInside: 'avoid'
                             }}>
                                 EXPERIENCE
                             </h2>
                             {work.map((job, idx) => (
-                                <div key={idx} style={{ marginBottom: '8pt' }}>
+                                <div key={idx} style={{ marginBottom: '8pt', breakInside: 'avoid' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
                                         <span>{job.company}</span>
                                         <span>{job.startDate} - {job.endDate}</span>
@@ -100,10 +102,10 @@ export function ClassicTemplate() {
                                         {job.position}
                                         {job.location && `, ${job.location}`}
                                     </div>
-                                    {job.bullets && job.bullets.length > 0 && (
+                                    {job.bullets && job.bullets.filter(b => b.trim() !== '').length > 0 && (
                                         <ul className="list-none" style={{ margin: '2pt 0 0 0', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {job.bullets.map((line, i) => (
-                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5" style={{ color: '#000000' }}>
+                                            {job.bullets.filter(b => b.trim() !== '').map((line, i) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5" style={{ color: '#000000', breakInside: 'avoid' }}>
                                                     <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
                                                     <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
                                                 </li>
@@ -118,7 +120,7 @@ export function ClassicTemplate() {
 
                 if (sectionKey === 'skills' && skills.length > 0) {
                     return (
-                        <div key="skills" style={{ marginBottom: '12pt', textAlign: 'left' }}>
+                        <div key="skills" style={{ marginBottom: '12pt', textAlign: 'left', breakInside: 'avoid-page' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
@@ -126,12 +128,13 @@ export function ClassicTemplate() {
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
                                 textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
-                                textAlign: 'left'
+                                textAlign: 'left',
+                                breakInside: 'avoid'
                             }}>
                                 SKILLS
                             </h2>
                             {skills.map((skillGroup, idx) => (
-                                <div key={idx} style={{ margin: '2pt 0', color: '#000000' }}>
+                                <div key={idx} style={{ margin: '2pt 0', color: '#000000', breakInside: 'avoid' }}>
                                     <span style={{ fontWeight: 'bold' }}>{skillGroup.category}: </span>
                                     <span>{skillGroup.items.join(', ')}</span>
                                 </div>
@@ -142,7 +145,7 @@ export function ClassicTemplate() {
 
                 if (sectionKey === 'projects' && projects.length > 0) {
                     return (
-                        <div key="projects" style={{ marginBottom: '12pt', textAlign: 'left' }}>
+                        <div key="projects" style={{ marginBottom: '12pt', textAlign: 'left', breakInside: 'avoid-page' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
@@ -150,12 +153,13 @@ export function ClassicTemplate() {
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
                                 textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
-                                textAlign: 'left'
+                                textAlign: 'left',
+                                breakInside: 'avoid'
                             }}>
                                 PROJECTS
                             </h2>
                             {projects.map((project, idx) => (
-                                <div key={idx} style={{ marginBottom: '6pt' }}>
+                                <div key={idx} style={{ marginBottom: '6pt', breakInside: 'avoid' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', color: '#000000' }}>
                                         <span>
                                             {project.name}
@@ -171,10 +175,10 @@ export function ClassicTemplate() {
                                             </span>
                                         )}
                                     </div>
-                                    {project.bullets && project.bullets.length > 0 && (
+                                    {project.bullets && project.bullets.filter(b => b.trim() !== '').length > 0 && (
                                         <ul className="list-none" style={{ margin: '2pt 0 0 0', marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
-                                            {project.bullets.map((line, i) => (
-                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5" style={{ color: '#000000' }}>
+                                            {project.bullets.filter(b => b.trim() !== '').map((line, i) => (
+                                                <li key={i} className="flex gap-2 text-sm items-start mb-0.5" style={{ color: '#000000', breakInside: 'avoid' }}>
                                                     <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
                                                     <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
                                                 </li>
@@ -189,7 +193,7 @@ export function ClassicTemplate() {
 
                 if (sectionKey === 'awards' && awards.length > 0) {
                     return (
-                        <div key="awards" style={{ marginBottom: '12pt', textAlign: 'left' }}>
+                        <div key="awards" style={{ marginBottom: '12pt', textAlign: 'left', breakInside: 'avoid-page' }}>
                             <h2 style={{
                                 fontSize: getSectionTitleSize(formatting.sectionTitleSize),
                                 fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
@@ -197,12 +201,13 @@ export function ClassicTemplate() {
                                 ...getSectionDividerStyle(formatting.sectionDividers),
                                 margin: `0 0 ${getSpacingValue(formatting.sectionSpacing)} 0`,
                                 textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
-                                textAlign: 'left'
+                                textAlign: 'left',
+                                breakInside: 'avoid'
                             }}>
                                 AWARDS
                             </h2>
                             {awards.map((award, idx) => (
-                                <div key={idx} style={{ margin: '2pt 0', color: '#000000' }}>
+                                <div key={idx} style={{ margin: '2pt 0', color: '#000000', breakInside: 'avoid' }}>
                                     <span style={{ fontWeight: 'bold' }}>{award.title}</span>
                                     {award.date && <span> • {award.date}</span>}
                                     {award.awarder && <span style={{ fontStyle: 'italic' }}> ({award.awarder})</span>}
