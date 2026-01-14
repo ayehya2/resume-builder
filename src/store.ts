@@ -309,60 +309,99 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         })),
 
     // Utility
-    loadSampleData: () =>
+    loadSampleData: () => {
         set({
             resumeData: {
                 ...getDefaultResumeData(),
                 basics: {
-                    name: 'John Doe',
-                    email: 'john.doe@example.com',
-                    phone: '(123) 456-7890',
-                    address: 'New York, NY',
+                    name: 'Sarah Mitchell',
+                    email: 'sarah.mitchell@email.com',
+                    phone: '(555) 123-4567',
+                    address: 'San Francisco, CA',
                     websites: [
-                        { name: 'Portfolio', url: 'https://johndoe.com' },
-                        { name: 'GitHub', url: 'https://github.com/johndoe' },
+                        { name: 'LinkedIn', url: 'https://linkedin.com/in/sarahmitchell' },
+                        { name: 'GitHub', url: 'https://github.com/sarahmitchell' },
+                        { name: 'Portfolio', url: 'https://sarahmitchell.dev' },
                     ],
                 },
                 work: [
                     {
-                        company: 'Tech Solutions Inc.',
+                        company: 'TechVision Inc.',
                         position: 'Senior Software Engineer',
                         location: 'San Francisco, CA',
-                        startDate: 'Jan 2020',
+                        startDate: 'Jan 2021',
                         endDate: 'Present',
-                        bullets: ['Led team of 5 developers', 'Improved performance by 40%', 'Architected scalable microservices'],
+                        bullets: [
+                            'Led development of microservices architecture serving 5M+ daily users, reducing API response time by 40%',
+                            'Architected and implemented real-time data processing pipeline using Apache Kafka and Spark',
+                            'Mentored team of 6 junior developers, conducting code reviews and technical design sessions',
+                            'Reduced cloud infrastructure costs by 30% through optimization and auto-scaling strategies',
+                            'Championed adoption of CI/CD practices, reducing deployment time from 2 hours to 15 minutes',
+                        ],
+                    },
+                    {
+                        company: 'DataFlow Solutions',
+                        position: 'Software Engineer',
+                        location: 'Seattle, WA',
+                        startDate: 'Jun 2018',
+                        endDate: 'Dec 2020',
+                        bullets: [
+                            'Developed RESTful APIs and GraphQL endpoints for customer-facing analytics dashboard',
+                            'Implemented automated testing suite achieving 95% code coverage across 50+ microservices',
+                            'Collaborated with product team to design and launch 3 major features with 200K+ active users',
+                            'Optimized database queries reducing load times by 60% for key user workflows',
+                        ],
                     },
                 ],
                 education: [
                     {
-                        institution: 'University of Technology',
+                        institution: 'University of California, Berkeley',
                         degree: 'Bachelor of Science',
                         field: 'Computer Science',
-                        location: 'Boston, MA',
-                        graduationDate: 'May 2017',
-                        gpa: '3.8/4.0',
+                        location: 'Berkeley, CA',
+                        graduationDate: 'May 2016',
+                        gpa: '3.85',
                     },
                 ],
                 skills: [
-                    { category: 'Languages', items: ['JavaScript', 'TypeScript', 'Python', 'Java'] },
-                    { category: 'Frameworks', items: ['React', 'Node.js', 'Express', 'Next.js'] },
+                    {
+                        category: 'Languages',
+                        items: ['JavaScript', 'TypeScript', 'Python', 'Java', 'Go', 'SQL'],
+                    },
+                    {
+                        category: 'Frameworks',
+                        items: ['React', 'Next.js', 'Node.js', 'Express', 'GraphQL'],
+                    },
+                    {
+                        category: 'Tools',
+                        items: ['Docker', 'Kubernetes', 'AWS', 'Git', 'Terraform'],
+                    },
                 ],
                 projects: [
                     {
-                        name: 'E-commerce Platform',
-                        bullets: ['Built full-stack e-commerce site', 'Implemented payment processing', 'Integrated Stripe API'],
-                        keywords: ['React', 'Node.js', 'Stripe'],
+                        name: 'E-Commerce Platform',
+                        url: 'https://github.com/sarahmitchell/ecommerce',
+                        urlName: 'GitHub',
+                        startDate: 'Jan 2023',
+                        endDate: 'Present',
+                        keywords: ['React', 'Node.js', 'PostgreSQL', 'Stripe', 'AWS'],
+                        bullets: [
+                            'Built full-stack e-commerce platform with product catalog, shopping cart, and payment integration',
+                            'Implemented secure payment processing with Stripe API handling $100K+ in transactions',
+                        ],
                     },
                 ],
                 awards: [
                     {
-                        title: 'Employee of the Month',
-                        awarder: 'Tech Solutions Inc.',
-                        date: 'May 2022',
+                        title: 'Employee of the Year',
+                        awarder: 'TechVision Inc.',
+                        date: 'Dec 2022',
+                        summary: 'Recognized for outstanding technical leadership and mentorship',
                     },
                 ],
             },
-        }),
+        });
+    },
 
     reset: () => set({ resumeData: getDefaultResumeData() }),
 }));
