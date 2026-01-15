@@ -15,7 +15,7 @@ export function TemplateThumbnail({ templateId }: TemplateThumbnailProps) {
     const { resumeData } = useResumeStore();
 
     return (
-        <div className="w-full h-full relative overflow-hidden bg-white select-none pointer-events-none">
+        <div className="w-full h-full relative overflow-hidden bg-white pdf-paper select-none pointer-events-none">
             <div
                 // Force re-render on data changes with key
                 key={`${templateId}-${resumeData.formatting.colorTheme}-${resumeData.formatting.bulletStyle}-${resumeData.basics.name}`}

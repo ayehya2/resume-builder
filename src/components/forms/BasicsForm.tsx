@@ -1,152 +1,132 @@
 import { useResumeStore } from '../../store'
-import { useState, useEffect } from 'react';
-import { capitalizeWords } from '../../lib/formatting'
 
 export function BasicsForm() {
     const { resumeData, updateBasics } = useResumeStore();
     const { basics } = resumeData;
 
-    const [darkMode, setDarkMode] = useState(false);
+    const addWebsite = () => {
+        const newWebsites = [...basics.websites, { name: '', url: '' }];
+        updateBasics({ websites: newWebsites });
+    };
 
-    // Detect dark mode from document
-    useEffect(() => {
-        const checkDark = () => setDarkMode(document.documentElement.classList.contains('dark'));
-        checkDark();
-        const observer = new MutationObserver(checkDark);
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        return () => observer.disconnect();
-    }, []);
+    const updateWebsite = (index: number, field: 'name' | 'url', value: string) => {
+        const newWebsites = [...basics.websites];
+        newWebsites[index] = { ...newWebsites[index], [field]: value };
+        updateBasics({ websites: newWebsites });
+    };
+
+    const removeWebsite = (index: number) => {
+        const newWebsites = basics.websites.filter((_, i) => i !== index);
+        updateBasics({ websites: newWebsites });
+    };
 
     return (
-        <div className="space-y-4">
-            <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>Profile Information</h3>
+        <div className="space-y-6">
+            <header className="space-y-1">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Profile Information</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Your personal details and contact information.
+                </p>
+            </header>
 
-            <div>
-                <label className={`block text-sm font-semibold mb-1 ${darkMode ? 'text-white' : 'text-black'}`}>
-                    Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                    type="text"
-                    value={basics.name}
-                    onChange={(e) => {
-                        // Only allow letters, spaces, hyphens, and apostrophes
-                        const filtered = e.target.value.replace(/[^a-zA-Z\s\-']/g, '');
-                        updateBasics({ name: capitalizeWords(filtered) });
-                    }}
-                    className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'}`}
-                    placeholder="John Doe"
-                />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className={`block text-sm font-semibold mb-1 ${darkMode ? 'text-white' : 'text-black'}`}>
-                        Email <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="email"
-                        value={basics.email}
-                        onChange={(e) => {
-                            // Remove spaces from email
-                            const filtered = e.target.value.replace(/\s/g, '');
-                            updateBasics({ email: filtered.toLowerCase() });
-                        }}
-                        className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'}`}
-                        placeholder="john@example.com"
-                    />
-                </div>
-
-                <div>
-                    <label className={`block text-sm font-semibold mb-1 ${darkMode ? 'text-white' : 'text-black'}`}>
-                        Phone <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="tel"
-                        value={basics.phone}
-                        onChange={(e) => {
-                            // Only allow digits
-                            const digits = e.target.value.replace(/\D/g, '');
-
-                            // Auto-format as (XXX) XXX-XXXX
-                            let formatted = '';
-                            if (digits.length > 0) {
-                                formatted = '(' + digits.substring(0, 3);
-                                if (digits.length >= 3) {
-                                    formatted += ') ' + digits.substring(3, 6);
-                                }
-                                if (digits.length >= 6) {
-                                    formatted += '-' + digits.substring(6, 10);
-                                }
-                            }
-                            updateBasics({ phone: formatted });
-                        }}
-                        className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'}`}
-                        placeholder="(123) 456-7890"
-                        maxLength={14}
-                    />
-                </div>
-            </div>
-
-            <div>
-                <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>Address</label>
-                <input
-                    type="text"
-                    value={basics.address}
-                    onChange={(e) => {
-                        // Only allow letters, numbers, spaces, commas, periods, hyphens
-                        const filtered = e.target.value.replace(/[^a-zA-Z0-9\s,.\-]/g, '');
-                        updateBasics({ address: filtered });
-                    }}
-                    className={`w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'}`}
-                    placeholder="New York, NY"
-                />
-            </div>
-
-            <div>
-                <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>Websites / Links</label>
-                {basics.websites.map((website, index) => (
-                    <div key={index} className="flex gap-2 mb-2">
+            <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
                         <input
                             type="text"
-                            value={website.name}
-                            onChange={(e) => {
-                                const newWebsites = [...basics.websites];
-                                newWebsites[index] = { ...website, name: e.target.value };
-                                updateBasics({ websites: newWebsites });
-                            }}
-                            className={`flex-1 px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'}`}
-                            placeholder="LinkedIn"
+                            value={basics.name}
+                            onChange={(e) => updateBasics({ name: e.target.value })}
+                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            placeholder="John Doe"
                         />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Email</label>
                         <input
-                            type="url"
-                            value={website.url}
-                            onChange={(e) => {
-                                const newWebsites = [...basics.websites];
-                                newWebsites[index] = { ...website, url: e.target.value };
-                                updateBasics({ websites: newWebsites });
-                            }}
-                            className={`flex-1 px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'}`}
-                            placeholder="https://linkedin.com/in/johndoe"
+                            type="email"
+                            value={basics.email}
+                            onChange={(e) => updateBasics({ email: e.target.value })}
+                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            placeholder="john@example.com"
                         />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Phone</label>
+                        <input
+                            type="tel"
+                            value={basics.phone}
+                            onChange={(e) => updateBasics({ phone: e.target.value })}
+                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            placeholder="(555) 000-0000"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Address</label>
+                        <input
+                            type="text"
+                            value={basics.address}
+                            onChange={(e) => updateBasics({ address: e.target.value })}
+                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            placeholder="City, State"
+                        />
+                    </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Websites & Links</h4>
                         <button
-                            onClick={() => {
-                                const newWebsites = basics.websites.filter((_, i) => i !== index);
-                                updateBasics({ websites: newWebsites });
-                            }}
-                            className="px-3 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600"
+                            onClick={addWebsite}
+                            className="text-indigo-600 dark:text-indigo-400 font-bold text-sm bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
                         >
-                            ✕
+                            + Add Website
                         </button>
                     </div>
-                ))}
-                <button
-                    onClick={() => {
-                        updateBasics({ websites: [...basics.websites, { name: '', url: '' }] });
-                    }}
-                    className="mt-2 px-4 py-2 bg-violet-600 text-white font-bold rounded-lg hover:bg-violet-700"
-                >
-                    + Add Website
-                </button>
+
+                    <div className="space-y-3">
+                        {basics.websites.map((site, index) => (
+                            <div key={index} className="flex gap-3 items-end group">
+                                <div className="flex-1">
+                                    <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Site Name</label>
+                                    <input
+                                        type="text"
+                                        value={site.name}
+                                        onChange={(e) => updateWebsite(index, 'name', e.target.value)}
+                                        className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                        placeholder="LinkedIn"
+                                    />
+                                </div>
+                                <div className="flex-[2]">
+                                    <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">URL</label>
+                                    <input
+                                        type="url"
+                                        value={site.url}
+                                        onChange={(e) => updateWebsite(index, 'url', e.target.value)}
+                                        className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                        placeholder="https://linkedin.com/in/..."
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => removeWebsite(index)}
+                                    className="p-2.5 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                                    title="Remove Link"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ))}
+
+                        {basics.websites.length === 0 && (
+                            <p className="text-xs text-slate-500 dark:text-slate-600 italic">No websites added. Add links to your LinkedIn, Portfolios, or Personal Sites.</p>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

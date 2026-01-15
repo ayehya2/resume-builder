@@ -13,7 +13,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: #ffffff;
-  color: #000000;
+  color: #0f172a;
 }
 
 code {
@@ -49,12 +49,8 @@ code {
   color: #4f46e5 !important;
 }
 
-.text-indigo-700 {
-  color: #4338ca !important;
-}
-
-.text-blue-600 {
-  color: #2563eb !important;
+.text-indigo-100 {
+  color: #e0e7ff !important;
 }
 
 .bg-white {
@@ -67,6 +63,10 @@ code {
 
 .bg-slate-100 {
   background-color: #f1f5f9 !important;
+}
+
+.bg-indigo-600 {
+  background-color: #4f46e5 !important;
 }
 
 .bg-indigo-700 {
@@ -85,157 +85,141 @@ code {
   border-color: #94a3b8 !important;
 }
 
+.border-indigo-600 {
+  border-color: #4f46e5 !important;
+}
+
 .border-indigo-900 {
   border-color: #312e81 !important;
 }
 
 /* ==========================================
-   DARK MODE - TRUE BLACK THEME
+   DARK MODE - REFINED THEME
    ========================================== */
 
-/* Dark mode base colors */
 .dark {
-  background-color: #000000;
-  color: #ffffff;
+  background-color: #020617;
+  /* Slate 950 */
+  color: #f8fafc;
+  /* Slate 50 */
 }
 
 .dark body {
-  background-color: #000000;
-  color: #ffffff;
+  background-color: #020617;
 }
 
-/* Text colors */
-.dark .text-black {
-  color: #ffffff !important;
+/* Text Overrides for Dark Mode */
+.dark .text-slate-900,
+.dark .text-black:not(.pdf-force-black) {
+  color: #f8fafc !important;
 }
 
-.dark .text-white {
-  color: #ffffff !important;
-}
-
-.dark .text-slate-600,
 .dark .text-slate-700,
-.dark .text-slate-900 {
-  color: #ffffff !important;
+.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+  /* Slate 300 */
 }
 
-.dark .text-gray-200,
-.dark .text-gray-300 {
-  color: #ffffff !important;
+/* Background Overrides for Dark Mode */
+.dark .bg-white:not(.pdf-paper) {
+  background-color: #0f172a !important;
+  /* Slate 900 */
 }
 
-/* Background colors */
-.dark .bg-white {
-  background-color: #000000 !important;
+/* Force White Paper Style for Previews */
+.pdf-paper {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Deep override to prevent dark mode leaking into white paper */
+.dark .pdf-paper,
+.dark .pdf-paper div,
+.dark .pdf-paper span,
+.dark .pdf-paper p,
+.dark .pdf-paper h1,
+.dark .pdf-paper h2,
+.dark .pdf-paper h3,
+.dark .pdf-paper h4,
+.dark .pdf-paper hr,
+.dark .pdf-paper label {
+  color: #000000 !important;
+  background-color: transparent !important;
+  border-color: #000000 !important;
+}
+
+.dark .pdf-paper .text-slate-600,
+.dark .pdf-paper .text-slate-500 {
+  color: #475569 !important;
+  /* Slate 600 */
+}
+
+/* Container background must be forced white */
+.dark .pdf-paper {
+  background-color: #ffffff !important;
 }
 
 .dark .bg-slate-50,
 .dark .bg-slate-100,
 .dark .bg-slate-200 {
-  background-color: #000000 !important;
+  background-color: #1e293b !important;
+  /* Slate 800 */
 }
 
-.dark .bg-zinc-900 {
-  background-color: #000000 !important;
+/* Border Overrides for Dark Mode */
+.dark .border-slate-200,
+.dark .border-slate-300,
+.dark .border-slate-400 {
+  border-color: #334155 !important;
+  /* Slate 700 */
 }
 
-.dark .bg-black {
-  background-color: #000000 !important;
+/* Sidebar and Interactive Elements */
+.dark .sidebar-bg {
+  background-color: #0f172a !important;
 }
 
-.dark .bg-gray-800,
-.dark .bg-gray-900 {
-  background-color: #000000 !important;
-}
-
-/* Input fields */
+/* Form Styles */
 .dark input[type="text"],
 .dark input[type="email"],
 .dark input[type="tel"],
-.dark input[type="number"],
 .dark input[type="url"],
 .dark textarea,
 .dark select {
-  background-color: #000000 !important;
-  color: #ffffff !important;
-  border-color: #4b5563 !important;
+  background-color: #020617 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
 }
 
 .dark input[type="text"]:focus,
 .dark input[type="email"]:focus,
 .dark input[type="tel"]:focus,
-.dark input[type="number"]:focus,
 .dark input[type="url"]:focus,
-.dark textarea:focus,
-.dark select:focus {
-  border-color: #6b7280 !important;
-  background-color: #000000 !important;
-  color: #ffffff !important;
+.dark textarea:focus {
+  border-color: #6366f1 !important;
+  /* Indigo 500 */
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: #6b7280 !important;
-}
-
-/* Borders */
-.dark .border-slate-300,
-.dark .border-slate-400 {
-  border-color: #4b5563 !important;
-}
-
-.dark .border-gray-600,
-.dark .border-gray-700,
-.dark .border-gray-800 {
-  border-color: #4b5563 !important;
-}
-
-/* Section backgrounds */
-.dark .bg-slate-50,
-.dark .bg-blue-50,
-.dark .bg-red-50,
-.dark .bg-green-100 {
-  background-color: #000000 !important;
-  border-color: #4b5563 !important;
-}
-
-/* Buttons in dark mode */
-.dark button:not(.bg-indigo-600):not(.bg-violet-600):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600):not(.bg-purple-600):not(.bg-yellow-500) {
-  background-color: #1f2937 !important;
-  color: #ffffff !important;
-}
-
-.dark button:hover:not(.bg-indigo-600):not(.bg-violet-600):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600):not(.bg-purple-600):not(.bg-yellow-500) {
-  background-color: #374151 !important;
-}
-
-/* Specific dark mode overrides */
-.dark .bg-indigo-700 {
-  background-color: #000000 !important;
-}
-
-.dark .border-green-300,
-.dark .border-blue-200,
-.dark .border-red-200 {
-  border-color: #4b5563 !important;
+.dark input::placeholder {
+  color: #64748b !important;
+  /* Slate 500 */
 }
 
 /* ==========================================
    PAGE CONTAINER & PAGINATION STYLES
    ========================================== */
 
-/* Page container for proper PDF pagination */
 .page-container {
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
-/* Print/PDF media queries */
 @media print {
   @page {
     size: letter;
     margin: 0;
-    /* Margins handled by PageContainer padding */
   }
 
   body {
@@ -247,21 +231,5 @@ code {
     page-break-after: always;
     break-after: page;
     margin-bottom: 0 !important;
-    /* Remove visual spacing in print */
-  }
-
-  .page-container:last-child {
-    page-break-after: auto;
-    break-after: auto;
-  }
-
-  .page-number {
-    display: none;
-    /* Hide page numbers in print/PDF */
-  }
-
-  /* Ensure no transforms in print */
-  #resume-preview {
-    transform: none !important;
   }
 }
