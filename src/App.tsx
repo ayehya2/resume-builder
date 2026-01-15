@@ -18,7 +18,7 @@ import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkM
 import { pdf } from '@react-pdf/renderer'
 import { ClassicPDFTemplate } from './templates/pdf/ClassicPDFTemplate'
 import { ModernPDFTemplate } from './templates/pdf/ModernPDFTemplate'
-import { LayoutTemplate, Palette, User, GraduationCap, Briefcase, Zap, FolderKanban, Award, GripVertical } from 'lucide-react'
+import { LayoutTemplate, Palette, User, GraduationCap, Briefcase, Zap, FolderKanban, Award, GripVertical, Moon, Sun, Upload, Download, FileText, RotateCcw, FileDown, Printer } from 'lucide-react'
 import './styles/index.css'
 
 // Tab system types
@@ -220,6 +220,36 @@ function App() {
     }
   };
 
+  const handlePrint = async () => {
+    const button = document.activeElement as HTMLButtonElement;
+    const originalText = button?.textContent;
+    if (button) button.textContent = 'Printing...';
+
+    try {
+      let templateComponent;
+      switch (resumeData.selectedTemplate) {
+        case 1:
+          templateComponent = <ClassicPDFTemplate data={resumeData} />;
+          break;
+        case 2:
+          templateComponent = <ModernPDFTemplate data={resumeData} />;
+          break;
+        default:
+          templateComponent = <ModernPDFTemplate data={resumeData} />;
+      }
+
+      const blob = await pdf(templateComponent).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+
+    } catch (error) {
+      console.error('Print generation error:', error);
+      alert('Print generation failed. Please try again.');
+    } finally {
+      if (button && originalText) button.textContent = originalText;
+    }
+  };
+
   return (
     <div className={`min-h-screen flex ${darkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
       <div className="flex-1 flex w-full">
@@ -318,31 +348,54 @@ function App() {
               <div className="flex gap-2">
                 <button
                   onClick={toggleDarkMode}
-                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors"
+                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
                   title="Toggle Dark Mode"
                 >
-                  {darkMode ? 'Light' : 'Dark'}
+                  {darkMode ? <Sun size={14} /> : <Moon size={14} />}
+                  <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
                 </button>
                 <button
                   onClick={handleImport}
-                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors"
-                >Import</button>
+                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                >
+                  <Upload size={14} />
+                  <span>Import Data</span>
+                </button>
                 <button
                   onClick={handleExport}
-                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors"
-                >Export</button>
+                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                >
+                  <Download size={14} />
+                  <span>Export Data</span>
+                </button>
                 <button
                   onClick={loadSampleData}
-                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors"
-                >Load Sample</button>
+                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                >
+                  <FileText size={14} />
+                  <span>Load Sample</span>
+                </button>
                 <button
                   onClick={reset}
-                  className="px-3 py-1.5 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold transition-colors"
-                >Reset</button>
+                  className="px-3 py-1.5 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                >
+                  <RotateCcw size={14} />
+                  <span>Reset Form</span>
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                >
+                  <Printer size={14} />
+                  <span>Print</span>
+                </button>
                 <button
                   onClick={handleDownloadPDF}
-                  className="px-4 py-1.5 bg-teal-700 hover:bg-teal-600 text-white text-xs font-semibold transition-all shadow-sm"
-                >Download PDF</button>
+                  className="px-4 py-1.5 bg-teal-700 hover:bg-teal-600 text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-2"
+                >
+                  <FileDown size={14} />
+                  <span>Download PDF</span>
+                </button>
               </div>
             </div>
 
