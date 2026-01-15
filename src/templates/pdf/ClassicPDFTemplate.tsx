@@ -273,6 +273,11 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                                 ({award.awarder})
                                             </Text>
                                         )}
+                                        {award.summary && (
+                                            <Text style={{ fontSize: 10, marginTop: 2 }}>
+                                                {award.summary}
+                                            </Text>
+                                        )}
                                     </View>
                                 ))}
                             </View>
