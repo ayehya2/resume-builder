@@ -149,16 +149,20 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                         {basics.phone && <Text>{basics.phone}</Text>}
                         {(basics.email || basics.phone) && basics.address && <Text style={styles.contactSeparator}>{formatting.separator}</Text>}
                         {basics.address && <Text>{basics.address}</Text>}
-                    </View>
-                    {basics.websites.length > 0 && (
-                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: formatting.headerAlignment === 'center' ? 'center' : formatting.headerAlignment === 'right' ? 'flex-end' : 'flex-start', marginTop: 4 }}>
-                            {basics.websites.map((site, i) => (
-                                <Link key={i} src={site.url} style={styles.websiteLink}>
+
+                        {(basics.email || basics.phone || basics.address) && basics.websites.length > 0 && (
+                            <Text style={styles.contactSeparator}>{formatting.separator}</Text>
+                        )}
+
+                        {basics.websites.map((site, i) => (
+                            <View key={i} style={{ flexDirection: 'row' }}>
+                                {i > 0 && <Text style={styles.contactSeparator}>{formatting.separator}</Text>}
+                                <Link src={site.url} style={styles.websiteLink}>
                                     {site.name || site.url}
                                 </Link>
-                            ))}
-                        </View>
-                    )}
+                            </View>
+                        ))}
+                    </View>
                 </View>
 
                 {/* Render sections in user-defined order */}

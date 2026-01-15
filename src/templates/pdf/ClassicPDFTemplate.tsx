@@ -135,19 +135,16 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                             {basics.phone && basics.phone}
                             {(basics.email || basics.phone) && basics.address && ` ${formatting.separator} `}
                             {basics.address && basics.address}
+                            {(basics.email || basics.phone || basics.address) && basics.websites.length > 0 && ` ${formatting.separator} `}
+                            {basics.websites.map((site, i) => (
+                                <Text key={i}>
+                                    {i > 0 && ` ${formatting.separator} `}
+                                    <Link src={site.url} style={styles.websiteLink}>
+                                        {site.name || site.url}
+                                    </Link>
+                                </Text>
+                            ))}
                         </Text>
-                        {basics.websites.length > 0 && (
-                            <View style={{ flexDirection: 'row', justifyContent: formatting.headerAlignment === 'center' ? 'center' : formatting.headerAlignment === 'right' ? 'flex-end' : 'flex-start', marginTop: 2 }}>
-                                {basics.websites.map((site, i) => (
-                                    <View key={i} style={{ flexDirection: 'row' }}>
-                                        {i > 0 && <Text style={styles.separator}> {formatting.separator} </Text>}
-                                        <Link src={site.url} style={styles.websiteLink}>
-                                            {site.name || site.url}
-                                        </Link>
-                                    </View>
-                                ))}
-                            </View>
-                        )}
                     </View>
                 </View>
 
