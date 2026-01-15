@@ -7,9 +7,8 @@ import { SkillsForm } from './components/SkillsForm'
 import { ProjectsForm } from './components/ProjectsForm'
 import { AwardsForm } from './components/AwardsForm'
 import { FormattingForm } from './components/FormattingForm'
-import { TemplateRenderer } from './templates/TemplateRenderer'
 import { TemplateThumbnail } from './components/TemplateThumbnail'
-import { jsPDF } from 'jspdf';
+import { PDFPreview } from './components/PDFPreview'
 import type { TemplateId, SectionKey } from './types'
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
@@ -27,6 +26,12 @@ interface TabItem {
   icon: string;
   draggable?: boolean;
   sectionKey?: SectionKey;
+}
+
+interface FolderGroup {
+  label: string;
+  icon: string;
+  tabs: TabItem[];
 }
 
 const templates: Array<{ id: TemplateId; name: string; icon: string }> = [
@@ -54,10 +59,10 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
       style={style}
       onClick={onClick}
       className={`
-        w-full flex items-center gap-3 px-4 py-4 font-bold transition-all border-l-4
+        w-full flex items-center gap-3 px-4 py-3 font-bold transition-all border-l-4
         ${isActive
           ? 'bg-indigo-600 text-white border-indigo-900 shadow-lg'
-          : 'bg-slate-100 text-black border-transparent hover:bg-slate-200 hover:border-indigo-300 dark:bg-black dark:text-white dark:hover:bg-gray-900'
+          : 'bg-slate-50 text-black border-transparent hover:bg-slate-200 hover:border-indigo-300 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800'
         }
       `}
     >
@@ -66,8 +71,23 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
           ☰
         </span>
       )}
-      <span className="text-2xl">{tab.icon}</span>
+      <span className="text-xl">{tab.icon}</span>
       <span className="text-sm">{tab.label}</span>
+    </button>
+  );
+}
+
+function FolderHeader({ label, icon, isExpanded, onClick }: { label: string; icon: string; isExpanded: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-4 py-3 font-bold transition-all bg-slate-200 text-slate-800 hover:bg-slate-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 border-b-2 border-slate-300 dark:border-gray-700"
+    >
+      <span className="text-lg transition-transform" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+        ▶
+      </span>
+      <span className="text-xl">{icon}</span>
+      <span className="text-sm uppercase tracking-wide">{label}</span>
     </button>
   );
 }
@@ -75,8 +95,8 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
 function App() {
   const { resumeData, setTemplate, setSections, loadSampleData, reset } = useResumeStore()
   const [activeTab, setActiveTab] = useState<TabKey>('templates')
-  const [previewScale, setPreviewScale] = useState(0.75)
   const [darkMode, setDarkMode] = useState(false)
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['settings', 'sections'])) // Both expanded by default
 
   // Load saved data and dark mode on mount
   useEffect(() => {
@@ -138,6 +158,17 @@ function App() {
     input.click();
   };
 
+  const toggleFolder = (folderKey: string) => {
+    setExpandedFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderKey)) {
+        newSet.delete(folderKey);
+      } else {
+        newSet.add(folderKey);
+      }
+      return newSet;
+    });
+  };
 
   // Map sections to tabs dynamically
   const sectionTabs: TabItem[] = resumeData.sections.map(sectionKey => {
@@ -152,26 +183,39 @@ function App() {
     return tabMap[sectionKey];
   });
 
-  const tabs: TabItem[] = [
-    { key: 'templates', label: 'Template', icon: '📐', draggable: false },
-    { key: 'formatting', label: 'Formatting', icon: '🎨', draggable: false },
-    ...sectionTabs,
+  // Organize tabs into folders
+  const folders: FolderGroup[] = [
+    {
+      label: 'Settings',
+      icon: '⚙️',
+      tabs: [
+        { key: 'templates', label: 'Template', icon: '📐', draggable: false },
+        { key: 'formatting', label: 'Formatting', icon: '🎨', draggable: false },
+      ],
+    },
+    {
+      label: 'Resume Sections',
+      icon: '📝',
+      tabs: sectionTabs,
+    },
   ];
+
+  const allTabs = folders.flatMap(f => f.tabs);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over || active.id === over.id) return;
 
-    const oldIndex = tabs.findIndex(t => t.key === active.id);
-    const newIndex = tabs.findIndex(t => t.key === over.id);
+    const oldIndex = allTabs.findIndex(t => t.key === active.id);
+    const newIndex = allTabs.findIndex(t => t.key === over.id);
 
     // Only allow dragging between draggable items
-    if (!tabs[oldIndex]?.draggable || !tabs[newIndex]?.draggable) return;
+    if (!allTabs[oldIndex]?.draggable || !allTabs[newIndex]?.draggable) return;
 
     const newSections = [...resumeData.sections];
-    const activeSection = tabs[oldIndex].sectionKey;
-    const overSection = tabs[newIndex].sectionKey;
+    const activeSection = allTabs[oldIndex].sectionKey;
+    const overSection = allTabs[newIndex].sectionKey;
 
     if (!activeSection || !overSection) return;
 
@@ -186,156 +230,55 @@ function App() {
   };
 
   const handleDownloadPDF = async () => {
-    const element = document.getElementById('resume-preview');
-    if (!element) {
-      alert('Resume preview not found! Please try again.');
-      return;
-    }
-
     const button = document.activeElement as HTMLButtonElement;
     const originalText = button?.textContent;
     if (button) button.textContent = '⏳ Generating...';
 
-    // Store original styles
-    const originalTransform = element.style.transform;
-    const originalBackgroundImage = element.style.backgroundImage;
-    const originalBoxShadow = element.style.boxShadow;
-    const originalWidth = element.style.width;
-    const originalHeight = element.style.height;
-    const originalMinHeight = element.style.minHeight;
-
-    // Prepare element for clean PDF export
-    element.style.transform = 'none';
-    element.style.backgroundImage = 'none';
-    element.style.boxShadow = 'none';
-    element.style.width = '816px'; // 8.5in at 96dpi - matches capture width
-    element.style.height = 'auto';
-    element.style.minHeight = 'auto';
-
     try {
-      // Wait for reflow
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Dynamically import pdf function and all templates
+      const { pdf } = await import('@react-pdf/renderer');
+      const { ClassicPDFTemplate } = await import('./pdf-templates/ClassicPDFTemplate');
+      const { ModernPDFTemplate } = await import('./pdf-templates/ModernPDFTemplate');
+      const { TechnicalPDFTemplate } = await import('./pdf-templates/TechnicalPDFTemplate');
+      const { ExecutivePDFTemplate } = await import('./pdf-templates/ExecutivePDFTemplate');
 
-      // Extract hyperlinks AFTER resize so coordinates match capture
-      const links: Array<{ href: string; rect: DOMRect }> = [];
-      const anchors = element.querySelectorAll('a[href]');
-      anchors.forEach((anchor) => {
-        const a = anchor as HTMLAnchorElement;
-        const rect = a.getBoundingClientRect();
-        const elementRect = element.getBoundingClientRect();
-        links.push({
-          href: a.href,
-          rect: new DOMRect(
-            rect.left - elementRect.left,
-            rect.top - elementRect.top,
-            rect.width,
-            rect.height
-          )
-        });
-      });
-
-      // Import html2canvas dynamically
-      const html2canvas = (await import('html2canvas')).default;
-
-      // Capture the entire element as a canvas
-      // Use fixed 816px width (8.5in at 96dpi) for consistent capture
-      const captureWidth = 816;
-      const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: captureWidth,
-        windowWidth: captureWidth,
-      });
-
-      // PDF dimensions
-      const pdfWidth = 612; // 8.5in in points
-      const pdfHeight = 792; // 11in in points
-
-      // Canvas dimensions
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-
-      // Scale factor from canvas to PDF
-      const scale = pdfWidth / canvasWidth;
-      const scaledPageHeight = pdfHeight / scale; // height of one page in canvas pixels
-
-      // Calculate total pages
-      const totalPages = Math.ceil(canvasHeight / scaledPageHeight);
-
-      // Create PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'pt',
-        format: 'letter',
-      });
-
-      // Add each page
-      for (let pageNum = 0; pageNum < totalPages; pageNum++) {
-        if (pageNum > 0) {
-          pdf.addPage();
-        }
-
-        // Calculate the portion of canvas for this page
-        const sourceY = pageNum * scaledPageHeight;
-        const sourceHeight = Math.min(scaledPageHeight, canvasHeight - sourceY);
-
-        // Create a temporary canvas for this page slice
-        const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = canvasWidth;
-        pageCanvas.height = Math.ceil(sourceHeight);
-        const ctx = pageCanvas.getContext('2d');
-
-        if (ctx) {
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-          ctx.drawImage(
-            canvas,
-            0, sourceY, canvasWidth, sourceHeight, // source
-            0, 0, canvasWidth, sourceHeight // destination
-          );
-
-          // Add the page image to PDF
-          const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
-          const destHeight = sourceHeight * scale;
-          pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, destHeight);
-        }
+      // Select the correct template based on user choice
+      let templateComponent;
+      switch (resumeData.selectedTemplate) {
+        case 1:
+          templateComponent = <ClassicPDFTemplate data={resumeData} />;
+          break;
+        case 2:
+          templateComponent = <ModernPDFTemplate data={resumeData} />;
+          break;
+        case 3:
+          templateComponent = <TechnicalPDFTemplate data={resumeData} />;
+          break;
+        case 4:
+          templateComponent = <ExecutivePDFTemplate data={resumeData} />;
+          break;
+        default:
+          templateComponent = <ModernPDFTemplate data={resumeData} />;
       }
 
-      // Add hyperlinks as PDF annotations
-      // Links are captured at 816px DOM width, need to scale to 612pt PDF width
-      const linkScale = pdfWidth / captureWidth; // 612 / 816 = 0.75
-      links.forEach((link) => {
-        const x = link.rect.x * linkScale;
-        const y = link.rect.y * linkScale;
-        const width = link.rect.width * linkScale;
-        const height = link.rect.height * linkScale;
+      // Generate PDF blind with selected template
+      const blob = await pdf(templateComponent).toBlob();
 
-        // Determine which page this link is on
-        const pageNum = Math.floor(y / pdfHeight) + 1;
-        const yOnPage = y % pdfHeight;
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const fileName = `${resumeData.basics.name || 'resume'}.pdf`.replace(/[^a-z0-9-_.]/gi, '_');
+      link.download = fileName;
+      link.click();
 
-        if (pageNum <= totalPages) {
-          pdf.setPage(pageNum);
-          pdf.link(x, yOnPage, width, height, { url: link.href });
-        }
-      });
-
-      const fileName = `${resumeData.basics.name || 'resume'}.pdf`.replace(/[^a-z0-9-_\.]/gi, '_');
-      pdf.save(fileName);
+      // Cleanup
+      URL.revokeObjectURL(url);
 
     } catch (error) {
       console.error('PDF generation error:', error);
-      alert('PDF generation failed. Please try again or contact support.');
+      alert('PDF generation failed. Please try again.');
     } finally {
-      // Restore original styles
-      element.style.transform = originalTransform;
-      element.style.backgroundImage = originalBackgroundImage;
-      element.style.boxShadow = originalBoxShadow;
-      element.style.width = originalWidth;
-      element.style.height = originalHeight;
-      element.style.minHeight = originalMinHeight;
       if (button && originalText) button.textContent = originalText;
     }
   };
@@ -349,15 +292,30 @@ function App() {
         <aside className={`w-56 flex-shrink-0 border-r-4 ${darkMode ? 'bg-black border-gray-600' : 'bg-slate-100 border-slate-300'}`}>
           <div className="sticky top-0">
             <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={tabs.map(t => t.key)} strategy={verticalListSortingStrategy}>
-                {tabs.map((tab) => (
-                  <SidebarItem
-                    key={tab.key}
-                    tab={tab}
-                    isActive={activeTab === tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                  />
-                ))}
+              <SortableContext items={allTabs.map(t => t.key)} strategy={verticalListSortingStrategy}>
+                {folders.map((folder) => {
+                  const folderKey = folder.label.toLowerCase().replace(/\s+/g, '-');
+                  const isExpanded = expandedFolders.has(folderKey);
+
+                  return (
+                    <div key={folderKey}>
+                      <FolderHeader
+                        label={folder.label}
+                        icon={folder.icon}
+                        isExpanded={isExpanded}
+                        onClick={() => toggleFolder(folderKey)}
+                      />
+                      {isExpanded && folder.tabs.map((tab) => (
+                        <SidebarItem
+                          key={tab.key}
+                          tab={tab}
+                          isActive={activeTab === tab.key}
+                          onClick={() => setActiveTab(tab.key)}
+                        />
+                      ))}
+                    </div>
+                  );
+                })}
               </SortableContext>
             </DndContext>
           </div>
@@ -444,22 +402,8 @@ function App() {
           <div className="sticky top-0 h-screen flex flex-col">
             {/* Preview Header with Buttons */}
             <div className={`p-3 border-b-4 flex justify-between items-center ${darkMode ? 'bg-black border-gray-600' : 'bg-indigo-700 border-indigo-900'} text-white`}>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPreviewScale(Math.max(0.4, previewScale - 0.05))}
-                  className={`px-3 py-1 text-sm rounded font-bold ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-indigo-700 hover:bg-indigo-50'}`}
-                >
-                  −
-                </button>
-                <span className={`px-3 py-1 text-sm rounded font-bold ${darkMode ? 'bg-gray-800' : 'bg-indigo-800'}`}>
-                  {Math.round(previewScale * 100)}%
-                </span>
-                <button
-                  onClick={() => setPreviewScale(Math.min(1, previewScale + 0.05))}
-                  className={`px-3 py-1 text-sm rounded font-bold ${darkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-indigo-700 hover:bg-indigo-50'}`}
-                >
-                  +
-                </button>
+              <div className="text-sm font-bold">
+                📄 Live PDF Preview
               </div>
 
               <div className="flex gap-2">
@@ -503,31 +447,15 @@ function App() {
               </div>
             </div>
 
-            {/* Preview Content - ALWAYS FULL A4 SIZE */}
-            <div className={`flex-1 p-6 overflow-auto ${darkMode ? 'bg-black' : 'bg-slate-200'}`}>
-              <div
-                id="resume-preview"
-                className="bg-white shadow-xl mx-auto"
-                style={{
-                  transform: `scale(${previewScale})`,
-                  width: '8.5in', // Standard Letter Width
-                  minHeight: '11in', // Standard Letter Height
-                  height: 'auto',
-                  transformOrigin: 'top center',
-                  marginBottom: '2in',
-                  position: 'relative',
-                  backgroundImage: 'linear-gradient(to bottom, transparent 10.99in, #cbd5e1 10.99in, #cbd5e1 11.01in, transparent 11.01in)',
-                  backgroundSize: '100% 11in',
-                }}
-              >
-                <TemplateRenderer templateId={resumeData.selectedTemplate} />
-              </div>
+            {/* Preview Content - PDF Viewer with @react-pdf/renderer */}
+            <div className={`flex-1 overflow-hidden ${darkMode ? 'bg-black' : 'bg-slate-200'}`}>
+              <PDFPreview templateId={resumeData.selectedTemplate} />
             </div>
 
             {/* Preview Footer */}
             <div className={`p-3 border-t-4 ${darkMode ? 'bg-black border-gray-600' : 'bg-green-100 border-green-300'}`}>
               <p className={`text-sm font-bold text-center ${darkMode ? 'text-white' : 'text-black'}`}>
-                ✅ Full A4 Page (8.5" × 11") • Updates Live!
+                ✅ True WYSIWYG PDF Preview (Letter 8.5\" × 11\") • Powered by @react-pdf/renderer
               </p>
             </div>
           </div>

@@ -219,3 +219,49 @@ code {
 .dark .border-red-200 {
   border-color: #4b5563 !important;
 }
+
+/* ==========================================
+   PAGE CONTAINER & PAGINATION STYLES
+   ========================================== */
+
+/* Page container for proper PDF pagination */
+.page-container {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Print/PDF media queries */
+@media print {
+  @page {
+    size: letter;
+    margin: 0;
+    /* Margins handled by PageContainer padding */
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  .page-container {
+    page-break-after: always;
+    break-after: page;
+    margin-bottom: 0 !important;
+    /* Remove visual spacing in print */
+  }
+
+  .page-container:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .page-number {
+    display: none;
+    /* Hide page numbers in print/PDF */
+  }
+
+  /* Ensure no transforms in print */
+  #resume-preview {
+    transform: none !important;
+  }
+}
