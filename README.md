@@ -45,4 +45,4 @@ npm run build
 - [ ] **Cloud Sync** - Integration with storage providers for cross-device access.
 
 ---
-Built with ❤️ by [ayehya2](https://github.com/ayehya2)
+Built with ❤️ by [ayehya2](https://github.com/ayehya2) & [sankeer28](https://github.com/sankeer28)
