@@ -78,6 +78,9 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('templates')
   const [darkMode, setDarkMode] = useState(false)
 
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
   // Load saved data and dark mode on mount
   useEffect(() => {
     const savedData = loadResumeData();
@@ -187,10 +190,7 @@ function App() {
   };
 
   const handleDownloadPDF = async () => {
-    const button = document.activeElement as HTMLButtonElement;
-    const originalText = button?.textContent;
-    if (button) button.textContent = 'Generating...';
-
+    setIsGeneratingPDF(true);
     try {
       let templateComponent;
       switch (resumeData.selectedTemplate) {
@@ -216,15 +216,12 @@ function App() {
       console.error('PDF generation error:', error);
       alert('PDF generation failed. Please try again.');
     } finally {
-      if (button && originalText) button.textContent = originalText;
+      setIsGeneratingPDF(false);
     }
   };
 
   const handlePrint = async () => {
-    const button = document.activeElement as HTMLButtonElement;
-    const originalText = button?.textContent;
-    if (button) button.textContent = 'Printing...';
-
+    setIsPrinting(true);
     try {
       let templateComponent;
       switch (resumeData.selectedTemplate) {
@@ -246,7 +243,7 @@ function App() {
       console.error('Print generation error:', error);
       alert('Print generation failed. Please try again.');
     } finally {
-      if (button && originalText) button.textContent = originalText;
+      setIsPrinting(false);
     }
   };
 
@@ -384,17 +381,19 @@ function App() {
                 </button>
                 <button
                   onClick={handlePrint}
-                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                  disabled={isPrinting}
+                  className={`px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2 ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <Printer size={14} />
-                  <span>Print</span>
+                  <span>{isPrinting ? 'Printing...' : 'Print'}</span>
                 </button>
                 <button
                   onClick={handleDownloadPDF}
-                  className="px-4 py-1.5 bg-teal-700 hover:bg-teal-600 text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-2"
+                  disabled={isGeneratingPDF}
+                  className={`px-4 py-1.5 bg-teal-700 hover:bg-teal-600 text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-2 ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <FileDown size={14} />
-                  <span>Download PDF</span>
+                  <span>{isGeneratingPDF ? 'Generating...' : 'Download PDF'}</span>
                 </button>
               </div>
             </div>

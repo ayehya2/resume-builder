@@ -354,11 +354,6 @@ export function FormattingForm() {
                 >
                     Reset All Formatting
                 </button>
-                <div className="flex-1 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3">
-                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
-                        High Precision: All numerical values support decimal points for perfect alignment.
-                    </p>
-                </div>
             </div>
         </div>
     );
