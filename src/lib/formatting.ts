@@ -127,8 +127,8 @@ export function getBulletGapValue(gap: string): string {
 }
 
 // Section header case
-export function getSectionHeaderCase(style: 'uppercase' | 'capitalize' | 'normal'): string {
-    const styleMap = {
+export function getSectionHeaderCase(style: 'uppercase' | 'capitalize' | 'normal'): CSSProperties['textTransform'] {
+    const styleMap: Record<string, CSSProperties['textTransform']> = {
         uppercase: 'uppercase',
         capitalize: 'capitalize',
         normal: 'none'
@@ -140,6 +140,7 @@ export function getSectionHeaderCase(style: 'uppercase' | 'capitalize' | 'normal
 export function applyFormattingStyles(formatting: FormattingOptions): CSSProperties {
     return {
         fontFamily: getFontFamilyCSS(formatting.fontFamily),
+        textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle),
         fontSize: formatting.baseFontSize,
         lineHeight: formatting.lineSpacing,
         padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,

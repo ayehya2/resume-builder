@@ -15,6 +15,9 @@ import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkMode, loadDarkMode } from './lib/storage'
+import { pdf } from '@react-pdf/renderer'
+import { ClassicPDFTemplate } from './templates/pdf/ClassicPDFTemplate'
+import { ModernPDFTemplate } from './templates/pdf/ModernPDFTemplate'
 import './styles/index.css'
 
 // Tab system types
@@ -188,10 +191,6 @@ function App() {
     if (button) button.textContent = '⏳ Generating...';
 
     try {
-      const { pdf } = await import('@react-pdf/renderer');
-      const { ClassicPDFTemplate } = await import('./templates/pdf/ClassicPDFTemplate');
-      const { ModernPDFTemplate } = await import('./templates/pdf/ModernPDFTemplate');
-
       let templateComponent;
       switch (resumeData.selectedTemplate) {
         case 1:
