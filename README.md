@@ -1,6 +1,6 @@
 # Professional Resume Builder
 
-A professional-grade, professional-grade resume builder built with **TypeScript**, **React**, and **Tailwind CSS**. It provides a true WYSIWYG live preview of Letter-sized PDFs.
+A professional-grade resume builder built with **TypeScript**, **React**, and **Tailwind CSS**. It provides a true WYSIWYG live preview of Letter-sized PDFs.
 
 ## ✨ Core Features
 
