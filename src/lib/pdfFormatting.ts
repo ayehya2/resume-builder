@@ -111,6 +111,26 @@ export function getPDFSectionMargin(spacing: import('../types').Spacing): number
 }
 
 /**
+ * Get margin bottom for entries (work/edu) in points
+ */
+export function getPDFEntrySpacing(spacing: import('../types').Spacing): number {
+    const spacingMap = {
+        tight: 4,
+        normal: 8,
+        relaxed: 14,
+        spacious: 20,
+    };
+    return spacingMap[spacing] || 8;
+}
+
+/**
+ * Get gap between bullet and text in points
+ */
+export function getPDFBulletGap(gap: string): number {
+    return parseInt(gap.replace('pt', '')) || 4;
+}
+
+/**
  * Get bullet indent in points (convert from inches)
  */
 export function getPDFBulletIndent(indent: import('../types').BulletIndent): number {
@@ -147,4 +167,23 @@ export function getPDFSectionBorderStyle(divider: import('../types').SectionDivi
         default:
             return { paddingBottom: 2 };
     }
+}
+
+/**
+ * Get social icon size
+ */
+export function getPDFSocialIconSize(baseFontSize: number): number {
+    return baseFontSize + 2;
+}
+
+/**
+ * Get case transformation for section headers
+ */
+export function getPDFSectionHeaderStyle(style: 'uppercase' | 'capitalize' | 'normal'): any {
+    const styleMap = {
+        uppercase: 'uppercase',
+        capitalize: 'capitalize',
+        normal: 'none'
+    };
+    return styleMap[style] || 'uppercase';
 }

@@ -96,15 +96,27 @@ export interface FormattingOptions {
     marginBottom: string;
     marginLeft: string;
     marginRight: string;
+    // Granular Spacing
+    entrySpacing: Spacing;
+    bulletSpacing: Spacing;
+    bulletGap: string; // spacing between bullet and text
+    // Typography
+    sectionHeaderStyle: 'uppercase' | 'capitalize' | 'normal';
+    fontWeightName: string;
+    fontWeightSectionTitle: string;
+    fontWeightBody: string;
+    // Decorative
+    showIcons: boolean;
+    socialIconStyle: 'circle' | 'square' | 'none';
+    pageFormat: 'Letter' | 'A4';
     bulletStyle: BulletStyle;
     bulletIndent: BulletIndent;
-    bulletSpacing: Spacing;
     colorTheme: ColorTheme;
     customColor: string;
     sectionDividers: SectionDivider;
     headerLineStyle: HeaderLineStyle;
     headerAlignment: Alignment;
-    separator: '•' | '|'; // Universal separator for contact info and lists
+    separator: '•' | '|' | '·' | '—'; // Universal separator for contact info and lists
 }
 
 export type FontFamily = 'default' | 'times' | 'arial' | 'calibri' | 'georgia' | 'helvetica' | 'palatino' | 'garamond';

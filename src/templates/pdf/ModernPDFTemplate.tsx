@@ -10,6 +10,9 @@ import {
     getPDFSectionTitleSize,
     getPDFSectionMargin,
     getPDFBulletIndent,
+    getPDFEntrySpacing,
+    getPDFBulletGap,
+    getPDFSectionHeaderStyle,
 } from '../../lib/pdfFormatting';
 
 // Dynamic styles factory - creates styles based on formatting options
@@ -25,13 +28,14 @@ const createStyles = (formatting: FormattingOptions) => {
             backgroundColor: '#ffffff',
         },
         header: {
+            textAlign: formatting.headerAlignment,
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
             paddingBottom: 10,
             borderBottom: `4pt solid ${accentColor}`,
         },
         name: {
             fontSize: getPDFNameSize(formatting.nameSize),
-            fontWeight: 'bold',
+            fontWeight: formatting.fontWeightName === 'HEAVY' ? 'bold' : formatting.fontWeightName === 'BOLD' ? 'bold' : 'normal',
             color: accentColor,
             textTransform: 'uppercase',
             marginBottom: 8,
@@ -42,6 +46,7 @@ const createStyles = (formatting: FormattingOptions) => {
             color: '#64748b',
             flexDirection: 'row',
             flexWrap: 'wrap',
+            justifyContent: formatting.headerAlignment === 'center' ? 'center' : formatting.headerAlignment === 'right' ? 'flex-end' : 'flex-start',
             marginBottom: 4,
         },
         contactSeparator: {
@@ -59,9 +64,9 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
-            fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
+            fontWeight: formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal',
             color: accentColor,
-            textTransform: 'uppercase',
+            textTransform: getPDFSectionHeaderStyle(formatting.sectionHeaderStyle),
             marginBottom: 8,
             paddingLeft: 12,
             borderLeft: `8pt solid ${accentColor}`,
@@ -69,7 +74,7 @@ const createStyles = (formatting: FormattingOptions) => {
             textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
         },
         entryContainer: {
-            marginBottom: 12,
+            marginBottom: getPDFEntrySpacing(formatting.entrySpacing),
         },
         entryHeader: {
             flexDirection: 'row',
@@ -96,10 +101,11 @@ const createStyles = (formatting: FormattingOptions) => {
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
             marginBottom: 3,
             color: '#000000',
+            flexDirection: 'row',
         },
         bulletSymbol: {
             color: accentColor,
-            marginRight: 8,
+            marginRight: getPDFBulletGap(formatting.bulletGap),
         },
         skillCategory: {
             fontSize: baseFontSize - 1,
@@ -139,13 +145,13 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                     <Text style={styles.name}>{basics.name || 'Your Name'}</Text>
                     <View style={styles.contactInfo}>
                         {basics.email && <Text>{basics.email}</Text>}
-                        {basics.email && basics.phone && <Text style={styles.contactSeparator}>|</Text>}
+                        {basics.email && basics.phone && <Text style={styles.contactSeparator}>{formatting.separator}</Text>}
                         {basics.phone && <Text>{basics.phone}</Text>}
-                        {(basics.email || basics.phone) && basics.address && <Text style={styles.contactSeparator}>|</Text>}
+                        {(basics.email || basics.phone) && basics.address && <Text style={styles.contactSeparator}>{formatting.separator}</Text>}
                         {basics.address && <Text>{basics.address}</Text>}
                     </View>
                     {basics.websites.length > 0 && (
-                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 }}>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: formatting.headerAlignment === 'center' ? 'center' : formatting.headerAlignment === 'right' ? 'flex-end' : 'flex-start', marginTop: 4 }}>
                             {basics.websites.map((site, i) => (
                                 <Link key={i} src={site.url} style={styles.websiteLink}>
                                     {site.name || site.url}
@@ -249,10 +255,10 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                         {project.bullets && project.bullets.filter(b => b.trim()).length > 0 && (
                                             <View style={{ marginTop: 4 }}>
                                                 {project.bullets.filter(b => b.trim()).map((bullet, i) => (
-                                                    <Text key={i} style={styles.bulletPoint}>
-                                                        <Text style={styles.bulletSymbol}>•</Text>
-                                                        {bullet.replace(/^[•\-\*]\s*/, '')}
-                                                    </Text>
+                                                    <View key={i} style={styles.bulletPoint}>
+                                                        <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
+                                                        <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                    </View>
                                                 ))}
                                             </View>
                                         )}

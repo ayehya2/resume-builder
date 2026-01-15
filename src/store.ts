@@ -32,9 +32,21 @@ const getDefaultResumeData = (): ResumeData => ({
         marginBottom: '0.6',
         marginLeft: '0.6',
         marginRight: '0.6',
+        // Granular Spacing
+        entrySpacing: 'normal',
+        bulletSpacing: 'normal',
+        bulletGap: '4pt',
+        // Typography
+        sectionHeaderStyle: 'uppercase',
+        fontWeightName: 'BOLD',
+        fontWeightSectionTitle: 'BOLD',
+        fontWeightBody: 'NORMAL',
+        // Decorative
+        showIcons: true,
+        socialIconStyle: 'none',
+        pageFormat: 'Letter',
         bulletStyle: 'bullet',
         bulletIndent: 'none',
-        bulletSpacing: 'normal',
         colorTheme: 'black',
         customColor: '#000000',
         separator: '|',

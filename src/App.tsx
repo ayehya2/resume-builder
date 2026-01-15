@@ -110,7 +110,7 @@ function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `resume-${resumeData.basics.name || 'data'}.json`.replace(/[^a-z0-9-_.]/gi, '_');
+    a.download = `resume-${resumeData.basics.name || 'data'}.json`.replace(/[^a-z0-9._-]/gi, '_');
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -129,7 +129,7 @@ function App() {
           const data = importFromJSON(event.target?.result as string);
           useResumeStore.setState({ resumeData: data });
           alert('Resume data imported successfully!');
-        } catch (error) {
+        } catch {
           alert('Failed to import: Invalid JSON format');
         }
       };
@@ -208,7 +208,7 @@ function App() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      const fileName = `${resumeData.basics.name || 'resume'}.pdf`.replace(/[^a-z0-9-_.]/gi, '_');
+      const fileName = `${resumeData.basics.name || 'resume'}.pdf`.replace(/[^a-z0-9._-]/gi, '_');
       link.download = fileName;
       link.click();
       URL.revokeObjectURL(url);
@@ -352,7 +352,7 @@ function App() {
 
             <div className={`p-3 border-t-4 ${darkMode ? 'bg-black border-gray-600' : 'bg-green-100 border-green-300'}`}>
               <p className={`text-sm font-bold text-center ${darkMode ? 'text-white' : 'text-black'}`}>
-                ✅ True WYSIWYG PDF Preview (Letter 8.5\" × 11\") • Powered by @react-pdf/renderer
+                ✅ True WYSIWYG PDF Preview (Letter 8.5" × 11") • Powered by @react-pdf/renderer
               </p>
             </div>
           </div>

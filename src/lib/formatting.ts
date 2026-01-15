@@ -110,6 +110,32 @@ export function getSectionTitleSize(size: import('../types').SectionTitleSize): 
     return sizeMap[size] || '14pt';
 }
 
+// Entry spacing to pt
+export function getEntrySpacingValue(spacing: Spacing): string {
+    const spacingMap: Record<Spacing, string> = {
+        tight: '4pt',
+        normal: '8pt',
+        relaxed: '14pt',
+        spacious: '20pt',
+    };
+    return spacingMap[spacing] || '8pt';
+}
+
+// Bullet gap to pt
+export function getBulletGapValue(gap: string): string {
+    return gap || '4pt';
+}
+
+// Section header case
+export function getSectionHeaderCase(style: 'uppercase' | 'capitalize' | 'normal'): string {
+    const styleMap = {
+        uppercase: 'uppercase',
+        capitalize: 'capitalize',
+        normal: 'none'
+    };
+    return styleMap[style] || 'uppercase';
+}
+
 // Apply formatting to template
 export function applyFormattingStyles(formatting: FormattingOptions): CSSProperties {
     return {

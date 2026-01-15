@@ -11,6 +11,9 @@ import {
     getPDFSectionMargin,
     getPDFBulletIndent,
     getPDFSectionBorderStyle,
+    getPDFEntrySpacing,
+    getPDFBulletGap,
+    getPDFSectionHeaderStyle,
 } from '../../lib/pdfFormatting';
 
 // Dynamic styles factory - creates styles based on formatting options
@@ -27,12 +30,12 @@ const createStyles = (formatting: FormattingOptions) => {
             backgroundColor: '#ffffff',
         },
         header: {
-            textAlign: 'center',
+            textAlign: formatting.headerAlignment,
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
         },
         name: {
             fontSize: getPDFNameSize(formatting.nameSize),
-            fontWeight: 'bold',
+            fontWeight: formatting.fontWeightName === 'HEAVY' ? 'bold' : formatting.fontWeightName === 'BOLD' ? 'bold' : 'normal',
             marginBottom: 6,
             color: accentColor,
         },
@@ -52,14 +55,14 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
-            fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
-            textTransform: 'uppercase',
+            fontWeight: formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal',
+            textTransform: getPDFSectionHeaderStyle(formatting.sectionHeaderStyle),
             marginBottom: 8,
             ...sectionBorder,
             textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
         },
         entryContainer: {
-            marginBottom: 10,
+            marginBottom: getPDFEntrySpacing(formatting.entrySpacing),
         },
         entryHeader: {
             flexDirection: 'row',
@@ -89,7 +92,7 @@ const createStyles = (formatting: FormattingOptions) => {
             flexDirection: 'row',
         },
         bulletSymbol: {
-            marginRight: 6,
+            marginRight: getPDFBulletGap(formatting.bulletGap),
             color: accentColor,
         },
         skillCategory: {
@@ -128,16 +131,16 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                     <View style={styles.contactInfo}>
                         <Text>
                             {basics.email && basics.email}
-                            {basics.email && basics.phone && ' | '}
+                            {basics.email && basics.phone && ` ${formatting.separator} `}
                             {basics.phone && basics.phone}
-                            {(basics.email || basics.phone) && basics.address && ' | '}
+                            {(basics.email || basics.phone) && basics.address && ` ${formatting.separator} `}
                             {basics.address && basics.address}
                         </Text>
                         {basics.websites.length > 0 && (
-                            <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 2 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: formatting.headerAlignment === 'center' ? 'center' : formatting.headerAlignment === 'right' ? 'flex-end' : 'flex-start', marginTop: 2 }}>
                                 {basics.websites.map((site, i) => (
                                     <View key={i} style={{ flexDirection: 'row' }}>
-                                        {i > 0 && <Text style={styles.separator}> | </Text>}
+                                        {i > 0 && <Text style={styles.separator}> {formatting.separator} </Text>}
                                         <Link src={site.url} style={styles.websiteLink}>
                                             {site.name || site.url}
                                         </Link>
