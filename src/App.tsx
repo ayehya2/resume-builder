@@ -402,12 +402,6 @@ function App() {
             <div className={`flex-1 overflow-hidden ${darkMode ? 'bg-slate-900' : 'bg-slate-200'}`}>
               <PDFPreview templateId={resumeData.selectedTemplate} />
             </div>
-
-            <div className={`p-3 border-t-2 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-300'}`}>
-              <p className={`text-sm font-medium text-center ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                True WYSIWYG PDF Preview (Letter 8.5" x 11") - Powered by @react-pdf/renderer
-              </p>
-            </div>
           </div>
         </aside>
       </div>

@@ -350,7 +350,7 @@ export function FormattingForm() {
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button
                     onClick={resetFormatting}
-                    className="flex-1 px-4 py-3 bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400 border-2 border-red-100 dark:border-red-900/30 font-semibold hover:bg-red-100 dark:hover:bg-red-900/20 transition-all shadow-sm"
+                    className="flex-1 px-4 py-3 bg-red-600 text-white border-2 border-transparent font-bold hover:bg-red-700 transition-all shadow-md"
                 >
                     Reset All Formatting
                 </button>

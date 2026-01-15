@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { PDFViewer } from '@react-pdf/renderer';
 import { useResumeStore } from '../../store';
 import type { TemplateId } from '../../types';
@@ -10,7 +11,7 @@ interface PDFPreviewProps {
     templateId: TemplateId;
 }
 
-export function PDFPreview({ templateId }: PDFPreviewProps) {
+export const PDFPreview = memo(function PDFPreview({ templateId }: PDFPreviewProps) {
     const { resumeData } = useResumeStore();
 
     // Map template ID to the corresponding component
@@ -37,4 +38,4 @@ export function PDFPreview({ templateId }: PDFPreviewProps) {
             </PDFViewer>
         </div>
     );
-}
+});
