@@ -85,3 +85,14 @@ export function loadDarkMode(): boolean {
         return false;
     }
 }
+
+// Active tab storage
+const ACTIVE_TAB_KEY = 'resume-builder-active-tab';
+
+export function saveActiveTab(tab: string): void {
+    localStorage.setItem(ACTIVE_TAB_KEY, tab);
+}
+
+export function loadActiveTab(): string {
+    return localStorage.getItem(ACTIVE_TAB_KEY) || 'templates';
+}

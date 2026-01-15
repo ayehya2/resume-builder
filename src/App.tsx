@@ -14,7 +14,7 @@ import { DndContext, closestCenter } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkMode, loadDarkMode } from './lib/storage'
+import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkMode, loadDarkMode, saveActiveTab, loadActiveTab } from './lib/storage'
 import { pdf } from '@react-pdf/renderer'
 import { ClassicPDFTemplate } from './templates/pdf/ClassicPDFTemplate'
 import { ModernPDFTemplate } from './templates/pdf/ModernPDFTemplate'
@@ -75,7 +75,7 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
 
 function App() {
   const { resumeData, setTemplate, setSections, loadSampleData, reset } = useResumeStore()
-  const [activeTab, setActiveTab] = useState<TabKey>('templates')
+  const [activeTab, setActiveTab] = useState<TabKey>(() => loadActiveTab() as TabKey)
   const [darkMode, setDarkMode] = useState(() => loadDarkMode())
 
   const [isPrinting, setIsPrinting] = useState(false);
@@ -85,13 +85,17 @@ function App() {
   useEffect(() => {
     const savedData = loadResumeData();
     if (savedData) {
-      // Stripping duplicates on load for safety
       if (savedData.sections) {
         savedData.sections = Array.from(new Set(savedData.sections));
       }
       useResumeStore.setState({ resumeData: savedData });
     }
   }, []);
+
+  // Save active tab on change
+  useEffect(() => {
+    saveActiveTab(activeTab);
+  }, [activeTab]);
 
   // Update dark mode class on document
   useEffect(() => {
