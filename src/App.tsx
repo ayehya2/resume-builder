@@ -15,6 +15,9 @@ import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkMode, loadDarkMode } from './lib/storage'
+import { pdf } from '@react-pdf/renderer'
+import { ClassicPDFTemplate } from './templates/pdf/ClassicPDFTemplate'
+import { ModernPDFTemplate } from './templates/pdf/ModernPDFTemplate'
 import { LayoutTemplate, Palette, User, GraduationCap, Briefcase, Zap, FolderKanban, Award, GripVertical } from 'lucide-react'
 import './styles/index.css'
 
@@ -165,21 +168,21 @@ function App() {
 
     if (!over || active.id === over.id) return;
 
-    const oldIndex = resumeData.sections.findIndex(s => {
-      const tabKey = s === 'profile' ? 'basics' : s;
-      return tabKey === active.id;
-    });
+    // Convert tab keys back to section keys
+    const activeSection = active.id === 'basics' ? 'profile' : (active.id as SectionKey);
+    const overSection = over.id === 'basics' ? 'profile' : (over.id as SectionKey);
 
-    const newIndex = resumeData.sections.findIndex(s => {
-      const tabKey = s === 'profile' ? 'basics' : s;
-      return tabKey === over.id;
-    });
+    const oldIndex = resumeData.sections.indexOf(activeSection);
+    const newIndex = resumeData.sections.indexOf(overSection);
 
     if (oldIndex !== -1 && newIndex !== -1) {
-      if (resumeData.sections[oldIndex] === 'profile' || resumeData.sections[newIndex] === 'profile') return;
+      // Profile must always stay at top
+      if (activeSection === 'profile' || overSection === 'profile') return;
 
       const newSections = arrayMove(resumeData.sections, oldIndex, newIndex);
-      setSections(newSections);
+      // Aggressive uniqueness check before setting
+      const uniqueSections = Array.from(new Set(newSections));
+      setSections(uniqueSections);
     }
   };
 
@@ -189,10 +192,6 @@ function App() {
     if (button) button.textContent = 'Generating...';
 
     try {
-      const { pdf } = await import('@react-pdf/renderer');
-      const { ClassicPDFTemplate } = await import('./templates/pdf/ClassicPDFTemplate');
-      const { ModernPDFTemplate } = await import('./templates/pdf/ModernPDFTemplate');
-
       let templateComponent;
       switch (resumeData.selectedTemplate) {
         case 1:

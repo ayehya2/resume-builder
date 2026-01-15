@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store'
-import type { ColorTheme, SectionDivider, Alignment } from '../../types';
+import type { ColorTheme, SectionDivider, Alignment, FontFamily, NameSize, Spacing, BulletStyle } from '../../types';
 
 export function FormattingForm() {
     const { resumeData, updateFormatting, resetFormatting } = useResumeStore();
@@ -25,7 +25,7 @@ export function FormattingForm() {
                             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Font Family</label>
                             <select
                                 value={formatting.fontFamily}
-                                onChange={(e) => updateFormatting({ fontFamily: e.target.value as any })}
+                                onChange={(e) => updateFormatting({ fontFamily: e.target.value as FontFamily })}
                                 className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                             >
                                 <option value="default">Default (Times New Roman)</option>
@@ -44,7 +44,7 @@ export function FormattingForm() {
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Name Size</label>
                                 <select
                                     value={formatting.nameSize}
-                                    onChange={(e) => updateFormatting({ nameSize: e.target.value as any })}
+                                    onChange={(e) => updateFormatting({ nameSize: e.target.value as NameSize })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
                                     <option value="huge">Huge (24pt)</option>
@@ -73,7 +73,7 @@ export function FormattingForm() {
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Section Case</label>
                                 <select
                                     value={formatting.sectionHeaderStyle}
-                                    onChange={(e) => updateFormatting({ sectionHeaderStyle: e.target.value as any })}
+                                    onChange={(e) => updateFormatting({ sectionHeaderStyle: e.target.value as 'uppercase' | 'capitalize' | 'normal' })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
                                     <option value="uppercase">ALL CAPS</option>
@@ -120,7 +120,7 @@ export function FormattingForm() {
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Page Size</label>
                                 <select
                                     value={formatting.pageFormat}
-                                    onChange={(e) => updateFormatting({ pageFormat: e.target.value as any })}
+                                    onChange={(e) => updateFormatting({ pageFormat: e.target.value as 'Letter' | 'A4' })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
                                     <option value="Letter">Letter (US)</option>
@@ -147,7 +147,7 @@ export function FormattingForm() {
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Section Gap</label>
                                 <select
                                     value={formatting.sectionSpacing}
-                                    onChange={(e) => updateFormatting({ sectionSpacing: e.target.value as any })}
+                                    onChange={(e) => updateFormatting({ sectionSpacing: e.target.value as Spacing })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
                                     <option value="tight">Tight (4pt)</option>
@@ -160,7 +160,7 @@ export function FormattingForm() {
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Entry Gap (Work/Edu)</label>
                                 <select
                                     value={formatting.entrySpacing}
-                                    onChange={(e) => updateFormatting({ entrySpacing: e.target.value as any })}
+                                    onChange={(e) => updateFormatting({ entrySpacing: e.target.value as Spacing })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
                                     <option value="tight">Tight</option>
@@ -208,7 +208,7 @@ export function FormattingForm() {
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Bullet Style</label>
                                 <select
                                     value={formatting.bulletStyle}
-                                    onChange={(e) => updateFormatting({ bulletStyle: e.target.value as any })}
+                                    onChange={(e) => updateFormatting({ bulletStyle: e.target.value as BulletStyle })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
                                     <option value="bullet">Bullet</option>
@@ -238,7 +238,7 @@ export function FormattingForm() {
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Social Icons</label>
                                 <select
                                     value={formatting.socialIconStyle}
-                                    onChange={(e) => updateFormatting({ socialIconStyle: e.target.value as any })}
+                                    onChange={(e) => updateFormatting({ socialIconStyle: e.target.value as 'circle' | 'square' | 'none' })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
                                     <option value="none">Text Only</option>
@@ -286,7 +286,7 @@ export function FormattingForm() {
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Separator Char</label>
                                 <select
                                     value={formatting.separator}
-                                    onChange={(e) => updateFormatting({ separator: e.target.value as any })}
+                                    onChange={(e) => updateFormatting({ separator: e.target.value as '•' | '|' | '·' | '—' })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
                                     <option value="•">Bullet</option>

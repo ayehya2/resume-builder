@@ -287,12 +287,17 @@ export const useResumeStore = create<ResumeStore>((set) => ({
 
     // Sections
     setSections: (sections) =>
-        set((state) => ({
-            resumeData: {
-                ...state.resumeData,
-                sections: Array.from(new Set(sections)),
-            },
-        })),
+        set((state) => {
+            const uniqueSections = Array.from(new Set(sections)).filter(s =>
+                ['profile', 'education', 'work', 'skills', 'projects', 'awards'].includes(s)
+            );
+            return {
+                resumeData: {
+                    ...state.resumeData,
+                    sections: uniqueSections,
+                },
+            };
+        }),
 
     // Template
     setTemplate: (templateId) =>
@@ -320,11 +325,11 @@ export const useResumeStore = create<ResumeStore>((set) => ({
             },
         })),
 
-    // Utility
     loadSampleData: () => {
         set({
             resumeData: {
                 ...getDefaultResumeData(),
+                sections: ['profile', 'education', 'work', 'skills', 'projects', 'awards'],
                 basics: {
                     name: 'Sarah Mitchell',
                     email: 'sarah.mitchell@email.com',

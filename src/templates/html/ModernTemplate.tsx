@@ -67,7 +67,7 @@ export function ModernTemplate() {
                                     borderColor: colorValue,
                                     color: colorValue,
                                     fontSize: getSectionTitleSize(formatting.sectionTitleSize),
-                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle) as any,
+                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle),
                                     textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
                                     fontWeight: formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal',
                                     breakInside: 'avoid'
@@ -111,7 +111,7 @@ export function ModernTemplate() {
                                             {job.bullets.filter((b: string) => b.trim() !== '').map((line: string, i: number) => (
                                                 <li key={i} className="flex items-start mb-0.5" style={{ gap: getBulletGapValue(formatting.bulletGap), breakInside: 'avoid' }}>
                                                     <span className="mt-0.5 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
-                                                    {line.replace(/^[•\-\*]\s*/, '')}
+                                                    {line.replace(/^[•*-]\s*/, '')}
                                                 </li>
                                             ))}
                                         </ul>
@@ -167,7 +167,7 @@ export function ModernTemplate() {
                                             {project.bullets.filter((b: string) => b.trim() !== '').map((bullet: string, i: number) => (
                                                 <li key={i} className="flex gap-2 text-sm items-start text-left" style={{ breakInside: 'avoid' }}>
                                                     <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
-                                                    <span className="text-slate-700">{bullet.replace(/^[•\-\*]\s*/, '')}</span>
+                                                    <span className="text-slate-700">{bullet.replace(/^[•*-]\s*/, '')}</span>
                                                 </li>
                                             ))}
                                         </ul>

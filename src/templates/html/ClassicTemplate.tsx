@@ -69,7 +69,7 @@ export function ClassicTemplate() {
                                 style={{
                                     borderBottom: formatting.sectionDividers !== 'none' ? `1.5pt solid ${colorValue}` : 'none',
                                     fontSize: getSectionTitleSize(formatting.sectionTitleSize),
-                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle) as any,
+                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle),
                                     textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
                                     fontWeight: formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal',
                                     breakInside: 'avoid'
@@ -119,7 +119,7 @@ export function ClassicTemplate() {
                                             {job.bullets.filter((b: string) => b.trim() !== '').map((line: string, i: number) => (
                                                 <li key={i} className="flex items-start mb-0.5" style={{ gap: getBulletGapValue(formatting.bulletGap), breakInside: 'avoid' }}>
                                                     <span className="mt-0.5 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
-                                                    <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                                                    <span>{line.replace(/^[•*-]\s*/, '')}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -138,7 +138,7 @@ export function ClassicTemplate() {
                                 style={{
                                     borderBottom: formatting.sectionDividers !== 'none' ? `1.5pt solid ${colorValue}` : 'none',
                                     fontSize: getSectionTitleSize(formatting.sectionTitleSize),
-                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle) as any,
+                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle),
                                     textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
                                     fontWeight: formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal',
                                     breakInside: 'avoid'
@@ -166,7 +166,7 @@ export function ClassicTemplate() {
                                 style={{
                                     borderBottom: formatting.sectionDividers !== 'none' ? `1.5pt solid ${colorValue}` : 'none',
                                     fontSize: getSectionTitleSize(formatting.sectionTitleSize),
-                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle) as any,
+                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle),
                                     textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
                                     fontWeight: formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal',
                                     breakInside: 'avoid'
@@ -195,7 +195,7 @@ export function ClassicTemplate() {
                                             {project.bullets.filter((b: string) => b.trim() !== '').map((bullet: string, i: number) => (
                                                 <li key={i} className="flex items-start" style={{ gap: getBulletGapValue(formatting.bulletGap), breakInside: 'avoid' }}>
                                                     <span className="mt-0.5 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
-                                                    <span>{bullet.replace(/^[•\-\*]\s*/, '')}</span>
+                                                    <span>{bullet.replace(/^[•*-]\s*/, '')}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -214,7 +214,7 @@ export function ClassicTemplate() {
                                 style={{
                                     borderBottom: formatting.sectionDividers !== 'none' ? `1.5pt solid ${colorValue}` : 'none',
                                     fontSize: getSectionTitleSize(formatting.sectionTitleSize),
-                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle) as any,
+                                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle),
                                     textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
                                     fontWeight: formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal',
                                     breakInside: 'avoid'

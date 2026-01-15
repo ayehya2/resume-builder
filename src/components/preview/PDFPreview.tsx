@@ -31,7 +31,7 @@ export function PDFPreview({ templateId }: PDFPreviewProps) {
                 width="100%"
                 height="100%"
                 showToolbar={false}
-                key={`${templateId}-${resumeData.formatting.colorTheme}-${resumeData.basics.name}`}
+                key={`${templateId}-${resumeData.formatting.colorTheme}-${resumeData.basics.name}-${resumeData.sections.join(',')}`}
             >
                 {getTemplateComponent()}
             </PDFViewer>
