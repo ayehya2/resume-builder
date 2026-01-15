@@ -60,29 +60,11 @@ export function importFromJSON(jsonString: string): ResumeData {
 
 // Migrate old data format to new format
 function migrateData(data: any): ResumeData {
-    // If work/projects have description as string, convert to bullets array
-    if (data.work) {
-        data.work = data.work.map((job: any) => {
-            if (typeof job.description === 'string') {
-                return {
-                    ...job,
-                    bullets: job.description.split('\\n').filter((line: string) => line.trim()),
-                };
-            }
-            return job;
-        });
-    }
-
-    if (data.projects) {
-        data.projects = data.projects.map((project: any) => {
-            if (typeof project.description === 'string') {
-                return {
-                    ...project,
-                    bullets: project.description.split('\\n').filter((line: string) => line.trim()),
-                };
-            }
-            return project;
-        });
+    // Ensure unique sections
+    if (data.sections && Array.isArray(data.sections)) {
+        data.sections = Array.from(new Set(data.sections)).filter((s: any) =>
+            ['profile', 'education', 'work', 'skills', 'projects', 'awards'].includes(s)
+        );
     }
 
     return data as ResumeData;

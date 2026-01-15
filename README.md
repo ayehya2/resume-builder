@@ -20,11 +20,11 @@
 - 🎯 **100% TypeScript** - Full type safety, fewer bugs
 
 ### NEW This Session ⭐
-- **Contact Separator Choice** - Choose between bullet (•) or pipe (|) for contact info
-- **Inline Website Links** - Portfolio/GitHub links on same line as email/phone
-- **Reorganized Sidebar** - Templates first, cleaner navigation
-- **Draggable Sections** - Reorder resume sections (coming soon)
-- **Bullet Management** - Individual add/remove for each bullet point (coming soon)
+- **Extensive Formatting Controls** - Deep typography, spacing, and decorative adjustments.
+- **Premium Dark Theme** - Optimized for professional-grade editing in low light.
+- **JSON Support** - Export and import your resume data for persistence and sharing.
+- **Multi-page Flow** - Fixed PDF wrapping to allow content to span across pages beautifully.
+- **Improved UX** - Sidebar folders, draggable sections, and zoom controls.
 
 ---
 
@@ -124,21 +124,20 @@ resume-builder/
 
 ---
 
-## 🎨 Resume Formatting
-
 ### Current Features
-- **Font:** Times New Roman, 11pt
-- **Line Spacing:** 1.15 (tight, professional)
-- **Padding:** 0.5 inch margins
-- **Separator:** User choice of • or |
-- **Hyperlinks:** Clickable, blue, underlined
-- **Page Size:** Full A4 (8.5" × 11")
+- **Font Selection** - Arial, Georgia, Calibri, Garamond, Times New Roman, and more.
+- **Precise Spacing** - Adjust line height, section gaps, and individual entry spacing.
+- **Typography** - Control font weights for names and headers independently.
+- **Decorative** - Customizable separators (•, |, ·, —) and header alignment (Left, Center, Right).
+- **Icons** - Optional contact icons with adjustable styles (Square/Circle).
+- **Page Format** - Toggle between US Letter and A4 standards.
 
-### Coming Soon
-- **Font Selection** - Arial, Georgia, Calibri, Garamond
-- **Color Themes** - Navy, Blue, Green, custom colors
-- **Spacing Controls** - Adjust line height, section/paragraph spacing
-- **Bullet Styles** - •, ■, ▪, ◆, ▸, -
+### Roadmap
+- **Server-side PDF (Puppeteer)** - Highest quality rendering and font accuracy.
+- **AI Suggestions** - Smart bullet point optimization and grammar checking.
+- **Rich Text Editor** - Support for bold/italic within bullet points.
+- **Academic/Creative Templates** - Specialized layouts for researchers and designers.
+- **ATS Scoring** - Compatibility analysis and optimization tips.
 
 ---
 
@@ -195,19 +194,16 @@ All components read from and dispatch to the central store.
   - **Fix:** Add export/import buttons (30 min)
 
 ### Roadmap
-- [x] Contact separator choice (• vs |)
-- [x] Inline website links
-- [x] Sidebar reorganization
-- [ ] Draggable sidebar sections (**IN PROGRESS**)
-- [ ] Bullet point management (**IN PROGRESS**)
-- [ ] Formatting controls (fonts, colors, spacing)
-- [ ] Local storage auto-save
-- [ ] JSON export/import
-- [ ] Server-side PDF API (Puppeteer)
+- [x] Extensive Formatting controls (Typography, Colors, Spacing)
+- [x] Premium Dark Mode
+- [x] JSON Export/Import
+- [x] Section Reordering (Drag & Drop)
+- [x] Multi-page PDF wrapping
+- [ ] Server-side PDF API (Express + Puppeteer)
 - [ ] AI-powered bullet suggestions
-- [ ] Multi-page resume support
-- [ ] More templates (5+ total)
-- [ ] Dark mode
+- [ ] ATS compatibility scoring
+- [ ] Rich Text/Markdown support in bullets
+- [ ] Academic & Creative templates
 
 ---
 

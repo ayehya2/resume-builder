@@ -167,21 +167,21 @@ function App() {
 
     if (!over || active.id === over.id) return;
 
-    const oldIndex = resumeData.sections.findIndex(s => {
-      const tabKey = s === 'profile' ? 'basics' : s;
-      return tabKey === active.id;
-    });
+    // Convert tab keys back to section keys
+    const activeSection = active.id === 'basics' ? 'profile' : (active.id as SectionKey);
+    const overSection = over.id === 'basics' ? 'profile' : (over.id as SectionKey);
 
-    const newIndex = resumeData.sections.findIndex(s => {
-      const tabKey = s === 'profile' ? 'basics' : s;
-      return tabKey === over.id;
-    });
+    const oldIndex = resumeData.sections.indexOf(activeSection);
+    const newIndex = resumeData.sections.indexOf(overSection);
 
     if (oldIndex !== -1 && newIndex !== -1) {
-      if (resumeData.sections[oldIndex] === 'profile' || resumeData.sections[newIndex] === 'profile') return;
+      // Profile must always stay at top
+      if (activeSection === 'profile' || overSection === 'profile') return;
 
       const newSections = arrayMove(resumeData.sections, oldIndex, newIndex);
-      setSections(newSections);
+      // Aggressive uniqueness check before setting
+      const uniqueSections = Array.from(new Set(newSections));
+      setSections(uniqueSections);
     }
   };
 
