@@ -30,33 +30,33 @@ export function BulletList({ bullets, onChange, placeholder }: BulletListProps) 
         <div className="space-y-2">
             {bullets.map((bullet, idx) => (
                 <div key={idx} className="flex gap-2 items-center">
-                    <span className="text-xl leading-none text-black dark:text-white">•</span>
+                    <span className="text-xl leading-none text-slate-600 dark:text-slate-400">-</span>
                     <input
                         type="text"
                         value={bullet}
                         onChange={(e) => updateBullet(idx, e.target.value)}
                         className={`
-                            flex-1 px-2 py-1.5 border rounded
-                            focus:outline-none focus:ring-2 focus:ring-violet-500
-                            bg-white border-gray-300 text-black
-                            dark:bg-black dark:border-gray-600 dark:text-white
+                            flex-1 px-2 py-1.5 border-2
+                            focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500
+                            bg-white border-slate-300 text-slate-900
+                            dark:bg-slate-950 dark:border-slate-600 dark:text-white
                         `}
                         placeholder={placeholder || 'Enter bullet point'}
                     />
                     {bullets.length > 1 && (
                         <button
                             onClick={() => removeBullet(idx)}
-                            className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold transition-colors"
+                            className="px-3 py-2 bg-red-700 text-white hover:bg-red-600 font-semibold transition-colors"
                             type="button"
                         >
-                            ✕
+                            X
                         </button>
                     )}
                 </div>
             ))}
             <button
                 onClick={addBullet}
-                className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 font-bold transition-colors"
+                className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 font-semibold transition-colors"
                 type="button"
             >
                 + Add Bullet Point

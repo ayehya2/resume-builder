@@ -78,18 +78,18 @@ export function ValidatedInput({
         }
     };
 
-    const baseInputClasses = `w-full px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-medium transition-colors ${className}`;
+    const baseInputClasses = `w-full px-3 py-2 border-2 focus:outline-none focus:ring-2 focus:ring-slate-400/20 font-medium transition-colors ${className}`;
 
     const stateClasses = error && touched
         ? 'border-red-500 focus:border-red-500'
         : darkMode
-            ? 'bg-black border-gray-600 text-white focus:border-violet-500'
-            : 'bg-white border-slate-400 text-black focus:border-violet-500';
+            ? 'bg-slate-950 border-slate-600 text-white focus:border-slate-500'
+            : 'bg-white border-slate-400 text-slate-900 focus:border-slate-500';
 
     return (
         <div className="w-full">
             {label && (
-                <label className={`block text-sm font-semibold mb-1 ${darkMode ? 'text-white' : 'text-black'}`}>
+                <label className={`block text-sm font-semibold mb-1 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
@@ -108,7 +108,7 @@ export function ValidatedInput({
             />
             {error && touched && (
                 <p className="text-red-600 text-sm mt-1 font-semibold flex items-center gap-1">
-                    <span>⚠️</span>
+                    <span>!</span>
                     <span>{error}</span>
                 </p>
             )}

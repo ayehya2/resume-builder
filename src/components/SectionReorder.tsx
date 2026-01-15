@@ -18,13 +18,13 @@ import { CSS } from '@dnd-kit/utilities';
 import { useResumeStore } from '../store';
 import type { SectionKey } from '../types';
 
-const sectionLabels: Record<SectionKey, { label: string; icon: string }> = {
-    profile: { label: 'Profile Information', icon: '👤' },
-    education: { label: 'Education', icon: '🎓' },
-    work: { label: 'Work Experience', icon: '💼' },
-    skills: { label: 'Skills', icon: '⚡' },
-    projects: { label: 'Projects', icon: '🚀' },
-    awards: { label: 'Awards & Certifications', icon: '🏆' },
+const sectionLabels: Record<SectionKey, { label: string }> = {
+    profile: { label: 'Profile Information' },
+    education: { label: 'Education' },
+    work: { label: 'Work Experience' },
+    skills: { label: 'Skills' },
+    projects: { label: 'Projects' },
+    awards: { label: 'Awards & Certifications' },
 };
 
 interface SortableItemProps {
@@ -40,7 +40,7 @@ function SortableItem({ id }: SortableItemProps) {
         opacity: isDragging ? 0.5 : 1,
     };
 
-    const { label, icon } = sectionLabels[id];
+    const { label } = sectionLabels[id];
 
     return (
         <div
@@ -48,9 +48,8 @@ function SortableItem({ id }: SortableItemProps) {
             style={style}
             {...attributes}
             {...listeners}
-            className="flex items-center gap-3 p-4 bg-white border-2 border-slate-200 rounded-lg cursor-move hover:border-violet-400 hover:shadow-md transition-all"
+            className="flex items-center gap-3 p-4 bg-white border-2 border-slate-200 cursor-move hover:border-slate-400 hover:shadow-sm transition-all"
         >
-            <div className="text-2xl">{icon}</div>
             <div className="flex-1">
                 <h4 className="font-medium text-slate-900">{label}</h4>
                 <p className="text-sm text-slate-500">Drag to reorder</p>
@@ -105,9 +104,9 @@ export function SectionReorder() {
                 </SortableContext>
             </DndContext>
 
-            <div className="mt-6 p-4 bg-violet-50 rounded-lg">
-                <p className="text-sm text-violet-900">
-                    <strong>💡 Tip:</strong> The order here determines how sections appear on your final resume!
+            <div className="mt-6 p-4 bg-slate-100 border-2 border-slate-200">
+                <p className="text-sm text-slate-700">
+                    <strong>Tip:</strong> The order here determines how sections appear on your final resume.
                 </p>
             </div>
         </div>
