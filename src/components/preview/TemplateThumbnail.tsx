@@ -30,6 +30,8 @@ export function TemplateThumbnail({ templateId }: TemplateThumbnailProps) {
                     marginLeft: '-408px', // Center the scaled content
                     overflow: 'hidden', // Clip content past first page
                     maxHeight: '1056px', // Enforce 11-inch limit
+                    backgroundColor: 'white', // Force white background
+                    color: 'black', // Force black text base
                 }}
             >
                 <TemplateRenderer templateId={templateId} />

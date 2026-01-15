@@ -21,7 +21,8 @@ export function ClassicTemplate() {
                 width: '8.5in',
                 minHeight: '11in',
                 height: 'auto',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                backgroundColor: '#ffffff', // Force white background for PDF preview
             }}
         >
             {/* Header */}
@@ -42,19 +43,18 @@ export function ClassicTemplate() {
                     {basics.phone && basics.phone}
                     {(basics.email || basics.phone) && basics.address && ` ${formatting.separator} `}
                     {basics.address && basics.address}
+
+                    {/* Website Links Merged Inline */}
+                    {(basics.email || basics.phone || basics.address) && basics.websites.length > 0 && ` ${formatting.separator} `}
+                    {basics.websites.map((site: { name?: string; url: string }, idx: number) => (
+                        <span key={idx}>
+                            {idx > 0 && ` ${formatting.separator} `}
+                            <a href={site.url} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: colorValue }}>
+                                {site.name || site.url}
+                            </a>
+                        </span>
+                    ))}
                 </div>
-                {basics.websites.length > 0 && (
-                    <div className="text-sm mt-1">
-                        {basics.websites.map((site: { name?: string; url: string }, idx: number) => (
-                            <span key={idx}>
-                                {idx > 0 && ` ${formatting.separator} `}
-                                <a href={site.url} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: colorValue }}>
-                                    {site.name || site.url}
-                                </a>
-                            </span>
-                        ))}
-                    </div>
-                )}
             </div>
 
             {/* Sections */}

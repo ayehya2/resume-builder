@@ -18,7 +18,7 @@ import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkM
 import { pdf } from '@react-pdf/renderer'
 import { ClassicPDFTemplate } from './templates/pdf/ClassicPDFTemplate'
 import { ModernPDFTemplate } from './templates/pdf/ModernPDFTemplate'
-import { LayoutTemplate, Palette, User, GraduationCap, Briefcase, Zap, FolderKanban, Award, GripVertical, Moon, Sun, Upload, Download, FileText, RotateCcw, FileDown, Printer } from 'lucide-react'
+import { LayoutTemplate, Palette, User, GraduationCap, Briefcase, Zap, FolderKanban, Award, GripVertical, Moon, Sun, Upload, Download, FileText, RotateCcw, FileDown, Printer, Check } from 'lucide-react'
 import './styles/index.css'
 
 // Tab system types
@@ -76,12 +76,12 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
 function App() {
   const { resumeData, setTemplate, setSections, loadSampleData, reset } = useResumeStore()
   const [activeTab, setActiveTab] = useState<TabKey>('templates')
-  const [darkMode, setDarkMode] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => loadDarkMode())
 
   const [isPrinting, setIsPrinting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Load saved data and dark mode on mount
+  // Load saved data on mount
   useEffect(() => {
     const savedData = loadResumeData();
     if (savedData) {
@@ -91,8 +91,17 @@ function App() {
       }
       useResumeStore.setState({ resumeData: savedData });
     }
-    setDarkMode(loadDarkMode());
   }, []);
+
+  // Update dark mode class on document
+  useEffect(() => {
+    saveDarkMode(darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   // Auto-save every 30 seconds
   useEffect(() => {
@@ -306,26 +315,28 @@ function App() {
                       <div className={`
                         p-4 text-left transition-colors relative
                         ${resumeData.selectedTemplate === template.id
-                          ? 'bg-slate-800'
-                          : darkMode
-                            ? 'bg-slate-800'
-                            : 'bg-slate-100'
+                          ? (darkMode ? 'bg-slate-900 border-t border-slate-700' : 'bg-white border-t border-slate-100')
+                          : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
                         }
                       `}>
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className={`font-bold text-lg leading-tight ${resumeData.selectedTemplate === template.id ? 'text-white' : darkMode ? 'text-white' : 'text-slate-900'
+                            <div className={`font-bold text-lg leading-tight ${resumeData.selectedTemplate === template.id
+                              ? (darkMode ? 'text-white' : 'text-slate-900')
+                              : (darkMode ? 'text-slate-400' : 'text-slate-500')
                               }`}>
                               {template.name}
                             </div>
-                            <div className={`text-xs font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id ? 'text-slate-300' : darkMode ? 'text-slate-400' : 'text-slate-500'
+                            <div className={`text-xs font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id
+                              ? (darkMode ? 'text-blue-400' : 'text-blue-600')
+                              : (darkMode ? 'text-slate-500' : 'text-slate-400')
                               }`}>
                               TEMPLATE 0{template.id}
                             </div>
                           </div>
                           {resumeData.selectedTemplate === template.id && (
-                            <div className="bg-white text-slate-800 w-6 h-6 flex items-center justify-center shadow-sm">
-                              <span className="text-sm font-bold">&#10003;</span>
+                            <div className={`${darkMode ? 'bg-blue-500 text-white' : 'bg-slate-900 text-white'} w-6 h-6 rounded-full flex items-center justify-center shadow-sm`}>
+                              <Check size={14} strokeWidth={3} />
                             </div>
                           )}
                         </div>
@@ -403,8 +414,8 @@ function App() {
             </div>
           </div>
         </aside>
-      </div>
-    </div>
+      </div >
+    </div >
   )
 }
 

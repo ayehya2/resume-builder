@@ -21,7 +21,8 @@ export function ModernTemplate() {
                 width: '8.5in',
                 minHeight: '11in',
                 height: 'auto',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                backgroundColor: '#ffffff', // Force white background for PDF preview
             }}
         >
             {/* Header */}
@@ -42,16 +43,19 @@ export function ModernTemplate() {
                     {basics.phone && <span>{basics.phone}</span>}
                     {(basics.email || basics.phone) && basics.address && <span className="text-slate-300">{formatting.separator}</span>}
                     {basics.address && <span>{basics.address}</span>}
-                </div>
-                {basics.websites.length > 0 && (
-                    <div className={`text-sm mt-2 flex flex-wrap gap-x-4 gap-y-1 ${formatting.headerAlignment === 'center' ? 'justify-center' : formatting.headerAlignment === 'right' ? 'justify-end' : ''}`}>
-                        {basics.websites.map((site: { name?: string; url: string }, idx: number) => (
-                            <a key={idx} href={site.url} target="_blank" rel="noopener noreferrer" className="no-underline font-medium" style={{ color: colorValue }}>
+
+                    {/* Website Links Merged Inline */}
+                    {(basics.email || basics.phone || basics.address) && basics.websites.length > 0 && <span className="text-slate-300">{formatting.separator}</span>}
+
+                    {basics.websites.map((site: { name?: string; url: string }, idx: number) => (
+                        <span key={idx} className="flex items-center gap-4">
+                            {idx > 0 && <span className="text-slate-300">{formatting.separator}</span>}
+                            <a href={site.url} target="_blank" rel="noopener noreferrer" className="no-underline font-medium" style={{ color: colorValue }}>
                                 {site.name || site.url}
                             </a>
-                        ))}
-                    </div>
-                )}
+                        </span>
+                    ))}
+                </div>
             </div>
 
             {/* Sections */}
