@@ -1,6 +1,6 @@
-import { TemplateRenderer } from '../templates/TemplateRenderer';
-import { useResumeStore } from '../store';
-import type { TemplateId } from '../types';
+import { TemplateRenderer } from '../../templates/html/TemplateRenderer';
+import { useResumeStore } from '../../store';
+import type { TemplateId } from '../../types';
 
 interface TemplateThumbnailProps {
     templateId: TemplateId;

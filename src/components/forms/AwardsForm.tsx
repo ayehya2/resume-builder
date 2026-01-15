@@ -1,4 +1,4 @@
-import { useResumeStore } from '../store';
+import { useResumeStore } from '../../store'
 
 export function AwardsForm() {
     const { resumeData, addAward, updateAward, removeAward } = useResumeStore();

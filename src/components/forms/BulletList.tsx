@@ -1,3 +1,4 @@
+
 interface BulletListProps {
     bullets: string[];
     onChange: (bullets: string[]) => void;

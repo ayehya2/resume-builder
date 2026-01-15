@@ -278,7 +278,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         set((state) => ({
             resumeData: {
                 ...state.resumeData,
-                sections,
+                sections: Array.from(new Set(sections)),
             },
         })),
 

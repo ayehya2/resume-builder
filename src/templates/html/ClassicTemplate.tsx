@@ -1,5 +1,5 @@
-import { useResumeStore } from '../store';
-import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue } from '../utils/formatting';
+import { useResumeStore } from '../../store';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue } from '../../lib/formatting';
 
 export function ClassicTemplate() {
     const { resumeData } = useResumeStore();

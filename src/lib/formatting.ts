@@ -168,3 +168,7 @@ export const formattingPresets: Record<string, Partial<FormattingOptions>> = {
         headerAlignment: 'center',
     },
 };
+
+export const capitalizeWords = (str: string) => {
+    return str.replace(/\b\w/g, (char) => char.toUpperCase());
+};

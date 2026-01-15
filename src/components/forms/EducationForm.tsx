@@ -1,4 +1,4 @@
-import { useResumeStore } from '../store';
+import { useResumeStore } from '../../store'
 
 export function EducationForm() {
     const { resumeData, addEducation, updateEducation, removeEducation } = useResumeStore();

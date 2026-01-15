@@ -1,6 +1,6 @@
-import { useResumeStore } from '../store';
+import { useResumeStore } from '../../store'
 import { useState, useEffect } from 'react';
-import { capitalizeWords } from '../utils/formatters';
+import { capitalizeWords } from '../../lib/formatting'
 
 export function BasicsForm() {
     const { resumeData, updateBasics } = useResumeStore();
@@ -19,7 +19,7 @@ export function BasicsForm() {
 
     return (
         <div className="space-y-4">
-            <h3 className={`text - lg font - semibold ${darkMode ? 'text-white' : 'text-black'} `}>Profile Information</h3>
+            <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>Profile Information</h3>
 
             <div>
                 <label className={`block text-sm font-semibold mb-1 ${darkMode ? 'text-white' : 'text-black'}`}>
@@ -103,7 +103,7 @@ export function BasicsForm() {
             </div>
 
             <div>
-                <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'} `}>Websites / Links</label>
+                <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>Websites / Links</label>
                 {basics.websites.map((website, index) => (
                     <div key={index} className="flex gap-2 mb-2">
                         <input
@@ -114,7 +114,7 @@ export function BasicsForm() {
                                 newWebsites[index] = { ...website, name: e.target.value };
                                 updateBasics({ websites: newWebsites });
                             }}
-                            className={`flex - 1 px - 3 py - 2 border - 2 rounded - lg focus: outline - none focus: ring - 2 focus: ring - violet - 500 font - medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'} `}
+                            className={`flex-1 px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'}`}
                             placeholder="LinkedIn"
                         />
                         <input
@@ -125,7 +125,7 @@ export function BasicsForm() {
                                 newWebsites[index] = { ...website, url: e.target.value };
                                 updateBasics({ websites: newWebsites });
                             }}
-                            className={`flex - 1 px - 3 py - 2 border - 2 rounded - lg focus: outline - none focus: ring - 2 focus: ring - violet - 500 font - medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'} `}
+                            className={`flex-1 px-3 py-2 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 font-medium ${darkMode ? 'bg-black border-gray-600 text-white' : 'bg-white border-slate-400 text-black'}`}
                             placeholder="https://linkedin.com/in/johndoe"
                         />
                         <button

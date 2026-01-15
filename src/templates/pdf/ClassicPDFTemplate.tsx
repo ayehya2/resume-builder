@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, Link, StyleSheet } from '@react-pdf/renderer';
-import type { ResumeData, FormattingOptions } from '../types';
+import type { ResumeData, FormattingOptions } from '../../types';
 import {
     getPDFFontFamily,
     getPDFBulletSymbol,
@@ -10,12 +10,14 @@ import {
     getPDFSectionTitleSize,
     getPDFSectionMargin,
     getPDFBulletIndent,
-} from '../utils/pdfFormatting';
+    getPDFSectionBorderStyle,
+} from '../../lib/pdfFormatting';
 
 // Dynamic styles factory - creates styles based on formatting options
 const createStyles = (formatting: FormattingOptions) => {
     const accentColor = getPDFColorValue(formatting.colorTheme, formatting.customColor);
     const baseFontSize = getPDFFontSize(formatting.baseFontSize);
+    const sectionBorder = getPDFSectionBorderStyle(formatting.sectionDividers, accentColor);
 
     return StyleSheet.create({
         page: {
@@ -25,34 +27,25 @@ const createStyles = (formatting: FormattingOptions) => {
             backgroundColor: '#ffffff',
         },
         header: {
+            textAlign: 'center',
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
-            paddingBottom: 10,
-            borderBottom: `4pt solid ${accentColor}`,
         },
         name: {
             fontSize: getPDFNameSize(formatting.nameSize),
             fontWeight: 'bold',
+            marginBottom: 6,
             color: accentColor,
-            textTransform: 'uppercase',
-            marginBottom: 8,
-            letterSpacing: 0.5,
         },
         contactInfo: {
             fontSize: baseFontSize - 1,
-            color: '#64748b',
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            marginBottom: 4,
+            color: '#000000',
         },
-        contactSeparator: {
-            marginHorizontal: 8,
-            color: '#cbd5e1',
+        separator: {
+            marginHorizontal: 4,
         },
         websiteLink: {
-            fontSize: baseFontSize - 1,
             color: accentColor,
-            textDecoration: 'none',
-            marginRight: 12,
+            textDecoration: 'underline',
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
@@ -60,71 +53,66 @@ const createStyles = (formatting: FormattingOptions) => {
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
             fontWeight: formatting.sectionTitleBold ? 'bold' : 'normal',
-            color: accentColor,
             textTransform: 'uppercase',
             marginBottom: 8,
-            paddingLeft: 12,
-            borderLeft: `8pt solid ${accentColor}`,
-            letterSpacing: 1,
+            ...sectionBorder,
             textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
         },
         entryContainer: {
-            marginBottom: 12,
+            marginBottom: 10,
         },
         entryHeader: {
             flexDirection: 'row',
             justifyContent: 'space-between',
-            marginBottom: 4,
+            marginBottom: 3,
         },
         entryTitle: {
-            fontSize: baseFontSize + 3,
+            fontSize: baseFontSize + 1,
             fontWeight: 'bold',
             color: '#000000',
         },
         dateRange: {
             fontSize: baseFontSize - 1,
-            color: '#64748b',
+            color: '#000000',
         },
         entrySubtitle: {
             fontSize: baseFontSize - 1,
             fontStyle: 'italic',
-            color: '#334155',
-            marginBottom: 4,
+            color: '#000000',
+            marginBottom: 3,
         },
         bulletPoint: {
             fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 3,
+            marginBottom: 2,
             color: '#000000',
+            flexDirection: 'row',
         },
         bulletSymbol: {
+            marginRight: 6,
             color: accentColor,
-            marginRight: 8,
         },
         skillCategory: {
             fontSize: baseFontSize - 1,
-            marginBottom: 4,
+            marginBottom: 3,
         },
         skillCategoryName: {
             fontWeight: 'bold',
         },
-        skillItems: {
-            color: '#334155',
-        },
         projectKeywords: {
             fontSize: baseFontSize - 2,
             fontStyle: 'italic',
-            color: '#64748b',
+            color: '#666666',
             marginTop: 2,
         },
     });
 };
 
-interface ModernPDFTemplateProps {
+interface ClassicPDFTemplateProps {
     data: ResumeData;
 }
 
-export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
+export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
 
     // Create dynamic styles based on formatting options
@@ -138,21 +126,26 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                 <View style={styles.header}>
                     <Text style={styles.name}>{basics.name || 'Your Name'}</Text>
                     <View style={styles.contactInfo}>
-                        {basics.email && <Text>{basics.email}</Text>}
-                        {basics.email && basics.phone && <Text style={styles.contactSeparator}>|</Text>}
-                        {basics.phone && <Text>{basics.phone}</Text>}
-                        {(basics.email || basics.phone) && basics.address && <Text style={styles.contactSeparator}>|</Text>}
-                        {basics.address && <Text>{basics.address}</Text>}
+                        <Text>
+                            {basics.email && basics.email}
+                            {basics.email && basics.phone && ' | '}
+                            {basics.phone && basics.phone}
+                            {(basics.email || basics.phone) && basics.address && ' | '}
+                            {basics.address && basics.address}
+                        </Text>
+                        {basics.websites.length > 0 && (
+                            <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 2 }}>
+                                {basics.websites.map((site, i) => (
+                                    <View key={i} style={{ flexDirection: 'row' }}>
+                                        {i > 0 && <Text style={styles.separator}> | </Text>}
+                                        <Link src={site.url} style={styles.websiteLink}>
+                                            {site.name || site.url}
+                                        </Link>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
                     </View>
-                    {basics.websites.length > 0 && (
-                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 }}>
-                            {basics.websites.map((site, i) => (
-                                <Link key={i} src={site.url} style={styles.websiteLink}>
-                                    {site.name || site.url}
-                                </Link>
-                            ))}
-                        </View>
-                    )}
                 </View>
 
                 {/* Render sections in user-defined order */}
@@ -161,8 +154,8 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
 
                     if (sectionKey === 'education' && education.length > 0) {
                         return (
-                            <View key="education" style={styles.section} wrap={false}>
-                                <Text style={styles.sectionHeader}>Education</Text>
+                            <View key="education" style={styles.section}>
+                                <Text style={styles.sectionHeader}>EDUCATION</Text>
                                 {education.map((edu, idx) => (
                                     <View key={idx} style={styles.entryContainer}>
                                         <View style={styles.entryHeader}>
@@ -172,7 +165,7 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {edu.gpa && <Text style={{ fontSize: 10, fontWeight: 'bold' }}>GPA: {edu.gpa}</Text>}
+                                        {edu.gpa && <Text style={{ fontSize: 10 }}>GPA: {edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -182,12 +175,12 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                     if (sectionKey === 'work' && work.length > 0) {
                         return (
                             <View key="work" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Experience</Text>
+                                <Text style={styles.sectionHeader}>EXPERIENCE</Text>
                                 {work.map((job, idx) => (
-                                    <View key={idx} style={styles.entryContainer} wrap={false}>
+                                    <View key={idx} style={styles.entryContainer}>
                                         <View style={styles.entryHeader}>
                                             <Text style={styles.entryTitle}>{job.company}</Text>
-                                            <Text style={styles.dateRange}>{job.startDate} — {job.endDate}</Text>
+                                            <Text style={styles.dateRange}>{job.startDate} - {job.endDate}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
                                             {job.position}{job.location && `, ${job.location}`}
@@ -195,10 +188,10 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                         {job.bullets && job.bullets.filter(b => b.trim()).length > 0 && (
                                             <View>
                                                 {job.bullets.filter(b => b.trim()).map((bullet, i) => (
-                                                    <Text key={i} style={styles.bulletPoint}>
+                                                    <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        {bullet.replace(/^[•\-\*]\s*/, '')}
-                                                    </Text>
+                                                        <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                    </View>
                                                 ))}
                                             </View>
                                         )}
@@ -210,13 +203,13 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
 
                     if (sectionKey === 'skills' && skills.length > 0) {
                         return (
-                            <View key="skills" style={styles.section} wrap={false}>
-                                <Text style={styles.sectionHeader}>Skills</Text>
+                            <View key="skills" style={styles.section}>
+                                <Text style={styles.sectionHeader}>SKILLS</Text>
                                 {skills.map((skillGroup, idx) => (
                                     <View key={idx} style={styles.skillCategory}>
                                         <Text>
                                             <Text style={styles.skillCategoryName}>{skillGroup.category}: </Text>
-                                            <Text style={styles.skillItems}>{skillGroup.items.join(', ')}</Text>
+                                            <Text>{skillGroup.items.join(', ')}</Text>
                                         </Text>
                                     </View>
                                 ))}
@@ -227,32 +220,32 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                     if (sectionKey === 'projects' && projects.length > 0) {
                         return (
                             <View key="projects" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Projects</Text>
+                                <Text style={styles.sectionHeader}>PROJECTS</Text>
                                 {projects.map((project, idx) => (
-                                    <View key={idx} style={styles.entryContainer} wrap={false}>
+                                    <View key={idx} style={styles.entryContainer}>
                                         <View style={styles.entryHeader}>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                 <Text style={styles.entryTitle}>{project.name}</Text>
                                                 {project.url && (
-                                                    <Link src={project.url} style={{ fontSize: 10, color: '#4f46e5', textDecoration: 'underline' }}>
+                                                    <Link src={project.url} style={{ fontSize: 10, color: '#0066cc', marginLeft: 6 }}>
                                                         [{project.urlName || 'Link'}]
                                                     </Link>
                                                 )}
                                             </View>
-                                            <Text style={styles.dateRange}>{project.startDate} — {project.endDate}</Text>
+                                            <Text style={styles.dateRange}>{project.startDate} - {project.endDate}</Text>
                                         </View>
                                         {project.keywords && project.keywords.length > 0 && (
                                             <Text style={styles.projectKeywords}>
-                                                {project.keywords.join(' • ')}
+                                                {project.keywords.join(', ')}
                                             </Text>
                                         )}
                                         {project.bullets && project.bullets.filter(b => b.trim()).length > 0 && (
-                                            <View style={{ marginTop: 4 }}>
+                                            <View style={{ marginTop: 3 }}>
                                                 {project.bullets.filter(b => b.trim()).map((bullet, i) => (
-                                                    <Text key={i} style={styles.bulletPoint}>
-                                                        <Text style={styles.bulletSymbol}>•</Text>
-                                                        {bullet.replace(/^[•\-\*]\s*/, '')}
-                                                    </Text>
+                                                    <View key={i} style={styles.bulletPoint}>
+                                                        <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
+                                                        <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                    </View>
                                                 ))}
                                             </View>
                                         )}
@@ -264,22 +257,17 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
 
                     if (sectionKey === 'awards' && awards.length > 0) {
                         return (
-                            <View key="awards" style={styles.section} wrap={false}>
-                                <Text style={styles.sectionHeader}>Awards</Text>
+                            <View key="awards" style={styles.section}>
+                                <Text style={styles.sectionHeader}>AWARDS</Text>
                                 {awards.map((award, idx) => (
-                                    <View key={idx} style={{ marginBottom: 8 }}>
+                                    <View key={idx} style={{ marginBottom: 6 }}>
                                         <Text style={{ fontSize: 11, fontWeight: 'bold' }}>
                                             {award.title}
-                                            {award.date && <Text style={{ fontWeight: 'normal', color: '#64748b' }}> — {award.date}</Text>}
+                                            {award.date && <Text style={{ fontWeight: 'normal' }}> • {award.date}</Text>}
                                         </Text>
                                         {award.awarder && (
-                                            <Text style={{ fontSize: 10, fontStyle: 'italic', color: '#64748b' }}>
-                                                {award.awarder}
-                                            </Text>
-                                        )}
-                                        {award.summary && (
-                                            <Text style={{ fontSize: 9, color: '#334155', marginTop: 2 }}>
-                                                {award.summary}
+                                            <Text style={{ fontSize: 10, fontStyle: 'italic' }}>
+                                                ({award.awarder})
                                             </Text>
                                         )}
                                     </View>

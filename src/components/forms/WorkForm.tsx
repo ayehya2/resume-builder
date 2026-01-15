@@ -1,4 +1,4 @@
-import { useResumeStore } from '../store';
+import { useResumeStore } from '../../store'
 import { BulletList } from './BulletList';
 
 export function WorkForm() {

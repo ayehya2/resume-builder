@@ -1,6 +1,6 @@
-import { useResumeStore } from '../store';
+import { useResumeStore } from '../../store'
 import { useState, useEffect } from 'react';
-import type { ColorTheme, SectionDivider, Alignment } from '../types';
+import type { ColorTheme, SectionDivider, Alignment } from '../../types';
 
 export function FormattingForm() {
     const { resumeData, updateFormatting, resetFormatting } = useResumeStore();

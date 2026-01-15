@@ -1,4 +1,4 @@
-import { useResumeStore } from '../store';
+import { useResumeStore } from '../../store'
 import { useState } from 'react';
 
 export function SkillsForm() {

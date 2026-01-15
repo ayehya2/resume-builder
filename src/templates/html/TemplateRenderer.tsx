@@ -1,8 +1,6 @@
-import { ModernTemplate } from './ModernTemplate';
 import { ClassicTemplate } from './ClassicTemplate';
-import { TechnicalTemplate } from './TechnicalTemplate';
-import { ExecutiveTemplate } from './ExecutiveTemplate';
-import type { TemplateId } from '../types';
+import { ModernTemplate } from './ModernTemplate';
+import type { TemplateId } from '../../types';
 
 interface TemplateRendererProps {
     templateId: TemplateId;
@@ -14,10 +12,6 @@ export function TemplateRenderer({ templateId }: TemplateRendererProps) {
             return <ClassicTemplate />;
         case 2:
             return <ModernTemplate />;
-        case 3:
-            return <TechnicalTemplate />;
-        case 4:
-            return <ExecutiveTemplate />;
         default:
             return <ClassicTemplate />;
     }
