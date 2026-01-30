@@ -6,23 +6,52 @@ import { EducationForm } from './components/forms/EducationForm'
 import { SkillsForm } from './components/forms/SkillsForm'
 import { ProjectsForm } from './components/forms/ProjectsForm'
 import { AwardsForm } from './components/forms/AwardsForm'
+import { CustomSectionForm } from './components/forms/CustomSectionForm'
+import { CoverLetterForm } from './components/forms/CoverLetterForm'
+import { AITab } from './components/forms/AITab'
 import { FormattingForm } from './components/forms/FormattingForm'
 import { TemplateThumbnail } from './components/preview/TemplateThumbnail'
 import { PDFPreview } from './components/preview/PDFPreview'
-import type { TemplateId, SectionKey } from './types'
+import type { TemplateId, SectionKey, DocumentType } from './types'
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkMode, loadDarkMode, saveActiveTab, loadActiveTab } from './lib/storage'
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
+import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkMode, loadDarkMode, saveActiveTab, loadActiveTab, saveCoverLetterData, loadCoverLetterData, saveDocumentType, loadDocumentType } from './lib/storage'
 import { pdf } from '@react-pdf/renderer'
 import { ClassicPDFTemplate } from './templates/pdf/ClassicPDFTemplate'
 import { ModernPDFTemplate } from './templates/pdf/ModernPDFTemplate'
-import { LayoutTemplate, Palette, User, GraduationCap, Briefcase, Zap, FolderKanban, Award, GripVertical, Moon, Sun, Upload, Download, FileText, RotateCcw, FileDown, Printer, Check } from 'lucide-react'
+import { CoverLetterPDFTemplate } from './templates/pdf/CoverLetterPDFTemplate'
+import { useCoverLetterStore } from './lib/coverLetterStore'
+import {
+  Plus,
+  LayoutTemplate,
+  Palette,
+  User,
+  Briefcase,
+  GraduationCap,
+  Zap,
+  FolderKanban,
+  Award,
+  ListChecks,
+  File,
+  Sparkles,
+  Download,
+  Printer,
+  Moon,
+  Sun,
+  Check,
+  Upload,
+  FileText,
+  RotateCcw,
+  FileDown,
+  GripVertical
+} from 'lucide-react'
 import './styles/index.css'
 
 // Tab system types
-type TabKey = 'basics' | 'work' | 'education' | 'skills' | 'projects' | 'awards' | 'templates' | 'formatting';
+type TabKey = 'basics' | 'work' | 'education' | 'skills' | 'projects' | 'awards' | 'custom-sections' | 'cover-letter' | 'templates' | 'formatting' | 'ai' | string;
 
 interface TabItem {
   key: TabKey;
@@ -57,38 +86,57 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
       className={`
         w-full flex items-center gap-3 px-4 py-3 font-semibold transition-all border-l-4 cursor-pointer
         ${isActive
-          ? 'bg-slate-800 text-white border-slate-400'
-          : 'bg-transparent text-white border-transparent hover:bg-slate-800 hover:border-slate-400'
+          ? 'bg-slate-900 dark:bg-slate-950 !text-white border-white dark:border-white'
+          : 'bg-transparent !text-white border-transparent hover:bg-slate-900/40'
         }
       `}
     >
       {tab.draggable && (
-        <span {...attributes} {...listeners} className="cursor-move text-slate-200 hover:text-white dark:text-slate-400 dark:hover:text-slate-200">
+        <span {...attributes} {...listeners} className="cursor-move text-white/40 hover:text-white">
           <GripVertical size={16} />
         </span>
       )}
-      <span className="text-white/80">{tab.icon}</span>
-      <span className="text-sm">{tab.label}</span>
+      <span className="!text-white">{tab.icon}</span>
+      <span className="text-sm !text-white">{tab.label}</span>
     </button>
   );
 }
 
 function App() {
-  const { resumeData, setTemplate, setSections, loadSampleData, reset } = useResumeStore()
+  const {
+    resumeData,
+    setTemplate,
+    setSections,
+    loadSampleData,
+    reset,
+    addCustomSection
+  } = useResumeStore();
+  const { coverLetterData } = useCoverLetterStore()
   const [activeTab, setActiveTab] = useState<TabKey>(() => loadActiveTab() as TabKey)
   const [darkMode, setDarkMode] = useState(() => loadDarkMode())
+  const [documentType, setDocumentType] = useState<DocumentType>('resume')
 
   const [isPrinting, setIsPrinting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Load saved data on mount
   useEffect(() => {
-    const savedData = loadResumeData();
-    if (savedData) {
-      if (savedData.sections) {
-        savedData.sections = Array.from(new Set(savedData.sections));
+    const savedResume = loadResumeData();
+    if (savedResume) {
+      if (savedResume.sections) {
+        savedResume.sections = Array.from(new Set(savedResume.sections));
       }
-      useResumeStore.setState({ resumeData: savedData });
+      useResumeStore.setState({ resumeData: savedResume });
+    }
+
+    const savedCoverLetter = loadCoverLetterData();
+    if (savedCoverLetter) {
+      useCoverLetterStore.setState({ coverLetterData: savedCoverLetter });
+    }
+
+    const savedType = loadDocumentType();
+    if (savedType) {
+      setDocumentType(savedType);
     }
   }, []);
 
@@ -111,9 +159,20 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       saveResumeData(resumeData);
+      saveCoverLetterData(coverLetterData);
+      saveDocumentType(documentType);
     }, 30000);
     return () => clearInterval(interval);
-  }, [resumeData]);
+  }, [resumeData, coverLetterData, documentType]);
+
+  // Sync documentType with activeTab
+  useEffect(() => {
+    if (activeTab === 'cover-letter') {
+      setDocumentType('coverletter');
+    } else {
+      setDocumentType('resume');
+    }
+  }, [activeTab]);
 
   // Toggle dark mode
   const toggleDarkMode = () => {
@@ -160,7 +219,7 @@ function App() {
 
   // Map sections to tabs dynamically
   const sectionTabs: TabItem[] = resumeData.sections.map(sectionKey => {
-    const tabMap: Record<SectionKey, TabItem> = {
+    const tabMap: Record<string, TabItem> = {
       profile: { key: 'basics', label: 'Profile', icon: <User size={18} />, draggable: false },
       work: { key: 'work', label: 'Experience', icon: <Briefcase size={18} />, draggable: true, sectionKey: 'work' },
       education: { key: 'education', label: 'Education', icon: <GraduationCap size={18} />, draggable: true, sectionKey: 'education' },
@@ -168,16 +227,36 @@ function App() {
       projects: { key: 'projects', label: 'Projects', icon: <FolderKanban size={18} />, draggable: true, sectionKey: 'projects' },
       awards: { key: 'awards', label: 'Awards', icon: <Award size={18} />, draggable: true, sectionKey: 'awards' },
     };
+
+    // Check if it's a custom section
+    if (!tabMap[sectionKey]) {
+      const customSection = resumeData.customSections.find(cs => cs.id === sectionKey);
+      if (customSection) {
+        return {
+          key: customSection.id,
+          label: customSection.title,
+          icon: <ListChecks size={18} />,
+          draggable: true,
+          sectionKey: customSection.id,
+        };
+      }
+    }
+
     return tabMap[sectionKey];
-  });
+  }).filter(Boolean);
 
   // Flat tab list
-  const settingsTabs: TabItem[] = [
+  const primarySettings: TabItem[] = [
     { key: 'templates', label: 'Template', icon: <LayoutTemplate size={18} />, draggable: false },
     { key: 'formatting', label: 'Formatting', icon: <Palette size={18} />, draggable: false },
   ];
 
-  const allTabs = [...settingsTabs, ...sectionTabs];
+  const secondarySettings: TabItem[] = [
+    { key: 'cover-letter', label: 'Cover Letter', icon: <File size={18} />, draggable: false },
+    { key: 'ai', label: 'AI Assistant', icon: <Sparkles size={18} />, draggable: false },
+  ];
+
+  const allTabs = [...primarySettings, ...sectionTabs, ...secondarySettings];
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -206,23 +285,30 @@ function App() {
     setIsGeneratingPDF(true);
     try {
       let templateComponent;
-      switch (resumeData.selectedTemplate) {
-        case 1:
-          templateComponent = <ClassicPDFTemplate data={resumeData} />;
-          break;
-        case 2:
-          templateComponent = <ModernPDFTemplate data={resumeData} />;
-          break;
-        default:
-          templateComponent = <ModernPDFTemplate data={resumeData} />;
+      let fileName;
+
+      if (documentType === 'coverletter') {
+        templateComponent = <CoverLetterPDFTemplate data={coverLetterData} />;
+        fileName = `cover_letter_${coverLetterData.company || 'document'}`.replace(/[^a-z0-9._-]/gi, '_');
+      } else {
+        switch (resumeData.selectedTemplate) {
+          case 1:
+            templateComponent = <ClassicPDFTemplate data={resumeData} />;
+            break;
+          case 2:
+            templateComponent = <ModernPDFTemplate data={resumeData} />;
+            break;
+          default:
+            templateComponent = <ModernPDFTemplate data={resumeData} />;
+        }
+        fileName = `${resumeData.basics.name || 'resume'}`.replace(/[^a-z0-9._-]/gi, '_');
       }
 
       const blob = await pdf(templateComponent).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      const fileName = `${resumeData.basics.name || 'resume'}.pdf`.replace(/[^a-z0-9._-]/gi, '_');
-      link.download = fileName;
+      link.download = `${fileName}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -237,15 +323,20 @@ function App() {
     setIsPrinting(true);
     try {
       let templateComponent;
-      switch (resumeData.selectedTemplate) {
-        case 1:
-          templateComponent = <ClassicPDFTemplate data={resumeData} />;
-          break;
-        case 2:
-          templateComponent = <ModernPDFTemplate data={resumeData} />;
-          break;
-        default:
-          templateComponent = <ModernPDFTemplate data={resumeData} />;
+
+      if (documentType === 'coverletter') {
+        templateComponent = <CoverLetterPDFTemplate data={coverLetterData} />;
+      } else {
+        switch (resumeData.selectedTemplate) {
+          case 1:
+            templateComponent = <ClassicPDFTemplate data={resumeData} />;
+            break;
+          case 2:
+            templateComponent = <ModernPDFTemplate data={resumeData} />;
+            break;
+          default:
+            templateComponent = <ModernPDFTemplate data={resumeData} />;
+        }
       }
 
       const blob = await pdf(templateComponent).toBlob();
@@ -263,12 +354,49 @@ function App() {
   return (
     <div className={`min-h-screen flex ${darkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
       <div className="flex-1 flex w-full">
-        <aside className={`w-56 flex-shrink-0 border-r-2 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-600 border-slate-700'}`}>
+        <aside className={`w-56 flex-shrink-0 border-r-2 text-white ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-600 border-slate-700'}`}>
           <div className="sticky top-0">
-            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd} >
+            <DndContext
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+              modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+            >
               <SortableContext items={allTabs.map(t => t.key)} strategy={verticalListSortingStrategy}>
                 <div className="flex flex-col">
-                  {allTabs.map((tab) => (
+                  {/* Primary Settings */}
+                  {primarySettings.map((tab) => (
+                    <SidebarItem
+                      key={tab.key}
+                      tab={tab}
+                      isActive={activeTab === tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                    />
+                  ))}
+
+                  {/* Sortable Sections */}
+                  {sectionTabs.map((tab) => (
+                    <SidebarItem
+                      key={tab.key}
+                      tab={tab}
+                      isActive={activeTab === tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                    />
+                  ))}
+
+                  {/* Add Button Above Cover Letter */}
+                  <button
+                    onClick={() => {
+                      const newId = addCustomSection();
+                      setActiveTab(newId);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 !text-white hover:bg-slate-900/40 transition-colors border-l-4 border-transparent"
+                  >
+                    <Plus size={16} />
+                    <span className="text-sm font-semibold !text-white">Add Custom Section</span>
+                  </button>
+
+                  {/* Secondary Settings */}
+                  {secondarySettings.map((tab) => (
                     <SidebarItem
                       key={tab.key}
                       tab={tab}
@@ -290,6 +418,9 @@ function App() {
             {activeTab === 'skills' && <SkillsForm />}
             {activeTab === 'projects' && <ProjectsForm />}
             {activeTab === 'awards' && <AwardsForm />}
+            {activeTab.startsWith('custom-') && <CustomSectionForm sectionId={activeTab} />}
+            {activeTab === 'cover-letter' && <CoverLetterForm />}
+            {activeTab === 'ai' && <AITab documentType={documentType} />}
             {activeTab === 'formatting' && <FormattingForm />}
             {activeTab === 'templates' && (
               <div className="space-y-4">
@@ -309,10 +440,10 @@ function App() {
                         }
                       `}
                     >
-                      <div className="aspect-[3/4] overflow-hidden bg-white border-b-2 border-slate-200 dark:border-slate-700">
+                      <div className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800">
                         <TemplateThumbnail templateId={template.id} />
                         {resumeData.selectedTemplate === template.id && (
-                          <div className="absolute inset-0 border-4 border-slate-800/30 pointer-events-none"></div>
+                          <div className="absolute inset-0 border-4 border-slate-900/40 pointer-events-none"></div>
                         )}
                       </div>
 
@@ -353,68 +484,68 @@ function App() {
           </div>
         </main>
 
-        <aside className={`w-[900px] border-l-2 flex-shrink-0 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-300'}`}>
+        <aside className={`w-[900px] border-l-2 flex-shrink-0 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-200 border-slate-300'}`}>
           <div className="sticky top-0 h-screen flex flex-col">
-            <div className={`p-3 border-b-2 flex justify-between items-center ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-800 border-slate-900'} text-white`}>
-              <div className="text-sm font-semibold">Live PDF Preview</div>
+            <div className={`p-3 border-b-2 flex justify-between items-center ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-300'}`}>
+              <div className={`text-sm font-bold uppercase tracking-widest ${darkMode ? 'text-white' : 'text-slate-900'}`}>Live PDF Preview</div>
               <div className="flex gap-2">
                 <button
                   onClick={toggleDarkMode}
-                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 ${darkMode ? 'bg-slate-600 hover:bg-slate-500 text-white border-transparent' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'}`}
                   title="Toggle Dark Mode"
                 >
                   {darkMode ? <Sun size={14} /> : <Moon size={14} />}
-                  <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                  <span>{darkMode ? 'Light' : 'Dark'}</span>
                 </button>
                 <button
                   onClick={handleImport}
-                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 ${darkMode ? 'bg-slate-600 hover:bg-slate-500 text-white border-transparent' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'}`}
                 >
                   <Upload size={14} />
-                  <span>Import Data</span>
+                  <span>Import</span>
                 </button>
                 <button
                   onClick={handleExport}
-                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 ${darkMode ? 'bg-slate-600 hover:bg-slate-500 text-white border-transparent' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'}`}
                 >
                   <Download size={14} />
-                  <span>Export Data</span>
+                  <span>Export</span>
                 </button>
                 <button
                   onClick={loadSampleData}
-                  className="px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 ${darkMode ? 'bg-slate-600 hover:bg-slate-500 text-white border-transparent' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'}`}
                 >
                   <FileText size={14} />
-                  <span>Load Sample</span>
+                  <span>Sample</span>
                 </button>
                 <button
                   onClick={reset}
-                  className="px-3 py-1.5 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold transition-colors flex items-center gap-2"
+                  className="px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2"
                 >
                   <RotateCcw size={14} />
-                  <span>Reset Form</span>
+                  <span>Reset</span>
                 </button>
                 <button
                   onClick={handlePrint}
                   disabled={isPrinting}
-                  className={`px-3 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-xs font-semibold transition-colors flex items-center gap-2 ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''} ${darkMode ? 'bg-slate-600 hover:bg-slate-500 text-white border-transparent' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'}`}
                 >
                   <Printer size={14} />
-                  <span>{isPrinting ? 'Printing...' : 'Print'}</span>
+                  <span>{isPrinting ? 'Wait...' : 'Print'}</span>
                 </button>
                 <button
                   onClick={handleDownloadPDF}
                   disabled={isGeneratingPDF}
-                  className={`px-4 py-1.5 bg-teal-700 hover:bg-teal-600 text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-2 ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`px-4 py-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold uppercase tracking-widest transition-all shadow-sm flex items-center gap-2 ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <FileDown size={14} />
-                  <span>{isGeneratingPDF ? 'Generating...' : 'Download PDF'}</span>
+                  <span>{isGeneratingPDF ? 'Wait...' : 'Download'}</span>
                 </button>
               </div>
             </div>
 
             <div className={`flex-1 overflow-hidden ${darkMode ? 'bg-slate-900' : 'bg-slate-200'}`}>
-              <PDFPreview templateId={resumeData.selectedTemplate} />
+              <PDFPreview templateId={resumeData.selectedTemplate} documentType={documentType} />
             </div>
           </div>
         </aside>

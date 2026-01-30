@@ -114,7 +114,7 @@ export function BasicsForm() {
                                 </div>
                                 <button
                                     onClick={() => removeWebsite(index)}
-                                    className="p-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                                    className="px-3 py-2 bg-red-700 text-white hover:bg-red-600 font-bold transition-colors flex-shrink-0"
                                     title="Remove Link"
                                 >
                                     X

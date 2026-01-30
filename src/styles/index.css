@@ -119,9 +119,16 @@ code {
   color: #cbd5e1 !important;
 }
 
-/* Background Overrides for Dark Mode */
-.dark .bg-white:not(.pdf-paper) {
+/* Background Overrides for Dark Mode - EXCLUDE PDF PAPER */
+
+.dark .bg-white:not(.pdf-paper):not(.pdf-paper *) {
   background-color: #0f172a !important;
+}
+
+.dark .bg-slate-50:not(.pdf-paper *),
+.dark .bg-slate-100:not(.pdf-paper *),
+.dark .bg-slate-200:not(.pdf-paper *) {
+  background-color: #1e293b !important;
 }
 
 /* Force White Paper Style for Previews */
@@ -132,35 +139,61 @@ code {
 }
 
 /* Deep override to prevent dark mode leaking into white paper */
-.dark .pdf-paper,
-.dark .pdf-paper div,
-.dark .pdf-paper span,
-.dark .pdf-paper p,
-.dark .pdf-paper h1,
-.dark .pdf-paper h2,
-.dark .pdf-paper h3,
-.dark .pdf-paper h4,
-.dark .pdf-paper hr,
-.dark .pdf-paper label {
-  color: #000000 !important;
+.pdf-paper,
+.pdf-paper div,
+.pdf-paper span,
+.pdf-paper p,
+.pdf-paper h1,
+.pdf-paper h2,
+.pdf-paper h3,
+.pdf-paper h4,
+.pdf-paper li,
+.pdf-paper ul,
+.pdf-paper a,
+.pdf-paper hr,
+.pdf-paper label {
   background-color: transparent !important;
-  border-color: #000000 !important;
 }
 
-.dark .pdf-paper .text-slate-600,
-.dark .pdf-paper .text-slate-500 {
+/* Specific slate color restoration inside PDF paper even in dark mode */
+.pdf-paper .text-slate-500,
+.pdf-paper .text-slate-400 {
+  color: #64748b !important;
+}
+
+.pdf-paper .text-slate-600 {
   color: #475569 !important;
 }
 
-/* Container background must be forced white */
-.dark .pdf-paper {
+.pdf-paper .text-slate-700 {
+  color: #334155 !important;
+}
+
+.pdf-paper .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+.pdf-paper .bg-white {
   background-color: #ffffff !important;
 }
 
-.dark .bg-slate-50,
-.dark .bg-slate-100,
-.dark .bg-slate-200 {
-  background-color: #1e293b !important;
+/* Ensure all text is black by default in paper unless specified */
+.dark .pdf-paper *:not([style*="color"]) {
+  color: #000000;
+}
+
+/* Restore borders in paper */
+.pdf-paper .border-slate-200 {
+  border-color: #e2e8f0 !important;
+}
+
+.pdf-paper .border-slate-300 {
+  border-color: #cbd5e1 !important;
+}
+
+.dark .pdf-paper {
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 /* Border Overrides for Dark Mode */

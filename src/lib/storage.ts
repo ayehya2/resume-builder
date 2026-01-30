@@ -1,4 +1,4 @@
-import type { ResumeData } from '../types';
+import type { ResumeData, CoverLetterData, DocumentType } from '../types';
 
 const STORAGE_KEY = 'resume-builder-data';
 const VERSION_KEY = 'resume-builder-version';
@@ -62,9 +62,35 @@ export function importFromJSON(jsonString: string): ResumeData {
 function migrateData(data: any): ResumeData {
     // Ensure unique sections
     if (data.sections && Array.isArray(data.sections)) {
+        // Standard sections
+        const standardSections = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
+
+        // Custom sections from customSections array
+        const customSectionIds = (data.customSections || []).map((cs: any) => cs.id);
+
         data.sections = Array.from(new Set(data.sections)).filter((s: any) =>
-            ['profile', 'education', 'work', 'skills', 'projects', 'awards'].includes(s)
+            standardSections.includes(s) || customSectionIds.includes(s)
         );
+    }
+
+    // Migrate CustomSections from version 1 (content: string[]) to version 2 (items: CustomSectionEntry[])
+    if (data.customSections && Array.isArray(data.customSections)) {
+        data.customSections = data.customSections.map((section: any) => {
+            if (section.content) {
+                // If it's the old format, migrate to new format
+                const newItems = section.content.map((c: string) => ({
+                    title: '',
+                    subtitle: '',
+                    date: '',
+                    location: '',
+                    link: '',
+                    bullets: [c]
+                }));
+                const { content, ...rest } = section;
+                return { ...rest, items: newItems.length > 0 ? newItems : [{ title: '', subtitle: '', date: '', location: '', link: '', bullets: [''] }] };
+            }
+            return section;
+        });
     }
 
     return data as ResumeData;
@@ -94,5 +120,37 @@ export function saveActiveTab(tab: string): void {
 }
 
 export function loadActiveTab(): string {
-    return localStorage.getItem(ACTIVE_TAB_KEY) || 'templates';
+    return localStorage.getItem(ACTIVE_TAB_KEY) || 'basics';
+}
+
+// Cover Letter storage
+const COVER_LETTER_KEY = 'resume-builder-cover-letter';
+
+export function saveCoverLetterData(data: CoverLetterData): void {
+    try {
+        localStorage.setItem(COVER_LETTER_KEY, JSON.stringify(data));
+    } catch (error) {
+        console.error('Failed to save cover letter data:', error);
+    }
+}
+
+export function loadCoverLetterData(): CoverLetterData | null {
+    try {
+        const saved = localStorage.getItem(COVER_LETTER_KEY);
+        return saved ? JSON.parse(saved) : null;
+    } catch {
+        return null;
+    }
+}
+
+// Document type storage
+const DOCUMENT_TYPE_KEY = 'resume-builder-document-type';
+
+export function saveDocumentType(type: DocumentType): void {
+    localStorage.setItem(DOCUMENT_TYPE_KEY, type);
+}
+
+export function loadDocumentType(): DocumentType {
+    const type = localStorage.getItem(DOCUMENT_TYPE_KEY) as DocumentType;
+    return type || 'resume';
 }

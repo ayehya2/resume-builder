@@ -15,6 +15,7 @@ const getDefaultResumeData = (): ResumeData => ({
     skills: [],
     projects: [],
     awards: [],
+    customSections: [],
     sections: ['profile', 'education', 'work', 'skills', 'projects', 'awards'],
     selectedTemplate: 1,
     formatting: {
@@ -86,6 +87,14 @@ interface ResumeStore {
     addAward: () => void;
     updateAward: (index: number, award: Partial<Award>) => void;
     removeAward: (index: number) => void;
+
+    // Custom Sections
+    addCustomSection: (id?: string) => string;
+    updateCustomSection: (id: string, section: Partial<import('./types').CustomSection>) => void;
+    removeCustomSection: (id: string) => void;
+    addCustomSectionItem: (sectionId: string) => void;
+    updateCustomSectionItem: (sectionId: string, index: number, item: Partial<import('./types').CustomSectionEntry>) => void;
+    removeCustomSectionItem: (sectionId: string, index: number) => void;
 
     // Sections
     setSections: (sections: SectionKey[]) => void;
@@ -285,11 +294,120 @@ export const useResumeStore = create<ResumeStore>((set) => ({
             },
         })),
 
+    // Custom Sections
+    addCustomSection: (id) => {
+        const newId = id || `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const newSection: import('./types').CustomSection = {
+            id: newId,
+            title: 'Custom Section',
+            type: 'bullets',
+            items: [
+                {
+                    title: '',
+                    subtitle: '',
+                    date: '',
+                    location: '',
+                    link: '',
+                    bullets: [''],
+                },
+            ],
+        };
+        set((state) => ({
+            resumeData: {
+                ...state.resumeData,
+                customSections: [...state.resumeData.customSections, newSection],
+                sections: [...state.resumeData.sections, newSection.id],
+            },
+        }));
+        return newId;
+    },
+
+    updateCustomSection: (id, section) =>
+        set((state) => ({
+            resumeData: {
+                ...state.resumeData,
+                customSections: state.resumeData.customSections.map((item) =>
+                    item.id === id ? { ...item, ...section } : item
+                ),
+            },
+        })),
+
+    removeCustomSection: (id) =>
+        set((state) => ({
+            resumeData: {
+                ...state.resumeData,
+                customSections: state.resumeData.customSections.filter((item) => item.id !== id),
+                sections: state.resumeData.sections.filter((s) => s !== id),
+            },
+        })),
+
+    addCustomSectionItem: (sectionId) =>
+        set((state) => ({
+            resumeData: {
+                ...state.resumeData,
+                customSections: state.resumeData.customSections.map((section) =>
+                    section.id === sectionId
+                        ? {
+                            ...section,
+                            items: [
+                                ...section.items,
+                                {
+                                    title: '',
+                                    subtitle: '',
+                                    date: '',
+                                    location: '',
+                                    link: '',
+                                    bullets: [''],
+                                },
+                            ],
+                        }
+                        : section
+                ),
+            },
+        })),
+
+    updateCustomSectionItem: (sectionId, index, item) =>
+        set((state) => ({
+            resumeData: {
+                ...state.resumeData,
+                customSections: state.resumeData.customSections.map((section) =>
+                    section.id === sectionId
+                        ? {
+                            ...section,
+                            items: section.items.map((entry, i) =>
+                                i === index ? { ...entry, ...item } : entry
+                            ),
+                        }
+                        : section
+                ),
+            },
+        })),
+
+    removeCustomSectionItem: (sectionId, index) =>
+        set((state) => ({
+            resumeData: {
+                ...state.resumeData,
+                customSections: state.resumeData.customSections.map((section) =>
+                    section.id === sectionId
+                        ? {
+                            ...section,
+                            items: section.items.filter((_, i) => i !== index),
+                        }
+                        : section
+                ),
+            },
+        })),
+
     // Sections
     setSections: (sections) =>
         set((state) => {
+            // Allow standard sections and custom section IDs
+            const standardSections = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
+            const customSectionIds = state.resumeData.customSections.map(s => s.id);
+            const validSections = [...standardSections, ...customSectionIds];
+
             const uniqueSections = Array.from(new Set(sections)).filter(s =>
-                ['profile', 'education', 'work', 'skills', 'projects', 'awards'].includes(s)
+                validSections.includes(s)
             );
             return {
                 resumeData: {

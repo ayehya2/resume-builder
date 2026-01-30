@@ -6,9 +6,26 @@ export interface ResumeData {
     skills: Skill[];
     projects: Project[];
     awards: Award[];
+    customSections: CustomSection[];
     sections: SectionKey[];
     selectedTemplate: TemplateId;
     formatting: FormattingOptions;
+}
+
+export interface CustomSectionEntry {
+    title: string;
+    subtitle: string;
+    date: string;
+    location: string;
+    link: string;
+    bullets: string[];
+}
+
+export interface CustomSection {
+    id: string;
+    title: string;
+    type: 'bullets' | 'text';
+    items: CustomSectionEntry[];
 }
 
 export interface Basics {
@@ -67,7 +84,7 @@ export interface Award {
 
 // Template Types
 export type TemplateId = 1 | 2 | 3 | 4;
-export type SectionKey = 'profile' | 'education' | 'work' | 'skills' | 'projects' | 'awards';
+export type SectionKey = 'profile' | 'education' | 'work' | 'skills' | 'projects' | 'awards' | string;
 
 export interface TemplateMetadata {
     id: TemplateId;
@@ -140,4 +157,30 @@ export interface GeneratePDFResponse {
     success: boolean;
     pdfUrl?: string;
     error?: string;
+}
+
+// Cover Letter Types
+export interface CoverLetterData {
+    recipientName: string;
+    recipientTitle: string;
+    company: string;
+    companyAddress: string;
+    position: string;
+    date: string;
+    greeting: string;
+    opening: string;
+    body: string[];
+    closing: string;
+    signature: string;
+    // Reference to resume basics for auto-population
+    userBasics?: Basics;
+}
+
+// Document Type
+export type DocumentType = 'resume' | 'coverletter';
+
+// AI Configuration
+export interface AIConfig {
+    apiKey: string;
+    isConfigured: boolean;
 }

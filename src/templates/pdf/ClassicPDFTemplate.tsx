@@ -281,6 +281,55 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                         );
                     }
 
+                    // Custom sections
+                    const customSection = data.customSections.find(cs => cs.id === sectionKey);
+                    if (customSection && customSection.items && customSection.items.length > 0) {
+                        return (
+                            <View key={customSection.id} style={styles.section}>
+                                <Text style={styles.sectionHeader}>{customSection.title.toUpperCase()}</Text>
+                                {customSection.items.map((entry, idx) => (
+                                    <View key={idx} style={styles.entryContainer}>
+                                        <View style={styles.entryHeader}>
+                                            <View style={{ flex: 1, paddingRight: 10 }}>
+                                                <Text style={styles.entryTitle}>{entry.title || 'Untitled'}</Text>
+                                                {entry.subtitle && <Text style={styles.entrySubtitle}>{entry.subtitle}</Text>}
+                                            </View>
+                                            <View style={{ alignItems: 'flex-end' }}>
+                                                {entry.date && <Text style={styles.dateRange}>{entry.date}</Text>}
+                                                {entry.location && <Text style={{ fontSize: 9, color: '#333333' }}>{entry.location}</Text>}
+                                            </View>
+                                        </View>
+
+                                        {entry.link && (
+                                            <Link src={entry.link} style={{ fontSize: 9, color: getPDFColorValue(formatting.colorTheme, formatting.customColor), marginBottom: 4, textDecoration: 'underline' }}>
+                                                {entry.link}
+                                            </Link>
+                                        )}
+
+                                        {customSection.type === 'bullets' ? (
+                                            <View style={{ marginTop: 2 }}>
+                                                {entry.bullets.filter(b => b.trim()).map((bullet, i) => (
+                                                    <View key={i} style={styles.bulletPoint}>
+                                                        <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
+                                                        <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        ) : (
+                                            <View style={{ marginTop: 2 }}>
+                                                {entry.bullets.filter(b => b.trim()).map((paragraph, i) => (
+                                                    <Text key={i} style={{ fontSize: 10, marginBottom: 4, textAlign: 'justify' }}>
+                                                        {paragraph}
+                                                    </Text>
+                                                ))}
+                                            </View>
+                                        )}
+                                    </View>
+                                ))}
+                            </View>
+                        );
+                    }
+
                     return null;
                 })}
             </Page>
