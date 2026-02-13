@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder – Integration Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            padding: 30px;
+        }
+
+        .wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 4px;
+        }
+
+        .sub {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+            margin-bottom: 18px;
+        }
+
+        .card h2 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #444;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .row>* {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 3px;
+            color: #555;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #5b7fe9;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .entry {
+            background: #f9f9fb;
+            border: 1px solid #e8e8ec;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .entry .remove {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #c44;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .add-btn {
+            background: none;
+            border: 1px dashed #aaa;
+            border-radius: 6px;
+            padding: 8px;
+            width: 100%;
+            color: #666;
+            cursor: pointer;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .add-btn:hover {
+            border-color: #5b7fe9;
+            color: #5b7fe9;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .btn-primary {
+            background: #5b7fe9;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #4a6cd8;
+        }
+
+        .btn-secondary {
+            background: #eee;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #ddd;
+        }
+
+        #generatedUrl {
+            display: none;
+            margin-top: 16px;
+            background: #1e1e2e;
+            color: #a6e3a1;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            word-break: break-all;
+            white-space: pre-wrap;
+            font-family: 'Consolas', monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <h1>🧪 Resume Builder – Integration Tester</h1>
+        <p class="sub">Fill in the data below, then click <strong>"Open Resume Builder"</strong>. It will open in a new
+            tab with everything pre-filled.</p>
+
+        <!-- ── BASICS ── -->
+        <div class="card">
+            <h2>👤 Basics / Profile</h2>
+            <div class="row">
+                <div><label>Full Name</label><input id="name" placeholder="John Doe"></div>
+                <div><label>Email</label><input id="email" placeholder="john@example.com"></div>
+            </div>
+            <div class="row">
+                <div><label>Phone</label><input id="phone" placeholder="(555) 123-4567"></div>
+                <div><label>Address</label><input id="address" placeholder="New York, NY"></div>
+            </div>
+            <div class="row">
+                <div><label>LinkedIn URL</label><input id="linkedin" placeholder="https://linkedin.com/in/..."></div>
+                <div><label>GitHub URL</label><input id="github" placeholder="https://github.com/..."></div>
+            </div>
+        </div>
+
+        <!-- ── WORK EXPERIENCE ── -->
+        <div class="card">
+            <h2>💼 Work Experience</h2>
+            <div id="workEntries"></div>
+            <button class="add-btn" onclick="addWork()">+ Add Work Experience</button>
+        </div>
+
+        <!-- ── EDUCATION ── -->
+        <div class="card">
+            <h2>🎓 Education</h2>
+            <div id="eduEntries"></div>
+            <button class="add-btn" onclick="addEdu()">+ Add Education</button>
+        </div>
+
+        <!-- ── SKILLS ── -->
+        <div class="card">
+            <h2>🛠️ Skills</h2>
+            <div id="skillEntries"></div>
+            <button class="add-btn" onclick="addSkill()">+ Add Skill Category</button>
+        </div>
+
+        <!-- ── PROJECTS ── -->
+        <div class="card">
+            <h2>📁 Projects</h2>
+            <div id="projectEntries"></div>
+            <button class="add-btn" onclick="addProject()">+ Add Project</button>
+        </div>
+
+        <!-- ── AWARDS ── -->
+        <div class="card">
+            <h2>🏆 Awards</h2>
+            <div id="awardEntries"></div>
+            <button class="add-btn" onclick="addAward()">+ Add Award</button>
+        </div>
+
+        <!-- ── CUSTOM SECTIONS ── -->
+        <div class="card">
+            <h2>⚙️ Custom Sections</h2>
+            <p style="font-size:13px;color:#888;margin-bottom:12px;">Each custom section gets its own tab in the resume
+                builder with its own set of entries.</p>
+            <div id="customSectionEntries"></div>
+            <button class="add-btn" onclick="addCustomSection()">+ Add Custom Section</button>
+        </div>
+
+        <!-- ── JOB POSTING (auto cover letter) ── -->
+        <div class="card">
+            <h2>📝 Job Posting (auto-generates cover letter)</h2>
+            <div class="row">
+                <div><label>Job Title</label><input id="jobTitle" placeholder="Senior Software Engineer"></div>
+                <div><label>Company Name</label><input id="jobCompany" placeholder="TechCorp"></div>
+            </div>
+            <div class="row">
+                <div><label>Company Address</label><input id="jobAddress" placeholder="123 Tech St, SF, CA"></div>
+                <div><label>Required Skills (comma-separated)</label><input id="jobSkills"
+                        placeholder="React, TypeScript, Node.js"></div>
+            </div>
+            <div><label>Job Description</label><textarea id="jobDesc"
+                    placeholder="Brief description of the role..."></textarea></div>
+        </div>
+
+        <!-- ── ACTIONS ── -->
+        <div class="actions">
+            <button class="btn btn-primary" onclick="openResumeBuilder()">🚀 Open Resume Builder</button>
+            <button class="btn btn-secondary" onclick="fillSampleData()">📝 Fill Sample Data</button>
+            <button class="btn btn-secondary" onclick="showUrl()">🔗 Show Generated URL</button>
+        </div>
+
+        <pre id="generatedUrl"></pre>
+    </div>
+
+    <script>
+        /* ── Dynamic entry helpers ──────────────────────── */
+
+        function addWork() {
+            const div = document.getElementById('workEntries');
+            const i = div.children.length;
+            const el = document.createElement('div');
+            el.className = 'entry';
+            el.innerHTML = `
+      <button class="remove" onclick="this.parentElement.remove()">×</button>
+      <div class="row">
+        <div><label>Company</label><input class="w-company" placeholder="Acme Inc."></div>
+        <div><label>Position</label><input class="w-position" placeholder="Software Engineer"></div>
+      </div>
+      <div class="row">
+        <div><label>Location</label><input class="w-location" placeholder="San Francisco, CA"></div>
+        <div><label>Start Date</label><input class="w-start" placeholder="Jan 2022"></div>
+        <div><label>End Date</label><input class="w-end" placeholder="Present"></div>
+      </div>
+      <div><label>Bullet Points (one per line)</label><textarea class="w-bullets" placeholder="Led development of...&#10;Increased performance by..."></textarea></div>
+    `;
+            div.appendChild(el);
+        }
+
+        function addEdu() {
+            const div = document.getElementById('eduEntries');
+            const el = document.createElement('div');
+            el.className = 'entry';
+            el.innerHTML = `
+      <button class="remove" onclick="this.parentElement.remove()">×</button>
+      <div class="row">
+        <div><label>Institution</label><input class="e-institution" placeholder="MIT"></div>
+        <div><label>Degree</label><input class="e-degree" placeholder="B.S."></div>
+      </div>
+      <div class="row">
+        <div><label>Field of Study</label><input class="e-field" placeholder="Computer Science"></div>
+        <div><label>Graduation Date</label><input class="e-gradDate" placeholder="May 2020"></div>
+      </div>
+      <div class="row">
+        <div><label>Location</label><input class="e-location" placeholder="Cambridge, MA"></div>
+        <div><label>GPA</label><input class="e-gpa" placeholder="3.8"></div>
+      </div>
+    `;
+            div.appendChild(el);
+        }
+
+        function addSkill() {
+            const div = document.getElementById('skillEntries');
+            const el = document.createElement('div');
+            el.className = 'entry';
+            el.innerHTML = `
+      <button class="remove" onclick="this.parentElement.remove()">×</button>
+      <div class="row">
+        <div><label>Category</label><input class="s-category" placeholder="Programming Languages"></div>
+        <div><label>Items (comma-separated)</label><input class="s-items" placeholder="JavaScript, Python, Go"></div>
+      </div>
+    `;
+            div.appendChild(el);
+        }
+
+        function addProject() {
+            const div = document.getElementById('projectEntries');
+            const el = document.createElement('div');
+            el.className = 'entry';
+            el.innerHTML = `
+      <button class="remove" onclick="this.parentElement.remove()">×</button>
+      <div class="row">
+        <div><label>Project Name</label><input class="p-name" placeholder="My Cool App"></div>
+        <div><label>URL</label><input class="p-url" placeholder="https://github.com/..."></div>
+      </div>
+      <div class="row">
+        <div><label>Keywords (comma-separated)</label><input class="p-keywords" placeholder="React, Firebase"></div>
+      </div>
+      <div><label>Bullet Points (one per line)</label><textarea class="p-bullets" placeholder="Built a full-stack app...&#10;Used React and Node..."></textarea></div>
+    `;
+            div.appendChild(el);
+        }
+
+        function addAward() {
+            const div = document.getElementById('awardEntries');
+            const el = document.createElement('div');
+            el.className = 'entry';
+            el.innerHTML = `
+      <button class="remove" onclick="this.parentElement.remove()">×</button>
+      <div class="row">
+        <div><label>Title</label><input class="a-title" placeholder="Best Paper Award"></div>
+        <div><label>Awarder</label><input class="a-awarder" placeholder="IEEE"></div>
+        <div><label>Date</label><input class="a-date" placeholder="2023"></div>
+      </div>
+      <div><label>Summary</label><input class="a-summary" placeholder="Awarded for outstanding research..."></div>
+    `;
+            div.appendChild(el);
+        }
+
+        let customSectionCounter = 0;
+        function addCustomSection() {
+            const div = document.getElementById('customSectionEntries');
+            const idx = customSectionCounter++;
+            const el = document.createElement('div');
+            el.className = 'entry';
+            el.setAttribute('data-cs-idx', idx);
+            el.innerHTML = `
+      <button class="remove" onclick="this.parentElement.remove()">×</button>
+      <div class="row">
+        <div><label>Section Title</label><input class="cs-title" placeholder="Certifications, Volunteering, etc."></div>
+      </div>
+      <div class="cs-items" data-cs-idx="${idx}"></div>
+      <button class="add-btn" onclick="addCustomSectionItem(${idx})">+ Add Entry to this Section</button>
+    `;
+            div.appendChild(el);
+        }
+
+        function addCustomSectionItem(csIdx) {
+            const container = document.querySelector(`.cs-items[data-cs-idx='${csIdx}']`);
+            const el = document.createElement('div');
+            el.style.cssText = 'background:#fff;border:1px solid #e0e0e0;border-radius:6px;padding:10px;margin-bottom:8px;position:relative;';
+            el.innerHTML = `
+      <button class="remove" onclick="this.parentElement.remove()">×</button>
+      <div class="row">
+        <div><label>Title</label><input class="csi-title" placeholder="AWS Solutions Architect"></div>
+        <div><label>Subtitle</label><input class="csi-subtitle" placeholder="Amazon Web Services"></div>
+      </div>
+      <div class="row">
+        <div><label>Date</label><input class="csi-date" placeholder="2023"></div>
+        <div><label>Location</label><input class="csi-location" placeholder="Online"></div>
+        <div><label>Link</label><input class="csi-link" placeholder="https://..."></div>
+      </div>
+      <div><label>Bullet Points (one per line)</label><textarea class="csi-bullets" placeholder="Completed certification..."></textarea></div>
+    `;
+            container.appendChild(el);
+        }
+
+        /* ── Build the data object ──────────────────────── */
+
+        function buildData() {
+            const data = {};
+
+            // Basics
+            const basics = {};
+            const v = (id) => document.getElementById(id).value.trim();
+            if (v('name')) basics.name = v('name');
+            if (v('email')) basics.email = v('email');
+            if (v('phone')) basics.phone = v('phone');
+            if (v('address')) basics.address = v('address');
+            if (v('linkedin')) basics.linkedin = v('linkedin');
+            if (v('github')) basics.github = v('github');
+            if (Object.keys(basics).length) data.basics = basics;
+
+            // Work
+            const workEls = document.querySelectorAll('#workEntries .entry');
+            if (workEls.length) {
+                data.work = [...workEls].map(el => ({
+                    company: el.querySelector('.w-company').value.trim(),
+                    position: el.querySelector('.w-position').value.trim(),
+                    location: el.querySelector('.w-location').value.trim(),
+                    startDate: el.querySelector('.w-start').value.trim(),
+                    endDate: el.querySelector('.w-end').value.trim(),
+                    bullets: el.querySelector('.w-bullets').value.split('\n').filter(l => l.trim()),
+                }));
+            }
+
+            // Education
+            const eduEls = document.querySelectorAll('#eduEntries .entry');
+            if (eduEls.length) {
+                data.education = [...eduEls].map(el => ({
+                    institution: el.querySelector('.e-institution').value.trim(),
+                    degree: el.querySelector('.e-degree').value.trim(),
+                    field: el.querySelector('.e-field').value.trim(),
+                    graduationDate: el.querySelector('.e-gradDate').value.trim(),
+                    location: el.querySelector('.e-location').value.trim(),
+                    gpa: el.querySelector('.e-gpa').value.trim() || undefined,
+                }));
+            }
+
+            // Skills
+            const skillEls = document.querySelectorAll('#skillEntries .entry');
+            if (skillEls.length) {
+                data.skills = [...skillEls].map(el => ({
+                    category: el.querySelector('.s-category').value.trim(),
+                    items: el.querySelector('.s-items').value.split(',').map(s => s.trim()).filter(Boolean),
+                }));
+            }
+
+            // Projects
+            const projEls = document.querySelectorAll('#projectEntries .entry');
+            if (projEls.length) {
+                data.projects = [...projEls].map(el => ({
+                    name: el.querySelector('.p-name').value.trim(),
+                    url: el.querySelector('.p-url').value.trim() || undefined,
+                    keywords: el.querySelector('.p-keywords').value.split(',').map(s => s.trim()).filter(Boolean),
+                    bullets: el.querySelector('.p-bullets').value.split('\n').filter(l => l.trim()),
+                }));
+            }
+
+            // Awards
+            const awardEls = document.querySelectorAll('#awardEntries .entry');
+            if (awardEls.length) {
+                data.awards = [...awardEls].map(el => ({
+                    title: el.querySelector('.a-title').value.trim(),
+                    awarder: el.querySelector('.a-awarder').value.trim(),
+                    date: el.querySelector('.a-date').value.trim(),
+                    summary: el.querySelector('.a-summary').value.trim() || undefined,
+                }));
+            }
+
+            // Custom Sections
+            const csEls = document.querySelectorAll('#customSectionEntries > .entry');
+            if (csEls.length) {
+                data.customSections = [...csEls].map(csEl => {
+                    const csIdx = csEl.getAttribute('data-cs-idx');
+                    const itemEls = csEl.querySelectorAll(`.cs-items[data-cs-idx='${csIdx}'] > div`);
+                    return {
+                        id: 'custom-' + csIdx,
+                        title: csEl.querySelector('.cs-title').value.trim() || 'Custom Section',
+                        type: 'bullets',
+                        items: [...itemEls].map(it => ({
+                            title: it.querySelector('.csi-title').value.trim(),
+                            subtitle: it.querySelector('.csi-subtitle').value.trim(),
+                            date: it.querySelector('.csi-date').value.trim(),
+                            location: it.querySelector('.csi-location').value.trim(),
+                            link: it.querySelector('.csi-link').value.trim(),
+                            bullets: it.querySelector('.csi-bullets').value.split('\n').filter(l => l.trim()),
+                        })),
+                    };
+                });
+            }
+
+            // Job → auto cover letter
+            if (v('jobTitle') && v('jobCompany')) {
+                data.job = {
+                    title: v('jobTitle'),
+                    company: v('jobCompany'),
+                    companyAddress: v('jobAddress') || undefined,
+                    description: v('jobDesc') || undefined,
+                    skills: v('jobSkills') ? v('jobSkills').split(',').map(s => s.trim()).filter(Boolean) : undefined,
+                };
+            }
+
+            return data;
+        }
+
+        const PREFILL_KEY = 'resume_builder_prefill';
+
+        /* ── Actions ────────────────────────────────────── */
+
+        function openResumeBuilder() {
+            const data = buildData();
+            // Write to localStorage — the resume builder reads this on mount
+            localStorage.setItem(PREFILL_KEY, JSON.stringify(data));
+            window.open(window.location.origin + '/', '_blank');
+        }
+
+        function showUrl() {
+            const pre = document.getElementById('generatedUrl');
+            const data = buildData();
+            pre.textContent = 'Data that will be written to localStorage key "' + PREFILL_KEY + '":\n\n' + JSON.stringify(data, null, 2);
+            pre.style.display = 'block';
+        }
+
+        function fillSampleData() {
+            document.getElementById('name').value = 'Sarah Mitchell';
+            document.getElementById('email').value = 'sarah.mitchell@email.com';
+            document.getElementById('phone').value = '(555) 123-4567';
+            document.getElementById('address').value = 'San Francisco, CA';
+            document.getElementById('linkedin').value = 'https://linkedin.com/in/sarahmitchell';
+            document.getElementById('github').value = 'https://github.com/sarahmitchell';
+
+            // Clear existing
+            document.getElementById('workEntries').innerHTML = '';
+            document.getElementById('eduEntries').innerHTML = '';
+            document.getElementById('skillEntries').innerHTML = '';
+            document.getElementById('projectEntries').innerHTML = '';
+            document.getElementById('awardEntries').innerHTML = '';
+            document.getElementById('customSectionEntries').innerHTML = '';
+
+            // Work
+            addWork();
+            const w1 = document.querySelector('#workEntries .entry:last-child');
+            w1.querySelector('.w-company').value = 'TechVision Inc.';
+            w1.querySelector('.w-position').value = 'Senior Software Engineer';
+            w1.querySelector('.w-location').value = 'San Francisco, CA';
+            w1.querySelector('.w-start').value = 'Mar 2021';
+            w1.querySelector('.w-end').value = 'Present';
+            w1.querySelector('.w-bullets').value = 'Led frontend architecture migration to React + TypeScript\nReduced page load time by 40% through code splitting and lazy loading\nMentored a team of 4 junior developers';
+
+            addWork();
+            const w2 = document.querySelector('#workEntries .entry:last-child');
+            w2.querySelector('.w-company').value = 'DataFlow Solutions';
+            w2.querySelector('.w-position').value = 'Software Engineer';
+            w2.querySelector('.w-location').value = 'Remote';
+            w2.querySelector('.w-start').value = 'Jun 2019';
+            w2.querySelector('.w-end').value = 'Feb 2021';
+            w2.querySelector('.w-bullets').value = 'Built RESTful APIs serving 10M+ requests/day\nImplemented CI/CD pipelines reducing deployment time by 60%';
+
+            // Education
+            addEdu();
+            const e1 = document.querySelector('#eduEntries .entry:last-child');
+            e1.querySelector('.e-institution').value = 'University of California, Berkeley';
+            e1.querySelector('.e-degree').value = 'B.S.';
+            e1.querySelector('.e-field').value = 'Computer Science';
+            e1.querySelector('.e-gradDate').value = 'May 2019';
+            e1.querySelector('.e-location').value = 'Berkeley, CA';
+            e1.querySelector('.e-gpa').value = '3.8';
+
+            // Skills
+            addSkill();
+            const s1 = document.querySelector('#skillEntries .entry:last-child');
+            s1.querySelector('.s-category').value = 'Languages';
+            s1.querySelector('.s-items').value = 'JavaScript, TypeScript, Python, Go';
+
+            addSkill();
+            const s2 = document.querySelector('#skillEntries .entry:last-child');
+            s2.querySelector('.s-category').value = 'Frameworks';
+            s2.querySelector('.s-items').value = 'React, Next.js, Node.js, Express, Django';
+
+            addSkill();
+            const s3 = document.querySelector('#skillEntries .entry:last-child');
+            s3.querySelector('.s-category').value = 'Tools';
+            s3.querySelector('.s-items').value = 'Git, Docker, AWS, PostgreSQL, Redis';
+
+            // Projects
+            addProject();
+            const p1 = document.querySelector('#projectEntries .entry:last-child');
+            p1.querySelector('.p-name').value = 'Open Source Dashboard';
+            p1.querySelector('.p-url').value = 'https://github.com/sarahmitchell/dashboard';
+            p1.querySelector('.p-keywords').value = 'React, D3.js, TypeScript';
+            p1.querySelector('.p-bullets').value = 'Built an analytics dashboard used by 2K+ developers\nImplemented real-time data visualization with D3.js';
+
+            // Job
+            document.getElementById('jobTitle').value = 'Senior Software Engineer';
+            document.getElementById('jobCompany').value = 'TechVision Inc.';
+            document.getElementById('jobAddress').value = '456 Innovation Dr, San Francisco, CA 94102';
+            document.getElementById('jobSkills').value = 'JavaScript, TypeScript, React, Node.js, AWS';
+            document.getElementById('jobDesc').value = 'We are looking for an experienced Senior Software Engineer to lead our frontend platform team.';
+
+            // Awards
+            addAward();
+            const a1 = document.querySelector('#awardEntries .entry:last-child');
+            a1.querySelector('.a-title').value = 'Best Paper Award';
+            a1.querySelector('.a-awarder').value = 'IEEE Conference';
+            a1.querySelector('.a-date').value = '2023';
+            a1.querySelector('.a-summary').value = 'Awarded for research on frontend performance optimization';
+
+            // Custom Section — Certifications
+            addCustomSection();
+            const cs1 = document.querySelector('#customSectionEntries > .entry:last-child');
+            cs1.querySelector('.cs-title').value = 'Certifications';
+            const csIdx = cs1.getAttribute('data-cs-idx');
+
+            addCustomSectionItem(Number(csIdx));
+            const csi1 = cs1.querySelector('.cs-items > div:last-child');
+            csi1.querySelector('.csi-title').value = 'AWS Solutions Architect';
+            csi1.querySelector('.csi-subtitle').value = 'Amazon Web Services';
+            csi1.querySelector('.csi-date').value = '2022';
+            csi1.querySelector('.csi-location').value = 'Online';
+            csi1.querySelector('.csi-bullets').value = 'Designed scalable cloud architectures\nManaged multi-region deployments';
+
+            addCustomSectionItem(Number(csIdx));
+            const csi2 = cs1.querySelector('.cs-items > div:last-child');
+            csi2.querySelector('.csi-title').value = 'Google Cloud Professional';
+            csi2.querySelector('.csi-subtitle').value = 'Google';
+            csi2.querySelector('.csi-date').value = '2021';
+        }
+    </script>
+</body>
+
+</html>

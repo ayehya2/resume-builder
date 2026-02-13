@@ -19,6 +19,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from '@dnd-kit/utilities'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import { saveResumeData, loadResumeData, exportToJSON, importFromJSON, saveDarkMode, loadDarkMode, saveActiveTab, loadActiveTab, saveCoverLetterData, loadCoverLetterData, saveDocumentType, loadDocumentType } from './lib/storage'
+import { loadPrefillData } from './lib/loadFromUrl'
 import { pdf } from '@react-pdf/renderer'
 import { ClassicPDFTemplate } from './templates/pdf/ClassicPDFTemplate'
 import { ModernPDFTemplate } from './templates/pdf/ModernPDFTemplate'
@@ -119,7 +120,7 @@ function App() {
   const [isPrinting, setIsPrinting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Load saved data on mount
+  // Load saved data on mount, then apply URL hash data (which wins over localStorage)
   useEffect(() => {
     const savedResume = loadResumeData();
     if (savedResume) {
@@ -138,6 +139,9 @@ function App() {
     if (savedType) {
       setDocumentType(savedType);
     }
+
+    // Prefill data overrides localStorage — must run AFTER the above
+    loadPrefillData();
   }, []);
 
   // Save active tab on change
@@ -145,7 +149,7 @@ function App() {
     saveActiveTab(activeTab);
   }, [activeTab]);
 
-  // Update dark mode class on document
+  // Persist dark mode
   useEffect(() => {
     saveDarkMode(darkMode);
     if (darkMode) {
