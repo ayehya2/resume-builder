@@ -4,9 +4,7 @@ import {
     getPDFFontFamily,
     getPDFBulletSymbol,
     getPDFColorValue,
-    getPDFPagePadding,
     getPDFFontSize,
-    getPDFNameSize,
     getPDFSectionTitleSize,
     getPDFSectionMargin,
     getPDFBulletIndent,
@@ -34,6 +32,8 @@ const createStyles = (formatting: FormattingOptions) => {
             flexDirection: 'row',
             paddingTop: parseFloat(String(formatting.marginTop)) * 72,
             paddingBottom: parseFloat(String(formatting.marginBottom)) * 72,
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         sidebar: {
             width: 170,
@@ -96,6 +96,7 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         mainSection: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         mainSectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
@@ -133,7 +134,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 2,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#1a1a1a',
             flexDirection: 'row',
         },
@@ -208,7 +209,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                                 <View key="profile" style={styles.mainSection}>
                                     <Text style={styles.mainSectionHeader}>Profile</Text>
                                     <Text style={{ fontSize: 9.5, color: '#333333', lineHeight: 1.5 }}>
-                                        {basics.summary}
+                                        {parseBoldTextPDF(basics.summary, Text)}
                                     </Text>
                                 </View>
                             );
@@ -229,7 +230,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                                             <Text style={styles.entrySubtitle}>
                                                 {edu.degree}{edu.field && ` in ${edu.field}`}
                                             </Text>
-                                            {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#888888' }}>GPA: {edu.gpa}</Text>}
+                                            {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#888888' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                         </View>
                                     ))}
                                 </View>
@@ -244,7 +245,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                                         <View key={idx} style={styles.entryContainer} wrap={true}>
                                             <View style={styles.entryHeader}>
                                                 <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
-                                                <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                             </View>
                                             <Text style={styles.entrySubtitle}>
                                                 {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
@@ -254,7 +255,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                                                     {job.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                         <View key={i} style={styles.bulletPoint}>
                                                             <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                            <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                            <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                         </View>
                                                     ))}
                                                 </View>
@@ -293,7 +294,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                                                     {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                         <View key={i} style={styles.bulletPoint}>
                                                             <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                            <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                            <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                         </View>
                                                     ))}
                                                 </View>

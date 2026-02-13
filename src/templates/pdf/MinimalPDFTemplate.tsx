@@ -27,15 +27,17 @@ const createStyles = (formatting: FormattingOptions) => {
     const baseFontSize = getPDFFontSize(formatting.baseFontSize);
 
     return StyleSheet.create({
-        page: {
-            padding: getPDFPagePadding(formatting),
+        page: { padding: getPDFPagePadding(formatting),
             fontFamily: getPDFFontFamily(formatting.fontFamily),
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         header: {
             textAlign: formatting.headerAlignment,
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         name: {
             fontSize: getPDFNameSize(formatting.nameSize),
@@ -55,6 +57,7 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
@@ -91,7 +94,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 1,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#333333',
             flexDirection: 'row',
         },
@@ -155,7 +158,7 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                             <View key="profile" style={styles.section}>
                                 <Text style={styles.sectionHeader}>Profile</Text>
                                 <Text style={{ fontSize: baseFontSize - 1, color: '#444444', lineHeight: 1.6 }}>
-                                    {basics.summary}
+                                    {parseBoldTextPDF(basics.summary, Text)}
                                 </Text>
                             </View>
                         );
@@ -174,7 +177,7 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: baseFontSize - 1, color: '#888888' }}>GPA: {edu.gpa}</Text>}
+                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: baseFontSize - 1, color: '#888888' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -189,7 +192,7 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
-                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
                                             {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
@@ -242,7 +245,7 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                                     </Link>
                                                 )}
                                             </Text>
-                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} — {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                         </View>
                                         {project.keywords.length > 0 && (
                                             <Text style={{ fontSize: baseFontSize - 1.5, color: '#999999', marginBottom: 2 }}>

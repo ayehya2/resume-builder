@@ -17,8 +17,7 @@ import {
     getPDFDateFormat,
     getPDFDateSeparator,
     getPDFBodyTextWeight,
-    getPDFParagraphSpacing,
-    getPDFSectionTitleSpacing
+    getPDFParagraphSpacing
 } from '../../lib/pdfFormatting';
 import { parseBoldTextPDF } from '../../lib/parseBoldText';
 
@@ -36,6 +35,8 @@ const createStyles = (formatting: FormattingOptions) => {
             fontFamily: getPDFFontFamily(formatting.fontFamily),
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         header: {
             textAlign: formatting.headerAlignment,
@@ -95,7 +96,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 0.5,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 1,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#1a1a1a',
             flexDirection: 'row',
         },
@@ -168,7 +169,7 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
 
                 {/* Two Column Body */}
                 <View style={{ flexDirection: 'row', gap: 14 }}>
-                    {/* Left Column — Main Content */}
+                    {/* Left Column {getPDFDateSeparator(formatting.dateSeparator)} Main Content */}
                     <View style={{ flex: 2 }}>
                         {sections.map((sectionKey) => {
                             if (sectionKey === 'profile' && basics.summary) {
@@ -176,7 +177,7 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                                     <View key="profile" style={styles.section}>
                                         <Text style={styles.sectionHeader}>Summary</Text>
                                         <Text style={{ fontSize: 8.5, color: '#333333', lineHeight: 1.4 }}>
-                                            {basics.summary}
+                                            {parseBoldTextPDF(basics.summary, Text)}
                                         </Text>
                                     </View>
                                 );
@@ -190,7 +191,7 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                                             <View key={idx} style={styles.entryContainer} wrap={true}>
                                                 <View style={styles.entryHeader}>
                                                     <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
-                                                    <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
+                                                    <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                                 </View>
                                                 <Text style={styles.entrySubtitle}>
                                                     {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
@@ -227,7 +228,7 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                                                             </Link>
                                                         )}
                                                     </Text>
-                                                    <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} – {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
+                                                    <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                                 </View>
                                                 {project.keywords.length > 0 && (
                                                     <Text style={{ fontSize: 7.5, color: '#999999', marginBottom: 1 }}>
@@ -303,7 +304,7 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                         })}
                     </View>
 
-                    {/* Right Column — Supplementary */}
+                    {/* Right Column {getPDFDateSeparator(formatting.dateSeparator)} Supplementary */}
                     <View style={{ flex: 1, borderLeft: `0.5pt solid ${accentColor}30` as any, paddingLeft: 10 }}>
                         {sections.map((sectionKey) => {
                             if (sectionKey === 'education' && education.length > 0) {
@@ -315,7 +316,7 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                                                 <Text style={{ fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{edu.institution}</Text>
                                                 <Text style={{ color: '#555555', fontSize: 8 }}>{edu.degree}{edu.field && ` in ${edu.field}`}</Text>
                                                 <Text style={{ color: '#888888', fontSize: 7.5 }}>{getPDFDateFormat(edu.graduationDate, formatting.dateFormat)}</Text>
-                                                {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 7.5, color: '#888888' }}>GPA: {edu.gpa}</Text>}
+                                                {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 7.5, color: '#888888' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                             </View>
                                         ))}
                                     </View>

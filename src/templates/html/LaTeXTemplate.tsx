@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store';
-import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize, getSubHeaderWeight, getSkillSeparator, getBodyTextWeight, getDateSeparatorChar } from '../../lib/formatting';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize, getSubHeaderWeight, getSkillSeparator, getDateSeparatorChar } from '../../lib/formatting';
 import { parseBoldText } from '../../lib/parseBoldText';
 import type { SectionKey, Education, WorkExperience, Skill, Project, Award, CustomSection } from '../../types';
 
@@ -22,14 +22,14 @@ export function LaTeXTemplate() {
     const nameSize = getNameSize(formatting.nameSize);
 
     const containerStyle: React.CSSProperties = {
-        fontFamily: getFontFamilyCSS(formatting.fontFamily),
+        fontFamily: formatting.fontFamily === 'default' ? '"Times New Roman", Times, serif' : getFontFamilyCSS(formatting.fontFamily),
         padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,
         maxWidth: '8.5in',
         margin: '0 auto',
         backgroundColor: '#ffffff',
         color: '#000000',
         fontSize: `${formatting.baseFontSize}px`,
-        lineHeight: '1.35',
+        lineHeight: '1.4',
     };
 
     const sectionHeaderStyle: React.CSSProperties = {

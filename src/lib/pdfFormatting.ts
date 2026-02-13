@@ -1,4 +1,4 @@
-import type { FormattingOptions, FontFamily, BulletStyle, ColorTheme } from '../types';
+import type { FormattingOptions, FontFamily, BulletStyle, ColorTheme, BodyTextWeight, Spacing, DateSeparator, SectionTitleSize, NameSize, BulletIndent, SectionDivider, SkillLayout, DateFormat, SubHeaderWeight } from '../types';
 import { Font } from '@react-pdf/renderer';
 
 /**
@@ -59,14 +59,14 @@ export function getPDFFontFamily(fontFamily: FontFamily): string {
  */
 export function getPDFBulletSymbol(bulletStyle: BulletStyle): string {
     const bulletMap: Record<BulletStyle, string> = {
-        bullet: '\u2022',   // •
-        dash: '\u2013',     // –
+        bullet: '\u2022',   // • (Standard bullet)
+        dash: '-',          // - (Standard hyphen for better compatibility)
         arrow: '\u2192',    // →
-        circle: '\u25CB',   // ○
+        circle: 'o',        // o (Fallback to 'o' for circle if Unicode fails)
         square: '\u25A0',   // ■
         diamond: '\u25C6',  // ◆
-        star: '\u2605',     // ★
-        chevron: '\u203A',  // ›
+        star: '*',          // * (Standard star)
+        chevron: '>',       // > (Standard chevron)
     };
     return bulletMap[bulletStyle] || '\u2022';
 }
@@ -113,7 +113,7 @@ export function getPDFFontSize(baseFontSize: string): number {
 /**
  * Get name size in points
  */
-export function getPDFNameSize(nameSize: import('../types').NameSize): number {
+export function getPDFNameSize(nameSize: NameSize): number {
     const sizeMap = {
         huge: 28,
         large: 22,
@@ -126,7 +126,7 @@ export function getPDFNameSize(nameSize: import('../types').NameSize): number {
 /**
  * Get section title size in points
  */
-export function getPDFSectionTitleSize(size: import('../types').SectionTitleSize): number {
+export function getPDFSectionTitleSize(size: SectionTitleSize): number {
     const sizeMap = {
         large: 16,
         normal: 14,
@@ -145,7 +145,7 @@ export function getPDFLineHeight(lineSpacing: string): number {
 /**
  * Get margin bottom for sections in points
  */
-export function getPDFSectionMargin(spacing: import('../types').Spacing): number {
+export function getPDFSectionMargin(spacing: Spacing): number {
     const spacingMap = {
         tight: 4,
         normal: 8,
@@ -158,7 +158,7 @@ export function getPDFSectionMargin(spacing: import('../types').Spacing): number
 /**
  * Get margin bottom for entries (work/edu) in points
  */
-export function getPDFEntrySpacing(spacing: import('../types').Spacing): number {
+export function getPDFEntrySpacing(spacing: Spacing): number {
     const spacingMap = {
         tight: 2,
         normal: 6,
@@ -178,7 +178,7 @@ export function getPDFBulletGap(gap: string): number {
 /**
  * Get bullet indent in points (convert from inches)
  */
-export function getPDFBulletIndent(indent: import('../types').BulletIndent): number {
+export function getPDFBulletIndent(indent: BulletIndent): number {
     const indentMap = {
         none: 0,
         small: 14,  // ~0.2in at 72dpi
@@ -191,14 +191,14 @@ export function getPDFBulletIndent(indent: import('../types').BulletIndent): num
 /**
  * Helper to check if section dividers are enabled
  */
-export function hasPDFSectionDivider(divider: import('../types').SectionDivider): boolean {
+export function hasPDFSectionDivider(divider: SectionDivider): boolean {
     return divider !== 'none';
 }
 
 /**
  * Get border style for section dividers
  */
-export function getPDFSectionBorderStyle(divider: import('../types').SectionDivider, color: string): { borderBottom?: string; paddingBottom?: number } {
+export function getPDFSectionBorderStyle(divider: SectionDivider, color: string): { borderBottom?: string; paddingBottom?: number } {
     switch (divider) {
         case 'line':
             return { borderBottom: `1.5pt solid ${color}`, paddingBottom: 2 };
@@ -239,7 +239,7 @@ export function getPDFSectionHeaderStyle(style: 'uppercase' | 'capitalize' | 'no
  * Get sub-header font family based on weight for PDF.
  * With registered custom fonts, bold is handled via fontWeight CSS property.
  */
-export function getPDFSubHeaderFont(_weight: import('../types').SubHeaderWeight, baseFont: string): string {
+export function getPDFSubHeaderFont(_weight: SubHeaderWeight, baseFont: string): string {
     // Custom registered fonts handle weight via fontWeight CSS property,
     // not by appending '-Bold' to the font name.
     return baseFont;
@@ -248,7 +248,7 @@ export function getPDFSubHeaderFont(_weight: import('../types').SubHeaderWeight,
 /**
  * Get skill separator for PDF rendering
  */
-export function getPDFSkillSeparator(layout: import('../types').SkillLayout): string {
+export function getPDFSkillSeparator(layout: SkillLayout): string {
     const separatorMap = {
         comma: ', ',
         pipe: ' | ',
@@ -259,7 +259,7 @@ export function getPDFSkillSeparator(layout: import('../types').SkillLayout): st
 /**
  * Format date for PDF (best effort)
  */
-export function getPDFDateFormat(dateStr: string, format: import('../types').DateFormat): string {
+export function getPDFDateFormat(dateStr: string, format: DateFormat): string {
     if (!dateStr || dateStr.toLowerCase() === 'present' || dateStr.toLowerCase() === 'currently') {
         return dateStr;
     }
@@ -299,7 +299,7 @@ export function getPDFDateFormat(dateStr: string, format: import('../types').Dat
 }
 
 // Body text font-weight for PDF
-export function getPDFBodyTextWeight(weight: import('../types').BodyTextWeight): number {
+export function getPDFBodyTextWeight(weight: BodyTextWeight): number {
     const weightMap = {
         light: 300,
         normal: 400,
@@ -309,7 +309,7 @@ export function getPDFBodyTextWeight(weight: import('../types').BodyTextWeight):
 }
 
 // Paragraph spacing for PDF (points)
-export function getPDFParagraphSpacing(spacing: import('../types').Spacing): number {
+export function getPDFParagraphSpacing(spacing: Spacing): number {
     const spacingMap = {
         tight: 2,
         normal: 4,
@@ -320,7 +320,7 @@ export function getPDFParagraphSpacing(spacing: import('../types').Spacing): num
 }
 
 // Section title spacing for PDF (points, margin above title)
-export function getPDFSectionTitleSpacing(spacing: import('../types').Spacing): number {
+export function getPDFSectionTitleSpacing(spacing: Spacing): number {
     const spacingMap = {
         tight: 4,
         normal: 8,
@@ -331,6 +331,6 @@ export function getPDFSectionTitleSpacing(spacing: import('../types').Spacing): 
 }
 
 // Date separator character for PDF
-export function getPDFDateSeparator(separator: import('../types').DateSeparator): string {
+export function getPDFDateSeparator(separator: DateSeparator): string {
     return ` ${separator} `;
 }

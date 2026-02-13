@@ -18,7 +18,8 @@ import {
     getPDFDateSeparator,
     getPDFBodyTextWeight,
     getPDFParagraphSpacing,
-    getPDFSectionTitleSpacing
+    getPDFSectionTitleSpacing,
+    getPDFSectionBorderStyle
 } from '../../lib/pdfFormatting';
 import { parseBoldTextPDF } from '../../lib/parseBoldText';
 
@@ -33,10 +34,13 @@ const createStyles = (formatting: FormattingOptions) => {
             fontFamily: getPDFFontFamily(formatting.fontFamily),
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         header: {
             textAlign: formatting.headerAlignment,
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         name: {
             fontSize: getPDFNameSize(formatting.nameSize),
@@ -57,6 +61,7 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
@@ -92,7 +97,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 2,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#000000',
             flexDirection: 'row',
         },
@@ -160,7 +165,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                             <View key="profile" style={styles.section}>
                                 <Text style={styles.sectionHeader}>PROFESSIONAL SUMMARY</Text>
                                 <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1, lineHeight: 1.4 }}>
-                                    {basics.summary}
+                                    {parseBoldTextPDF(basics.summary, Text)}
                                 </Text>
                             </View>
                         );
@@ -179,7 +184,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 10 }}>GPA: {edu.gpa}</Text>}
+                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 10 }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -194,7 +199,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
-                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
                                             {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
@@ -246,10 +251,10 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                                     </Link>
                                                 )}
                                             </View>
-                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} – {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                         </View>
                                         {project.keywords && project.keywords.length > 0 && (
-                                            <Text style={styles.projectKeywords}>
+                                            formatting.showProjectKeywords && <Text style={styles.projectKeywords}>
                                                 {project.keywords.join(', ')}
                                             </Text>
                                         )}

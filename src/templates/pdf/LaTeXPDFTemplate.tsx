@@ -1,7 +1,6 @@
 import { Document, Page, Text, View, Link, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData, FormattingOptions } from '../../types';
 import {
-    getPDFFontFamily,
     getPDFBulletSymbol,
     getPDFColorValue,
     getPDFPagePadding,
@@ -37,6 +36,8 @@ const createStyles = (formatting: FormattingOptions) => {
             fontFamily: 'NotoSerif',  // LaTeX template uses registered serif font
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         header: {
             textAlign: formatting.headerAlignment,
@@ -65,6 +66,7 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
@@ -102,7 +104,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 0.5,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 1.5,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#000000',
             flexDirection: 'row',
         },
@@ -158,7 +160,7 @@ export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
                             <View key="profile" style={styles.section}>
                                 <Text style={styles.sectionHeader}>Research Interests</Text>
                                 <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 0.5, color: '#333333', lineHeight: 1.5 }}>
-                                    {basics.summary}
+                                    {parseBoldTextPDF(basics.summary, Text)}
                                 </Text>
                             </View>
                         );
@@ -177,7 +179,7 @@ export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#666666' }}>GPA: {edu.gpa}</Text>}
+                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#666666' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -192,7 +194,7 @@ export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
-                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} — {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
                                             {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}

@@ -27,11 +27,12 @@ const createStyles = (formatting: FormattingOptions) => {
     const baseFontSize = getPDFFontSize(formatting.baseFontSize);
 
     return StyleSheet.create({
-        page: {
-            padding: getPDFPagePadding(formatting),
+        page: { padding: getPDFPagePadding(formatting),
             fontFamily: getPDFFontFamily(formatting.fontFamily),
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         header: {
             borderBottom: `2pt solid ${accentColor}`,
@@ -63,6 +64,7 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
@@ -104,7 +106,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 3,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#334155',
             flexDirection: 'row',
         },
@@ -183,7 +185,7 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                 <Text style={styles.sectionHeader}>Professional Summary</Text>
                                 <View style={{ paddingLeft: 12, borderLeft: `1pt solid transparent` }}>
                                     <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1, color: '#334155', lineHeight: 1.5 }}>
-                                        {basics.summary}
+                                        {parseBoldTextPDF(basics.summary, Text)}
                                     </Text>
                                 </View>
                             </View>
@@ -203,7 +205,7 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1, fontWeight: 'bold' }}>GPA: {edu.gpa}</Text>}
+                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1, fontWeight: 'bold' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -218,7 +220,7 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
-                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
                                             {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
@@ -270,10 +272,10 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                                     </Link>
                                                 )}
                                             </View>
-                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} — {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                         </View>
                                         {project.keywords && project.keywords.length > 0 && (
-                                            <Text style={styles.projectKeywords}>
+                                            formatting.showProjectKeywords && <Text style={styles.projectKeywords}>
                                                 {project.keywords.join(' • ')}
                                             </Text>
                                         )}
@@ -282,7 +284,7 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                                 {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                     <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                        <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                     </View>
                                                 ))}
                                             </View>
@@ -301,7 +303,7 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                     <View key={idx} style={{ marginBottom: 8 }} wrap={true}>
                                         <Text style={{ fontSize: 11, fontWeight: 'bold' }}>
                                             {award.title}
-                                            {award.date && <Text style={{ fontWeight: 'normal', color: '#64748b' }}> — {award.date}</Text>}
+                                            {award.date && <Text style={{ fontWeight: 'normal', color: '#64748b' }}> {getPDFDateSeparator(formatting.dateSeparator)} {award.date}</Text>}
                                         </Text>
                                         {award.awarder && (
                                             <Text style={{ fontSize: 10, fontStyle: 'italic', color: '#64748b' }}>
@@ -349,7 +351,7 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                                                 {entry.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                     <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        <Text style={{ color: '#000000' }}>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                        <Text style={{ color: '#000000' }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                     </View>
                                                 ))}
                                             </View>

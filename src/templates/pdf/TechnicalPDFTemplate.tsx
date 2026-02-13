@@ -27,11 +27,12 @@ const createStyles = (formatting: FormattingOptions) => {
     const baseFontSize = getPDFFontSize(formatting.baseFontSize);
 
     return StyleSheet.create({
-        page: {
-            padding: getPDFPagePadding(formatting),
+        page: { padding: getPDFPagePadding(formatting),
             fontFamily: getPDFFontFamily(formatting.fontFamily),
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         header: {
             textAlign: formatting.headerAlignment,
@@ -60,6 +61,7 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
@@ -100,7 +102,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 1.5,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#1a1a1a',
             flexDirection: 'row',
         },
@@ -169,7 +171,7 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                     )}
                 </View>
 
-                {/* Skills first — prominent */}
+                {/* Skills first {getPDFDateSeparator(formatting.dateSeparator)} prominent */}
                 {skills.length > 0 && sections.includes('skills') && (
                     <View style={styles.section}>
                         <Text style={styles.sectionHeader}>
@@ -196,7 +198,7 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                                 </Text>
                                 <View style={{ borderLeft: `2pt solid ${getPDFColorValue(formatting.colorTheme, formatting.customColor)}20`, paddingLeft: 10 }}>
                                     <Text style={{ fontSize: 9.5, color: '#333333', lineHeight: 1.5 }}>
-                                        {basics.summary}
+                                        {parseBoldTextPDF(basics.summary, Text)}
                                     </Text>
                                 </View>
                             </View>
@@ -219,7 +221,7 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#888888' }}>GPA: {edu.gpa}</Text>}
+                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#888888' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -236,7 +238,7 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
-                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
                                             {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? ` · ${job.location}` : ''}
@@ -275,10 +277,10 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                                                     </Link>
                                                 )}
                                             </Text>
-                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} – {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                         </View>
                                         {project.keywords.length > 0 && (
-                                            <Text style={styles.projectKeywords}>
+                                            formatting.showProjectKeywords && <Text style={styles.projectKeywords}>
                                                 [{project.keywords.join(', ')}]
                                             </Text>
                                         )}
@@ -287,7 +289,7 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                                                 {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                     <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                        <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                     </View>
                                                 ))}
                                             </View>

@@ -54,13 +54,18 @@ export function BulletList({ bullets, onChange, placeholder }: BulletListProps) 
                     )}
                 </div>
             ))}
-            <button
-                onClick={addBullet}
-                className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 font-semibold transition-colors"
-                type="button"
-            >
-                + Add Bullet Point
-            </button>
+            <div className="flex justify-between items-center">
+                <button
+                    onClick={addBullet}
+                    className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 font-semibold transition-colors"
+                    type="button"
+                >
+                    + Add Bullet Point
+                </button>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 italic">
+                    Tip: Use <strong>**bold**</strong> and <em>*italic*</em> inside bullets.
+                </p>
+            </div>
         </div>
     );
 }

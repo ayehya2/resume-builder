@@ -5,9 +5,8 @@ import { createElement, type ReactNode } from 'react';
  */
 export function parseBoldText(text: string): ReactNode[] {
     const parts: ReactNode[] = [];
-    // Matches **bold** or *italic*
-    // Group 1: **, Group 2: bold content, Group 3: *, Group 4: italic content
-    const regex = /(\*\*)(.+?)\*\*|(\*)(.+?)\*/g;
+    // Matches **bold**, __bold__, *italic*, or _italic_
+    const regex = /(\*\*|__)(.+?)\1|(\*|_)(.+?)\3/g;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
@@ -16,9 +15,9 @@ export function parseBoldText(text: string): ReactNode[] {
             parts.push(text.slice(lastIndex, match.index));
         }
 
-        if (match[1] === '**') {
+        if (match[1] === '**' || match[1] === '__') {
             parts.push(<strong key={match.index}>{match[2]}</strong>);
-        } else if (match[3] === '*') {
+        } else if (match[3] === '*' || match[3] === '_') {
             parts.push(<em key={match.index}>{match[4]}</em>);
         }
 
@@ -41,8 +40,8 @@ export function parseBoldTextPDF(
     TextComponent: any
 ): ReactNode[] {
     const parts: ReactNode[] = [];
-    // Same regex as above
-    const regex = /(\*\*)(.+?)\*\*|(\*)(.+?)\*/g;
+    // Matches **bold**, __bold__, *italic*, or _italic_
+    const regex = /(\*\*|__)(.+?)\1|(\*|_)(.+?)\3/g;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
@@ -52,9 +51,9 @@ export function parseBoldTextPDF(
         }
 
         const style: any = {};
-        if (match[1] === '**') {
+        if (match[1] === '**' || match[1] === '__') {
             style.fontWeight = 'bold';
-        } else if (match[3] === '*') {
+        } else if (match[3] === '*' || match[3] === '_') {
             style.fontStyle = 'italic';
         }
 

@@ -4,7 +4,6 @@ import {
     getPDFFontFamily,
     getPDFBulletSymbol,
     getPDFColorValue,
-    getPDFPagePadding,
     getPDFFontSize,
     getPDFNameSize,
     getPDFSectionTitleSize,
@@ -40,6 +39,8 @@ const createStyles = (formatting: FormattingOptions) => {
             paddingLeft: marginL,
             paddingRight: marginR,
             paddingBottom: marginB,
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         headerBanner: {
             backgroundColor: '#ffffff',
@@ -69,6 +70,7 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
@@ -106,7 +108,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 2,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#1a1a1a',
             flexDirection: 'row',
         },
@@ -162,7 +164,7 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                                 <View key="profile" style={styles.section}>
                                     <Text style={styles.sectionHeader}>Professional Summary</Text>
                                     <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1, color: '#333333', lineHeight: 1.5 }}>
-                                        {basics.summary}
+                                        {parseBoldTextPDF(basics.summary, Text)}
                                     </Text>
                                 </View>
                             );
@@ -181,7 +183,7 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                                             <Text style={styles.entrySubtitle}>
                                                 {edu.degree}{edu.field && ` in ${edu.field}`}
                                             </Text>
-                                            {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#666666' }}>GPA: {edu.gpa}</Text>}
+                                            {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#666666' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                         </View>
                                     ))}
                                 </View>
@@ -196,7 +198,7 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                                         <View key={idx} style={styles.entryContainer} wrap={true}>
                                             <View style={styles.entryHeader}>
                                                 <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
-                                                <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                             </View>
                                             <Text style={styles.entrySubtitle}>
                                                 {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
@@ -249,7 +251,7 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                                                         </Link>
                                                     )}
                                                 </Text>
-                                                <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} — {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                             </View>
                                             {project.keywords.length > 0 && (
                                                 <Text style={{ fontSize: 9, fontStyle: 'italic', color: '#666666', marginBottom: 2 }}>

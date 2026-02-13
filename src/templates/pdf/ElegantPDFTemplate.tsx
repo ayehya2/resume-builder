@@ -18,7 +18,8 @@ import {
     getPDFDateSeparator,
     getPDFBodyTextWeight,
     getPDFParagraphSpacing,
-    getPDFSectionTitleSpacing
+    getPDFSectionTitleSpacing,
+    getPDFSectionBorderStyle
 } from '../../lib/pdfFormatting';
 import { parseBoldTextPDF } from '../../lib/parseBoldText';
 
@@ -34,6 +35,8 @@ const createStyles = (formatting: FormattingOptions) => {
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
             flexDirection: 'row',
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         accentStripe: {
             width: 4,
@@ -46,6 +49,7 @@ const createStyles = (formatting: FormattingOptions) => {
         header: {
             textAlign: formatting.headerAlignment,
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         name: {
             fontSize: getPDFNameSize(formatting.nameSize),
@@ -64,6 +68,7 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
@@ -101,7 +106,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 2,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#000000',
             flexDirection: 'row',
         },
@@ -173,7 +178,7 @@ export function ElegantPDFTemplate({ data }: ElegantPDFTemplateProps) {
                                 <View key="profile" style={styles.section}>
                                     <Text style={styles.sectionHeader}>Professional Summary</Text>
                                     <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 0.5, lineHeight: 1.5 }}>
-                                        {basics.summary}
+                                        {parseBoldTextPDF(basics.summary, Text)}
                                     </Text>
                                 </View>
                             );
@@ -190,7 +195,7 @@ export function ElegantPDFTemplate({ data }: ElegantPDFTemplateProps) {
                                                 <Text style={styles.dateRange}>{getPDFDateFormat(edu.graduationDate, formatting.dateFormat)}</Text>
                                             </View>
                                             <Text style={styles.entrySubtitle}>{edu.degree}{edu.field && ` in ${edu.field}`}</Text>
-                                            {formatting.showGPA && edu.gpa && <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1 }}>GPA: {edu.gpa}</Text>}
+                                            {formatting.showGPA && edu.gpa && <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1 }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                         </View>
                                     ))}
                                 </View>
@@ -205,7 +210,7 @@ export function ElegantPDFTemplate({ data }: ElegantPDFTemplateProps) {
                                         <View key={idx} style={styles.entryContainer} wrap={true}>
                                             <View style={styles.entryHeader}>
                                                 <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
-                                                <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                             </View>
                                             <Text style={styles.entrySubtitle}>{formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}</Text>
                                             {job.bullets && job.bullets.filter(b => b.trim()).length > 0 && (
@@ -255,9 +260,9 @@ export function ElegantPDFTemplate({ data }: ElegantPDFTemplateProps) {
                                                         </Link>
                                                     )}
                                                 </View>
-                                                <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} – {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                             </View>
-                                            {project.keywords && project.keywords.length > 0 && (
+                                            {project.keywords && project.keywords.length > 0 && formatting.showProjectKeywords && (
                                                 <Text style={styles.projectKeywords}>
                                                     {project.keywords.join(', ')}
                                                 </Text>
@@ -267,7 +272,7 @@ export function ElegantPDFTemplate({ data }: ElegantPDFTemplateProps) {
                                                     {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                         <View key={i} style={styles.bulletPoint}>
                                                             <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                            <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                            <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                         </View>
                                                     ))}
                                                 </View>
@@ -330,7 +335,7 @@ export function ElegantPDFTemplate({ data }: ElegantPDFTemplateProps) {
                                                     {entry.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                         <View key={i} style={styles.bulletPoint}>
                                                             <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                            <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                            <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                         </View>
                                                     ))}
                                                 </View>

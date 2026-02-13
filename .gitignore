@@ -26,3 +26,18 @@ dist-ssr
 .env.local
 
 /project plan
+*.txt
+*.py
+.system_generated/
+build/
+*.bak
+standardize_pdf_templates.py
+repair_pdf_templates.py
+fix_imports.py
+restore_imports.py
+fix_lint.py
+wire_bold_pdf.py
+build_errors.txt
+app_errors.txt
+final_errors.txt
+tsc_errors.txt

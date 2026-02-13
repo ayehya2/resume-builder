@@ -1,7 +1,6 @@
 import { Document, Page, Text, View, Link, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData, FormattingOptions } from '../../types';
 import {
-    getPDFFontFamily,
     getPDFBulletSymbol,
     getPDFColorValue,
     getPDFPagePadding,
@@ -15,7 +14,6 @@ import {
     getPDFSectionHeaderStyle,
     getPDFSkillSeparator,
     getPDFDateFormat,
-    getPDFDateSeparator,
     getPDFBodyTextWeight,
     getPDFParagraphSpacing,
     getPDFSectionTitleSpacing
@@ -36,6 +34,8 @@ const createStyles = (formatting: FormattingOptions) => {
             fontFamily: 'NotoSerif',  // Academic template uses registered serif font
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
+            fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
+            fontStyle: formatting.italicStyle,
         },
         header: {
             textAlign: formatting.headerAlignment,
@@ -64,6 +64,7 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
@@ -107,7 +108,7 @@ const createStyles = (formatting: FormattingOptions) => {
         bulletPoint: {
             fontSize: baseFontSize - 0.5,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
-            marginBottom: 1.5,
+            marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
             color: '#1a1a1a',
             flexDirection: 'row',
         },
@@ -163,7 +164,7 @@ export function AcademicPDFTemplate({ data }: AcademicPDFTemplateProps) {
                             <View key="profile" style={styles.section}>
                                 <Text style={styles.sectionHeader}>Research Interests</Text>
                                 <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 0.5, color: '#333333', lineHeight: 1.5 }}>
-                                    {basics.summary}
+                                    {parseBoldTextPDF(basics.summary, Text)}
                                 </Text>
                             </View>
                         );
@@ -184,7 +185,7 @@ export function AcademicPDFTemplate({ data }: AcademicPDFTemplateProps) {
                                                 <Text style={styles.entrySubtitle}>
                                                     {edu.degree}{edu.field && ` in ${edu.field}`}
                                                 </Text>
-                                                {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#666666' }}>GPA: {edu.gpa}</Text>}
+                                                {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#666666' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                             </View>
                                         </View>
                                     </View>

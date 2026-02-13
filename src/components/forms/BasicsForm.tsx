@@ -90,6 +90,9 @@ export function BasicsForm() {
                         className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all resize-y"
                         placeholder="A brief 2-3 sentence summary of your professional background, key skills, and career goals..."
                     />
+                    <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500 italic">
+                        Tip: Use <strong>**bold**</strong> for emphasis and <em>*italic*</em> for titles.
+                    </p>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-700">

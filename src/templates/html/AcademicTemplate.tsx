@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store';
-import { getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize, getSubHeaderWeight, getSkillSeparator, getBodyTextWeight, getDateSeparatorChar } from '../../lib/formatting';
+import { getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize, getSubHeaderWeight, getSkillSeparator } from '../../lib/formatting';
 import { parseBoldText } from '../../lib/parseBoldText';
 import type { SectionKey, Education, WorkExperience, Skill, Project, Award, CustomSection } from '../../types';
 
