@@ -65,7 +65,7 @@ const getDefaultResumeData = (): ResumeData => ({
         companyTitleOrder: 'company-first',
         // Phase 4.5 — Extended Formatting
         bodyTextWeight: 'normal',
-        italicStyle: 'italic',
+        italicStyle: 'normal',
         sectionTitleSpacing: 'normal',
         showEducationDescription: true,
         showProjectKeywords: true,

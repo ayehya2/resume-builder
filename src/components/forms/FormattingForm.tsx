@@ -197,8 +197,8 @@ export function FormattingForm() {
                                     onChange={(e) => updateFormatting({ italicStyle: e.target.value as ItalicStyle })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
-                                    <option value="italic">Italic (default)</option>
-                                    <option value="normal">Normal (no italic)</option>
+                                    <option value="normal">Normal (default)</option>
+                                    <option value="italic">Italic</option>
                                 </select>
                             </div>
                         </div>

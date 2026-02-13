@@ -28,17 +28,7 @@ import {
 import { loadPrefillData } from './lib/loadFromUrl'
 import { parseResumeFile } from './lib/resumeParser'
 import { pdf } from '@react-pdf/renderer'
-import { ClassicPDFTemplate } from './templates/pdf/ClassicPDFTemplate'
-import { ModernPDFTemplate } from './templates/pdf/ModernPDFTemplate'
-import { MinimalPDFTemplate } from './templates/pdf/MinimalPDFTemplate'
-import { ExecutivePDFTemplate } from './templates/pdf/ExecutivePDFTemplate'
-import { CreativePDFTemplate } from './templates/pdf/CreativePDFTemplate'
-import { TechnicalPDFTemplate } from './templates/pdf/TechnicalPDFTemplate'
-import { ElegantPDFTemplate } from './templates/pdf/ElegantPDFTemplate'
-import { CompactPDFTemplate } from './templates/pdf/CompactPDFTemplate'
-import { AcademicPDFTemplate } from './templates/pdf/AcademicPDFTemplate'
-import { LaTeXPDFTemplate } from './templates/pdf/LaTeXPDFTemplate'
-import { CoverLetterPDFTemplate } from './templates/pdf/CoverLetterPDFTemplate'
+import { getPDFTemplateComponent } from './lib/pdfTemplateMap'
 import { useCoverLetterStore } from './lib/coverLetterStore'
 import { useCustomTemplateStore } from './lib/customTemplateStore'
 import { getEffectiveResumeData } from './lib/templateResolver'
@@ -428,54 +418,13 @@ function App() {
   const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true);
     try {
-      let templateComponent;
-      let fileName;
+      const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
+      const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData);
+      const fileName = documentType === 'coverletter'
+        ? `cover_letter_${coverLetterData.company || 'document'}`.replace(/[^a-z0-9._-]/gi, '_')
+        : `${resumeData.basics.name || 'resume'}`.replace(/[^a-z0-9._-]/gi, '_');
 
-      if (documentType === 'coverletter') {
-        templateComponent = <CoverLetterPDFTemplate data={coverLetterData} />;
-        fileName = `cover_letter_${coverLetterData.company || 'document'}`.replace(/[^a-z0-9._-]/gi, '_');
-      } else {
-        // Resolve custom templates to base template + effective formatting
-        const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
-
-        switch (effectiveData.selectedTemplate) {
-          case 1:
-            templateComponent = <ClassicPDFTemplate data={effectiveData} />;
-            break;
-          case 2:
-            templateComponent = <ModernPDFTemplate data={effectiveData} />;
-            break;
-          case 3:
-            templateComponent = <MinimalPDFTemplate data={effectiveData} />;
-            break;
-          case 4:
-            templateComponent = <ExecutivePDFTemplate data={effectiveData} />;
-            break;
-          case 5:
-            templateComponent = <CreativePDFTemplate data={effectiveData} />;
-            break;
-          case 6:
-            templateComponent = <TechnicalPDFTemplate data={effectiveData} />;
-            break;
-          case 7:
-            templateComponent = <ElegantPDFTemplate data={effectiveData} />;
-            break;
-          case 8:
-            templateComponent = <CompactPDFTemplate data={effectiveData} />;
-            break;
-          case 9:
-            templateComponent = <AcademicPDFTemplate data={effectiveData} />;
-            break;
-          case 10:
-            templateComponent = <LaTeXPDFTemplate data={effectiveData} />;
-            break;
-          default:
-            templateComponent = <ClassicPDFTemplate data={effectiveData} />;
-        }
-        fileName = `${resumeData.basics.name || 'resume'}`.replace(/[^a-z0-9._-]/gi, '_');
-      }
-
-      const blob = await pdf(templateComponent).toBlob();
+      const blob = await pdf(templateComponent as any).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -493,54 +442,12 @@ function App() {
   const handlePrint = async () => {
     setIsPrinting(true);
     try {
-      let templateComponent;
+      const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
+      const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData);
 
-      if (documentType === 'coverletter') {
-        templateComponent = <CoverLetterPDFTemplate data={coverLetterData} />;
-      } else {
-        // Resolve custom templates to base template + effective formatting
-        const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
-
-        switch (effectiveData.selectedTemplate) {
-          case 1:
-            templateComponent = <ClassicPDFTemplate data={effectiveData} />;
-            break;
-          case 2:
-            templateComponent = <ModernPDFTemplate data={effectiveData} />;
-            break;
-          case 3:
-            templateComponent = <MinimalPDFTemplate data={effectiveData} />;
-            break;
-          case 4:
-            templateComponent = <ExecutivePDFTemplate data={effectiveData} />;
-            break;
-          case 5:
-            templateComponent = <CreativePDFTemplate data={effectiveData} />;
-            break;
-          case 6:
-            templateComponent = <TechnicalPDFTemplate data={effectiveData} />;
-            break;
-          case 7:
-            templateComponent = <ElegantPDFTemplate data={effectiveData} />;
-            break;
-          case 8:
-            templateComponent = <CompactPDFTemplate data={effectiveData} />;
-            break;
-          case 9:
-            templateComponent = <AcademicPDFTemplate data={effectiveData} />;
-            break;
-          case 10:
-            templateComponent = <LaTeXPDFTemplate data={effectiveData} />;
-            break;
-          default:
-            templateComponent = <ClassicPDFTemplate data={effectiveData} />;
-        }
-      }
-
-      const blob = await pdf(templateComponent).toBlob();
+      const blob = await pdf(templateComponent as any).toBlob();
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
-
     } catch (error) {
       console.error('Print generation error:', error);
       alert('Print generation failed. Please try again.');
@@ -640,8 +547,8 @@ function App() {
                     onChange={(e) => setNewTemplateName(e.target.value)}
                     placeholder="e.g. Software Engineer v1"
                     className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
-                        ? 'bg-slate-700 border-slate-600 text-white placeholder:text-slate-500'
-                        : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
+                      ? 'bg-slate-700 border-slate-600 text-white placeholder:text-slate-500'
+                      : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
                       }`}
                   />
                 </div>
@@ -653,8 +560,8 @@ function App() {
                     value={newTemplateBase}
                     onChange={(e) => setNewTemplateBase(Number(e.target.value) as PreloadedTemplateId)}
                     className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
-                        ? 'bg-slate-700 border-slate-600 text-white'
-                        : 'bg-white border-slate-300 text-slate-900'
+                      ? 'bg-slate-700 border-slate-600 text-white'
+                      : 'bg-white border-slate-300 text-slate-900'
                       }`}
                   >
                     {templates.map((t) => (
@@ -673,8 +580,8 @@ function App() {
                     }}
                     disabled={!newTemplateName.trim()}
                     className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${!newTemplateName.trim()
-                        ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
-                        : 'bg-green-600 hover:bg-green-500 text-white'
+                      ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-500 text-white'
                       }`}
                   >
                     Create
@@ -732,8 +639,8 @@ function App() {
                     </button>
 
                     <div className={`p-3 text-left transition-colors relative ${isActive
-                        ? (darkMode ? 'bg-slate-900 border-t border-blue-800' : 'bg-blue-50 border-t border-blue-100')
-                        : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
+                      ? (darkMode ? 'bg-slate-900 border-t border-blue-800' : 'bg-blue-50 border-t border-blue-100')
+                      : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
                       }`}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
