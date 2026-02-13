@@ -27,7 +27,8 @@ const createStyles = (formatting: FormattingOptions) => {
     const baseFontSize = getPDFFontSize(formatting.baseFontSize);
 
     return StyleSheet.create({
-        page: { padding: getPDFPagePadding(formatting),
+        page: {
+            padding: getPDFPagePadding(formatting),
             fontFamily: getPDFFontFamily(formatting.fontFamily),
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
@@ -167,7 +168,7 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
                         )}
 
                         {basics.websites.map((site, i) => (
-                            <View key={i} style={{ flexDirection: 'row' }}>
+                            <View key={i} style={{ flexDirection: 'row', gap: 8 }}>
                                 {i > 0 && <Text style={styles.contactSeparator}>{formatting.separator}</Text>}
                                 <Link src={site.url} style={styles.websiteLink}>
                                     {site.name || site.url}
