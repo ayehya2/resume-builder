@@ -11,7 +11,7 @@
 
 import { useResumeStore } from '../store';
 import { useCoverLetterStore } from './coverLetterStore';
-import type { WorkExperience, Education, Skill, Project, Award, CustomSection } from '../types';
+import type { WorkExperience, Education, Skill, Project, Award, CustomSection, TemplateId, FormattingOptions } from '../types';
 
 const PREFILL_KEY = 'resume_builder_prefill';
 
@@ -36,6 +36,10 @@ export interface ExternalResumeData {
     projects?: Project[];
     awards?: Award[];
     customSections?: CustomSection[];
+
+    // ── Template & Formatting ──
+    selectedTemplate?: TemplateId;           // 1, 2, 3, or 4
+    formatting?: Partial<FormattingOptions>; // only override what you need
 
     // ── Cover letter ──
     coverLetter?: {
@@ -172,6 +176,23 @@ function applyExternalData(data: ExternalResumeData): void {
                     ...s.resumeData.sections,
                     ...sections.map(cs => cs.id).filter(id => !s.resumeData.sections.includes(id)),
                 ],
+            },
+        }));
+    }
+
+    // ── Template ──
+    if (data.selectedTemplate !== undefined) {
+        useResumeStore.setState((s) => ({
+            resumeData: { ...s.resumeData, selectedTemplate: data.selectedTemplate! },
+        }));
+    }
+
+    // ── Formatting ──
+    if (data.formatting) {
+        useResumeStore.setState((s) => ({
+            resumeData: {
+                ...s.resumeData,
+                formatting: { ...s.resumeData.formatting, ...data.formatting },
             },
         }));
     }

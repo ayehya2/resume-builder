@@ -20,7 +20,7 @@
         }
 
         .wrapper {
-            max-width: 900px;
+            max-width: 960px;
             margin: 0 auto;
         }
 
@@ -53,10 +53,12 @@
             display: flex;
             gap: 12px;
             margin-bottom: 10px;
+            flex-wrap: wrap;
         }
 
         .row>* {
             flex: 1;
+            min-width: 140px;
         }
 
         label {
@@ -68,17 +70,20 @@
         }
 
         input,
-        textarea {
+        textarea,
+        select {
             width: 100%;
             padding: 8px 10px;
             border: 1px solid #d0d0d0;
             border-radius: 6px;
             font-size: 14px;
             font-family: inherit;
+            background: #fff;
         }
 
         input:focus,
-        textarea:focus {
+        textarea:focus,
+        select:focus {
             outline: none;
             border-color: #5b7fe9;
         }
@@ -129,6 +134,7 @@
             display: flex;
             gap: 12px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -159,17 +165,79 @@
             background: #ddd;
         }
 
-        #generatedUrl {
-            display: none;
-            margin-top: 16px;
+        .btn-success {
+            background: #2ea043;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #238636;
+        }
+
+        .btn-danger {
+            background: #c44;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #a33;
+        }
+
+        .json-area {
+            width: 100%;
+            min-height: 200px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            padding: 14px;
+            resize: vertical;
             background: #1e1e2e;
             color: #a6e3a1;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            word-break: break-all;
-            white-space: pre-wrap;
-            font-family: 'Consolas', monospace;
+            tab-size: 2;
+        }
+
+        .json-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .json-actions .btn {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .status {
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .status.success {
+            display: block;
+            background: #d1f7c4;
+            color: #1a7f37;
+        }
+
+        .status.error {
+            display: block;
+            background: #fdd;
+            color: #a33;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: auto;
         }
     </style>
 </head>
@@ -178,7 +246,7 @@
     <div class="wrapper">
         <h1>🧪 Resume Builder – Integration Tester</h1>
         <p class="sub">Fill in the data below, then click <strong>"Open Resume Builder"</strong>. It will open in a new
-            tab with everything pre-filled.</p>
+            tab with everything pre-filled. You can also save/load the exact JSON for database storage.</p>
 
         <!-- ── BASICS ── -->
         <div class="card">
@@ -257,14 +325,344 @@
                     placeholder="Brief description of the role..."></textarea></div>
         </div>
 
+        <!-- ── TEMPLATE & FORMATTING ── -->
+        <div class="card">
+            <h2>🎨 Template & Formatting</h2>
+
+            <!-- Row 1: Template, Font, Font Size -->
+            <div class="row">
+                <div>
+                    <label>Template</label>
+                    <select id="fmtTemplate">
+                        <option value="">(default)</option>
+                        <option value="1">1 – Classic</option>
+                        <option value="2">2 – Modern</option>
+                        <option value="3">3 – Minimal</option>
+                        <option value="4">4 – Professional</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Font Family</label>
+                    <select id="fmtFontFamily">
+                        <option value="">(default)</option>
+                        <option value="times">Times New Roman</option>
+                        <option value="arial">Arial</option>
+                        <option value="calibri">Calibri</option>
+                        <option value="georgia">Georgia</option>
+                        <option value="helvetica">Helvetica</option>
+                        <option value="palatino">Palatino</option>
+                        <option value="garamond">Garamond</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Base Font Size</label>
+                    <select id="fmtBaseFontSize">
+                        <option value="">(default)</option>
+                        <option value="9pt">9pt</option>
+                        <option value="10pt">10pt</option>
+                        <option value="11pt">11pt</option>
+                        <option value="12pt">12pt</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Name Size, Section Title Size, Section Header Style -->
+            <div class="row">
+                <div>
+                    <label>Name Size</label>
+                    <select id="fmtNameSize">
+                        <option value="">(default)</option>
+                        <option value="huge">Huge</option>
+                        <option value="large">Large</option>
+                        <option value="large2">Large 2</option>
+                        <option value="normal">Normal</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Section Title Size</label>
+                    <select id="fmtSectionTitleSize">
+                        <option value="">(default)</option>
+                        <option value="large">Large</option>
+                        <option value="normal">Normal</option>
+                        <option value="small">Small</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Section Header Style</label>
+                    <select id="fmtSectionHeaderStyle">
+                        <option value="">(default)</option>
+                        <option value="uppercase">UPPERCASE</option>
+                        <option value="capitalize">Capitalize</option>
+                        <option value="normal">Normal</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 3: Bold/Underline toggles, Header Alignment -->
+            <div class="row">
+                <div>
+                    <label>&nbsp;</label>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="fmtSectionTitleBold">
+                        <label for="fmtSectionTitleBold" style="margin:0">Section Title Bold</label>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="fmtSectionTitleUnderline">
+                        <label for="fmtSectionTitleUnderline" style="margin:0">Section Title Underline</label>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="fmtShowIcons">
+                        <label for="fmtShowIcons" style="margin:0">Show Icons</label>
+                    </div>
+                </div>
+                <div>
+                    <label>Header Alignment</label>
+                    <select id="fmtHeaderAlignment">
+                        <option value="">(default)</option>
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Social Icon Style</label>
+                    <select id="fmtSocialIconStyle">
+                        <option value="">(default)</option>
+                        <option value="circle">Circle</option>
+                        <option value="square">Square</option>
+                        <option value="none">None</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 4: Font Weights -->
+            <div class="row">
+                <div>
+                    <label>Font Weight – Name</label>
+                    <select id="fmtFontWeightName">
+                        <option value="">(default)</option>
+                        <option value="400">Normal (400)</option>
+                        <option value="500">Medium (500)</option>
+                        <option value="600">Semi-Bold (600)</option>
+                        <option value="700">Bold (700)</option>
+                        <option value="800">Extra-Bold (800)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Font Weight – Section Title</label>
+                    <select id="fmtFontWeightSectionTitle">
+                        <option value="">(default)</option>
+                        <option value="400">Normal (400)</option>
+                        <option value="500">Medium (500)</option>
+                        <option value="600">Semi-Bold (600)</option>
+                        <option value="700">Bold (700)</option>
+                        <option value="800">Extra-Bold (800)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Font Weight – Body</label>
+                    <select id="fmtFontWeightBody">
+                        <option value="">(default)</option>
+                        <option value="300">Light (300)</option>
+                        <option value="400">Normal (400)</option>
+                        <option value="500">Medium (500)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 5: Spacing -->
+            <div class="row">
+                <div>
+                    <label>Line Spacing</label>
+                    <select id="fmtLineSpacing">
+                        <option value="">(default)</option>
+                        <option value="1.0">1.0</option>
+                        <option value="1.15">1.15</option>
+                        <option value="1.2">1.2</option>
+                        <option value="1.5">1.5</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Section Spacing</label>
+                    <select id="fmtSectionSpacing">
+                        <option value="">(default)</option>
+                        <option value="tight">Tight</option>
+                        <option value="normal">Normal</option>
+                        <option value="relaxed">Relaxed</option>
+                        <option value="spacious">Spacious</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Paragraph Spacing</label>
+                    <select id="fmtParagraphSpacing">
+                        <option value="">(default)</option>
+                        <option value="tight">Tight</option>
+                        <option value="normal">Normal</option>
+                        <option value="relaxed">Relaxed</option>
+                        <option value="spacious">Spacious</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 6: Granular Spacing -->
+            <div class="row">
+                <div>
+                    <label>Entry Spacing</label>
+                    <select id="fmtEntrySpacing">
+                        <option value="">(default)</option>
+                        <option value="tight">Tight</option>
+                        <option value="normal">Normal</option>
+                        <option value="relaxed">Relaxed</option>
+                        <option value="spacious">Spacious</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Bullet Spacing</label>
+                    <select id="fmtBulletSpacing">
+                        <option value="">(default)</option>
+                        <option value="tight">Tight</option>
+                        <option value="normal">Normal</option>
+                        <option value="relaxed">Relaxed</option>
+                        <option value="spacious">Spacious</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Bullet Gap</label>
+                    <input id="fmtBulletGap" placeholder="e.g. 4px, 6px">
+                </div>
+            </div>
+
+            <!-- Row 7: Margins -->
+            <div class="row">
+                <div>
+                    <label>Page Margins Preset</label>
+                    <select id="fmtPageMargins">
+                        <option value="">(default)</option>
+                        <option value="narrow">Narrow</option>
+                        <option value="normal">Normal</option>
+                        <option value="wide">Wide</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div><label>Margin Top</label><input id="fmtMarginTop" placeholder="e.g. 0.5in"></div>
+                <div><label>Margin Bottom</label><input id="fmtMarginBottom" placeholder="e.g. 0.5in"></div>
+                <div><label>Margin Left</label><input id="fmtMarginLeft" placeholder="e.g. 0.5in"></div>
+                <div><label>Margin Right</label><input id="fmtMarginRight" placeholder="e.g. 0.5in"></div>
+            </div>
+
+            <!-- Row 8: Decorative -->
+            <div class="row">
+                <div>
+                    <label>Color Theme</label>
+                    <select id="fmtColorTheme">
+                        <option value="">(default)</option>
+                        <option value="black">Black</option>
+                        <option value="navy">Navy</option>
+                        <option value="darkblue">Dark Blue</option>
+                        <option value="darkgreen">Dark Green</option>
+                        <option value="maroon">Maroon</option>
+                        <option value="purple">Purple</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div><label>Custom Color (hex)</label><input id="fmtCustomColor" placeholder="#3b82f6"></div>
+                <div>
+                    <label>Bullet Style</label>
+                    <select id="fmtBulletStyle">
+                        <option value="">(default)</option>
+                        <option value="bullet">• Bullet</option>
+                        <option value="dash">– Dash</option>
+                        <option value="arrow">▶ Arrow</option>
+                        <option value="circle">○ Circle</option>
+                        <option value="square">■ Square</option>
+                        <option value="diamond">◆ Diamond</option>
+                        <option value="star">★ Star</option>
+                        <option value="chevron">› Chevron</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Bullet Indent</label>
+                    <select id="fmtBulletIndent">
+                        <option value="">(default)</option>
+                        <option value="none">None</option>
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 9: Dividers, Lines, Separator -->
+            <div class="row">
+                <div>
+                    <label>Section Dividers</label>
+                    <select id="fmtSectionDividers">
+                        <option value="">(default)</option>
+                        <option value="none">None</option>
+                        <option value="line">Line</option>
+                        <option value="double">Double</option>
+                        <option value="thick">Thick</option>
+                        <option value="dotted">Dotted</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Header Line Style</label>
+                    <select id="fmtHeaderLineStyle">
+                        <option value="">(default)</option>
+                        <option value="none">None</option>
+                        <option value="thin">Thin</option>
+                        <option value="medium">Medium</option>
+                        <option value="thick">Thick</option>
+                        <option value="double">Double</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="dashed">Dashed</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Separator</label>
+                    <select id="fmtSeparator">
+                        <option value="">(default)</option>
+                        <option value="•">• (bullet)</option>
+                        <option value="|">| (pipe)</option>
+                        <option value="·">· (middle dot)</option>
+                        <option value="—">— (em dash)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Page Format</label>
+                    <select id="fmtPageFormat">
+                        <option value="">(default)</option>
+                        <option value="Letter">Letter</option>
+                        <option value="A4">A4</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <!-- ── ACTIONS ── -->
         <div class="actions">
             <button class="btn btn-primary" onclick="openResumeBuilder()">🚀 Open Resume Builder</button>
             <button class="btn btn-secondary" onclick="fillSampleData()">📝 Fill Sample Data</button>
-            <button class="btn btn-secondary" onclick="showUrl()">🔗 Show Generated URL</button>
         </div>
 
-        <pre id="generatedUrl"></pre>
+        <!-- ── JSON SAVE / LOAD ── -->
+        <div class="card" style="margin-top: 24px;">
+            <h2>💾 JSON Save / Load</h2>
+            <p style="font-size:13px;color:#888;margin-bottom:12px;">This is the exact JSON blob you can store in a
+                database and load later to recreate the same resume.</p>
+            <textarea id="jsonEditor" class="json-area"
+                placeholder="Click 'Build JSON from form' or paste your saved JSON here..."></textarea>
+            <div class="json-actions">
+                <button class="btn btn-secondary" onclick="buildAndShowJson()">📋 Build JSON from Form</button>
+                <button class="btn btn-secondary" onclick="copyJson()">📄 Copy to Clipboard</button>
+                <button class="btn btn-success" onclick="saveJsonToFile()">💾 Save to File</button>
+                <button class="btn btn-secondary" onclick="loadJsonFromFile()">📂 Load from File</button>
+                <button class="btn btn-primary" onclick="loadJsonIntoBuilder()">🚀 Load JSON into Resume
+                    Builder</button>
+            </div>
+            <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="handleFileLoad(event)">
+            <div id="jsonStatus" class="status"></div>
+        </div>
     </div>
 
     <script>
@@ -272,7 +670,6 @@
 
         function addWork() {
             const div = document.getElementById('workEntries');
-            const i = div.children.length;
             const el = document.createElement('div');
             el.className = 'entry';
             el.innerHTML = `
@@ -403,10 +800,10 @@
 
         function buildData() {
             const data = {};
+            const v = (id) => document.getElementById(id)?.value?.trim() || '';
 
             // Basics
             const basics = {};
-            const v = (id) => document.getElementById(id).value.trim();
             if (v('name')) basics.name = v('name');
             if (v('email')) basics.email = v('email');
             if (v('phone')) basics.phone = v('phone');
@@ -505,6 +902,57 @@
                 };
             }
 
+            // Template
+            const tmpl = v('fmtTemplate');
+            if (tmpl) data.selectedTemplate = Number(tmpl);
+
+            // Formatting — collect ALL fields
+            const formatting = {};
+            const fmtFields = [
+                ['fmtFontFamily', 'fontFamily'],
+                ['fmtBaseFontSize', 'baseFontSize'],
+                ['fmtNameSize', 'nameSize'],
+                ['fmtSectionTitleSize', 'sectionTitleSize'],
+                ['fmtSectionHeaderStyle', 'sectionHeaderStyle'],
+                ['fmtHeaderAlignment', 'headerAlignment'],
+                ['fmtSocialIconStyle', 'socialIconStyle'],
+                ['fmtFontWeightName', 'fontWeightName'],
+                ['fmtFontWeightSectionTitle', 'fontWeightSectionTitle'],
+                ['fmtFontWeightBody', 'fontWeightBody'],
+                ['fmtLineSpacing', 'lineSpacing'],
+                ['fmtSectionSpacing', 'sectionSpacing'],
+                ['fmtParagraphSpacing', 'paragraphSpacing'],
+                ['fmtEntrySpacing', 'entrySpacing'],
+                ['fmtBulletSpacing', 'bulletSpacing'],
+                ['fmtBulletGap', 'bulletGap'],
+                ['fmtPageMargins', 'pageMargins'],
+                ['fmtMarginTop', 'marginTop'],
+                ['fmtMarginBottom', 'marginBottom'],
+                ['fmtMarginLeft', 'marginLeft'],
+                ['fmtMarginRight', 'marginRight'],
+                ['fmtColorTheme', 'colorTheme'],
+                ['fmtCustomColor', 'customColor'],
+                ['fmtBulletStyle', 'bulletStyle'],
+                ['fmtBulletIndent', 'bulletIndent'],
+                ['fmtSectionDividers', 'sectionDividers'],
+                ['fmtHeaderLineStyle', 'headerLineStyle'],
+                ['fmtSeparator', 'separator'],
+                ['fmtPageFormat', 'pageFormat'],
+            ];
+            for (const [elId, key] of fmtFields) {
+                const val = v(elId);
+                if (val) formatting[key] = val;
+            }
+            // Boolean fields
+            const sectionTitleBoldEl = document.getElementById('fmtSectionTitleBold');
+            const sectionTitleUnderlineEl = document.getElementById('fmtSectionTitleUnderline');
+            const showIconsEl = document.getElementById('fmtShowIcons');
+            if (sectionTitleBoldEl.checked) formatting.sectionTitleBold = true;
+            if (sectionTitleUnderlineEl.checked) formatting.sectionTitleUnderline = true;
+            if (showIconsEl.checked) formatting.showIcons = true;
+
+            if (Object.keys(formatting).length) data.formatting = formatting;
+
             return data;
         }
 
@@ -514,17 +962,79 @@
 
         function openResumeBuilder() {
             const data = buildData();
-            // Write to localStorage — the resume builder reads this on mount
             localStorage.setItem(PREFILL_KEY, JSON.stringify(data));
             window.open(window.location.origin + '/', '_blank');
         }
 
-        function showUrl() {
-            const pre = document.getElementById('generatedUrl');
+        /* ── JSON Save / Load ─────────────────────────── */
+
+        function buildAndShowJson() {
             const data = buildData();
-            pre.textContent = 'Data that will be written to localStorage key "' + PREFILL_KEY + '":\n\n' + JSON.stringify(data, null, 2);
-            pre.style.display = 'block';
+            document.getElementById('jsonEditor').value = JSON.stringify(data, null, 2);
+            showStatus('JSON built from form fields ✓', 'success');
         }
+
+        function copyJson() {
+            const ta = document.getElementById('jsonEditor');
+            if (!ta.value.trim()) { showStatus('Nothing to copy — build or paste JSON first', 'error'); return; }
+            navigator.clipboard.writeText(ta.value).then(() => showStatus('Copied to clipboard ✓', 'success'));
+        }
+
+        function saveJsonToFile() {
+            const ta = document.getElementById('jsonEditor');
+            if (!ta.value.trim()) { buildAndShowJson(); }
+            const blob = new Blob([ta.value], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'resume-prefill.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showStatus('Saved to resume-prefill.json ✓', 'success');
+        }
+
+        function loadJsonFromFile() {
+            document.getElementById('jsonFileInput').click();
+        }
+
+        function handleFileLoad(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    document.getElementById('jsonEditor').value = JSON.stringify(json, null, 2);
+                    showStatus(`Loaded ${file.name} ✓`, 'success');
+                } catch (err) {
+                    showStatus('Invalid JSON file: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // reset so same file can be re-loaded
+        }
+
+        function loadJsonIntoBuilder() {
+            const ta = document.getElementById('jsonEditor');
+            if (!ta.value.trim()) { showStatus('No JSON to load — paste or build JSON first', 'error'); return; }
+            try {
+                const data = JSON.parse(ta.value);
+                localStorage.setItem(PREFILL_KEY, JSON.stringify(data));
+                window.open(window.location.origin + '/', '_blank');
+                showStatus('Loaded into Resume Builder ✓', 'success');
+            } catch (err) {
+                showStatus('Invalid JSON: ' + err.message, 'error');
+            }
+        }
+
+        function showStatus(msg, type) {
+            const el = document.getElementById('jsonStatus');
+            el.textContent = msg;
+            el.className = 'status ' + type;
+            setTimeout(() => { el.className = 'status'; }, 4000);
+        }
+
+        /* ── Fill Sample Data ─────────────────────────── */
 
         function fillSampleData() {
             document.getElementById('name').value = 'Sarah Mitchell';
@@ -629,6 +1139,25 @@
             csi2.querySelector('.csi-title').value = 'Google Cloud Professional';
             csi2.querySelector('.csi-subtitle').value = 'Google';
             csi2.querySelector('.csi-date').value = '2021';
+
+            // Template & Formatting
+            document.getElementById('fmtTemplate').value = '1';
+            document.getElementById('fmtFontFamily').value = 'calibri';
+            document.getElementById('fmtBaseFontSize').value = '11pt';
+            document.getElementById('fmtNameSize').value = 'large';
+            document.getElementById('fmtSectionTitleSize').value = 'normal';
+            document.getElementById('fmtSectionHeaderStyle').value = 'uppercase';
+            document.getElementById('fmtSectionTitleBold').checked = true;
+            document.getElementById('fmtSectionTitleUnderline').checked = false;
+            document.getElementById('fmtShowIcons').checked = true;
+            document.getElementById('fmtHeaderAlignment').value = 'center';
+            document.getElementById('fmtColorTheme').value = 'navy';
+            document.getElementById('fmtBulletStyle').value = 'bullet';
+            document.getElementById('fmtSectionDividers').value = 'line';
+            document.getElementById('fmtLineSpacing').value = '1.15';
+            document.getElementById('fmtSectionSpacing').value = 'normal';
+            document.getElementById('fmtPageFormat').value = 'Letter';
+            document.getElementById('fmtSeparator').value = '|';
         }
     </script>
 </body>
