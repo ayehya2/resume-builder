@@ -1,6 +1,7 @@
 import { TemplateRenderer } from '../../templates/html/TemplateRenderer';
 import { useResumeStore } from '../../store';
 import type { TemplateId } from '../../types';
+import { useRef, useEffect, useState } from 'react';
 
 interface TemplateThumbnailProps {
     templateId: TemplateId;
@@ -8,30 +9,59 @@ interface TemplateThumbnailProps {
 
 /**
  * TemplateThumbnail renders a scaled-down preview of a resume template.
- * Subscribing to resumeData ensures the thumbnail re-renders when formatting changes.
+ * Uses ResizeObserver to dynamically scale content to always fit within the container.
  */
 export function TemplateThumbnail({ templateId }: TemplateThumbnailProps) {
-    // Subscribe to resumeData to trigger re-renders on formatting/data changes
     const { resumeData } = useResumeStore();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = useState(0.25);
+
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const updateScale = () => {
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            if (containerWidth === 0 || containerHeight === 0) return;
+
+            // Page dimensions in px (8.5in × 11in at 96dpi)
+            const pageWidth = 816;
+            const pageHeight = 1056;
+
+            // Scale to fit both width and height, with a small padding
+            const scaleX = (containerWidth - 4) / pageWidth;
+            const scaleY = (containerHeight - 4) / pageHeight;
+            setScale(Math.min(scaleX, scaleY));
+        };
+
+        const observer = new ResizeObserver(updateScale);
+        observer.observe(container);
+        updateScale();
+
+        return () => observer.disconnect();
+    }, []);
 
     return (
-        <div className="w-full h-full relative overflow-hidden bg-white pdf-paper select-none pointer-events-none">
+        <div
+            ref={containerRef}
+            className="w-full h-full relative overflow-hidden bg-white pdf-paper select-none pointer-events-none"
+        >
             <div
-                // Force re-render on data changes with key
                 key={`${templateId}-${resumeData.formatting.colorTheme}-${resumeData.formatting.bulletStyle}-${resumeData.basics.name}`}
                 style={{
-                    width: '816px', // 8.5in at 96dpi
-                    height: '1056px', // 11in at 96dpi
-                    transform: 'scale(0.55)', // Increased to fill card better
-                    transformOrigin: 'top center',
+                    width: '816px',
+                    height: '1056px',
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'top left',
                     position: 'absolute',
                     top: 0,
                     left: '50%',
-                    marginLeft: '-408px', // Center the scaled content
-                    overflow: 'hidden', // Clip content past first page
-                    maxHeight: '1056px', // Enforce 11-inch limit
-                    backgroundColor: 'white', // Force white background
-                    color: 'black', // Force black text base
+                    marginLeft: `${-(816 * scale) / 2}px`,
+                    overflow: 'hidden',
+                    maxHeight: '1056px',
+                    backgroundColor: 'white',
+                    color: 'black',
                 }}
             >
                 <TemplateRenderer templateId={templateId} />

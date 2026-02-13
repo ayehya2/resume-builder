@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store'
-import type { ColorTheme, SectionDivider, Alignment, FontFamily, NameSize, Spacing, BulletStyle } from '../../types';
+import type { ColorTheme, SectionDivider, Alignment, FontFamily, NameSize, Spacing, BulletStyle, SectionTitleSize, BulletIndent, HeaderLineStyle } from '../../types';
 
 export function FormattingForm() {
     const { resumeData, updateFormatting, resetFormatting } = useResumeStore();
@@ -41,6 +41,21 @@ export function FormattingForm() {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Base Font Size</label>
+                                <select
+                                    value={formatting.baseFontSize}
+                                    onChange={(e) => updateFormatting({ baseFontSize: e.target.value })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="9pt">9pt — Compact</option>
+                                    <option value="10pt">10pt — Small</option>
+                                    <option value="10.5pt">10.5pt</option>
+                                    <option value="11pt">11pt — Standard</option>
+                                    <option value="11.5pt">11.5pt</option>
+                                    <option value="12pt">12pt — Large</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Name Size</label>
                                 <select
                                     value={formatting.nameSize}
@@ -53,6 +68,9 @@ export function FormattingForm() {
                                     <option value="normal">Normal (16pt)</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Name Weight</label>
                                 <select
@@ -64,6 +82,18 @@ export function FormattingForm() {
                                     <option value="NORMAL">Normal</option>
                                     <option value="BOLD">Bold</option>
                                     <option value="HEAVY">Heavy</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Section Title Size</label>
+                                <select
+                                    value={formatting.sectionTitleSize}
+                                    onChange={(e) => updateFormatting({ sectionTitleSize: e.target.value as SectionTitleSize })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="large">Large (16pt)</option>
+                                    <option value="normal">Normal (14pt)</option>
+                                    <option value="small">Small (12pt)</option>
                                 </select>
                             </div>
                         </div>
@@ -166,6 +196,7 @@ export function FormattingForm() {
                                     <option value="tight">Tight</option>
                                     <option value="normal">Normal</option>
                                     <option value="relaxed">Relaxed</option>
+                                    <option value="spacious">Spacious</option>
                                 </select>
                             </div>
                         </div>
@@ -211,12 +242,14 @@ export function FormattingForm() {
                                     onChange={(e) => updateFormatting({ bulletStyle: e.target.value as BulletStyle })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
-                                    <option value="bullet">Bullet</option>
-                                    <option value="dash">Dash</option>
-                                    <option value="arrow">Arrow</option>
-                                    <option value="circle">Circle</option>
-                                    <option value="square">Square</option>
-                                    <option value="diamond">Diamond</option>
+                                    <option value="bullet">• Bullet</option>
+                                    <option value="dash">- Dash</option>
+                                    <option value="arrow">→ Arrow</option>
+                                    <option value="circle">○ Circle</option>
+                                    <option value="square">■ Square</option>
+                                    <option value="diamond">◆ Diamond</option>
+                                    <option value="star">★ Star</option>
+                                    <option value="chevron">› Chevron</option>
                                 </select>
                             </div>
                             <div>
@@ -235,6 +268,35 @@ export function FormattingForm() {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Bullet Indent</label>
+                                <select
+                                    value={formatting.bulletIndent}
+                                    onChange={(e) => updateFormatting({ bulletIndent: e.target.value as BulletIndent })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="none">None</option>
+                                    <option value="small">Small (0.2in)</option>
+                                    <option value="medium">Medium (0.4in)</option>
+                                    <option value="large">Large (0.6in)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Bullet Spacing</label>
+                                <select
+                                    value={formatting.bulletSpacing}
+                                    onChange={(e) => updateFormatting({ bulletSpacing: e.target.value as Spacing })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="tight">Tight</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="relaxed">Relaxed</option>
+                                    <option value="spacious">Spacious</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Social Icons</label>
                                 <select
                                     value={formatting.socialIconStyle}
@@ -246,17 +308,19 @@ export function FormattingForm() {
                                     <option value="circle">Circle Icons</option>
                                 </select>
                             </div>
-                            <div className="flex items-end pb-1.5">
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        checked={formatting.showIcons}
-                                        onChange={(e) => updateFormatting({ showIcons: e.target.checked })}
-                                        className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
-                                    />
-                                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Contact Icons</span>
-                                </label>
-                            </div>
+                            <div />
+                        </div>
+
+                        <div className="flex items-center gap-4 pt-1">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={formatting.showIcons}
+                                    onChange={(e) => updateFormatting({ showIcons: e.target.checked })}
+                                    className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
+                                />
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Contact Icons</span>
+                            </label>
                         </div>
                     </div>
                 </section>
@@ -297,28 +361,57 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Header Alignment</label>
-                            <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-950">
-                                {(['left', 'center', 'right'] as Alignment[]).map((align) => (
-                                    <button
-                                        key={align}
-                                        onClick={() => updateFormatting({ headerAlignment: align })}
-                                        className={`flex-1 py-1 px-3 text-sm font-semibold transition-all ${formatting.headerAlignment === align
-                                            ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white'
-                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                                            }`}
-                                    >
-                                        {align.charAt(0).toUpperCase() + align.slice(1)}
-                                    </button>
-                                ))}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Header Alignment</label>
+                                <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-950">
+                                    {(['left', 'center', 'right'] as Alignment[]).map((align) => (
+                                        <button
+                                            key={align}
+                                            onClick={() => updateFormatting({ headerAlignment: align })}
+                                            className={`flex-1 py-1 px-2 text-sm font-semibold transition-all ${formatting.headerAlignment === align
+                                                ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white'
+                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                                }`}
+                                        >
+                                            {align.charAt(0).toUpperCase() + align.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Header Line Style</label>
+                                <select
+                                    value={formatting.headerLineStyle}
+                                    onChange={(e) => updateFormatting({ headerLineStyle: e.target.value as HeaderLineStyle })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="none">None</option>
+                                    <option value="thin">Thin</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="thick">Thick</option>
+                                    <option value="double">Double</option>
+                                    <option value="dotted">Dotted</option>
+                                    <option value="dashed">Dashed</option>
+                                </select>
                             </div>
                         </div>
 
                         <div>
                             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Color Theme</label>
-                            <div className="grid grid-cols-3 gap-2">
-                                {(['black', 'navy', 'darkblue', 'darkgreen', 'maroon', 'purple'] as ColorTheme[]).map((theme) => (
+                            <div className="grid grid-cols-4 gap-2">
+                                {([
+                                    { theme: 'black' as ColorTheme, color: '#000000' },
+                                    { theme: 'navy' as ColorTheme, color: '#001f3f' },
+                                    { theme: 'darkblue' as ColorTheme, color: '#0074D9' },
+                                    { theme: 'darkgreen' as ColorTheme, color: '#2ECC40' },
+                                    { theme: 'maroon' as ColorTheme, color: '#85144B' },
+                                    { theme: 'purple' as ColorTheme, color: '#B10DC9' },
+                                    { theme: 'teal' as ColorTheme, color: '#0D9488' },
+                                    { theme: 'slate' as ColorTheme, color: '#475569' },
+                                    { theme: 'burgundy' as ColorTheme, color: '#6B1D38' },
+                                    { theme: 'forest' as ColorTheme, color: '#166534' },
+                                ]).map(({ theme, color }) => (
                                     <button
                                         key={theme}
                                         onClick={() => updateFormatting({ colorTheme: theme })}
@@ -327,20 +420,33 @@ export function FormattingForm() {
                                             : 'border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                                             }`}
                                     >
-                                        <div className="w-full h-3 mb-1 shadow-inner" style={{
-                                            backgroundColor:
-                                                theme === 'black' ? '#000000' :
-                                                    theme === 'navy' ? '#001f3f' :
-                                                        theme === 'darkblue' ? '#0074D9' :
-                                                            theme === 'darkgreen' ? '#2ECC40' :
-                                                                theme === 'maroon' ? '#85144B' :
-                                                                    '#B10DC9'
-                                        }} />
+                                        <div className="w-full h-3 mb-1 shadow-inner" style={{ backgroundColor: color }} />
                                         <span className={`text-[9px] font-semibold uppercase tracking-widest ${formatting.colorTheme === theme ? 'text-slate-800 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400'}`}>
                                             {theme}
                                         </span>
                                     </button>
                                 ))}
+                            </div>
+                            {/* Custom Color Picker */}
+                            <div className="mt-3 flex items-center gap-3">
+                                <button
+                                    onClick={() => updateFormatting({ colorTheme: 'custom' as ColorTheme })}
+                                    className={`flex items-center gap-2 px-3 py-2 border-2 transition-all text-sm font-semibold ${formatting.colorTheme === 'custom'
+                                        ? 'border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                                        : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300'
+                                        }`}
+                                >
+                                    Custom
+                                </button>
+                                {formatting.colorTheme === 'custom' && (
+                                    <input
+                                        type="color"
+                                        value={formatting.customColor}
+                                        onChange={(e) => updateFormatting({ customColor: e.target.value })}
+                                        className="w-10 h-10 border-2 border-slate-300 dark:border-slate-600 cursor-pointer bg-transparent"
+                                        title="Pick custom accent color"
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>

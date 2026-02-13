@@ -205,3 +205,32 @@ ${context.contentType === 'bullets'
         return [response.trim()];
     }
 }
+
+export async function generateProfessionalSummary(
+    apiKey: string,
+    context: {
+        name: string;
+        currentRole?: string;
+        skills?: string;
+        experience?: string;
+        education?: string;
+    }
+): Promise<string> {
+    const prompt = `You are a professional resume writer. Write a compelling 3-4 sentence professional summary for a resume.
+
+Name: ${context.name}
+${context.currentRole ? `Current Role: ${context.currentRole}` : ''}
+${context.skills ? `Skills: ${context.skills}` : ''}
+${context.experience ? `Experience: ${context.experience}` : ''}
+${context.education ? `Education: ${context.education}` : ''}
+
+Write a polished, first-person-implied professional summary that:
+1. Starts with a strong professional identity statement
+2. Highlights key achievements and expertise
+3. Mentions relevant skills and experience
+4. Ends with a value proposition
+
+Return ONLY the summary paragraph, without any labels, quotation marks, or extra formatting.`;
+
+    return await callGeminiAPI(apiKey, prompt);
+}

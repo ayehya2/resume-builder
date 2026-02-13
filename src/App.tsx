@@ -19,7 +19,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from '@dnd-kit/utilities'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import {
-  saveResumeData, loadResumeData, exportToJSON, importFromJSON,
+  exportToJSON, importFromJSON,
   saveDarkMode, loadDarkMode, saveActiveTab, loadActiveTab,
   saveCoverLetterData, loadCoverLetterData, saveDocumentType, loadDocumentType,
   saveContinuousMode, loadContinuousMode, saveShowResume, loadShowResume,
@@ -30,6 +30,14 @@ import { parseResumeFile } from './lib/resumeParser'
 import { pdf } from '@react-pdf/renderer'
 import { ClassicPDFTemplate } from './templates/pdf/ClassicPDFTemplate'
 import { ModernPDFTemplate } from './templates/pdf/ModernPDFTemplate'
+import { MinimalPDFTemplate } from './templates/pdf/MinimalPDFTemplate'
+import { ExecutivePDFTemplate } from './templates/pdf/ExecutivePDFTemplate'
+import { CreativePDFTemplate } from './templates/pdf/CreativePDFTemplate'
+import { TechnicalPDFTemplate } from './templates/pdf/TechnicalPDFTemplate'
+import { ElegantPDFTemplate } from './templates/pdf/ElegantPDFTemplate'
+import { CompactPDFTemplate } from './templates/pdf/CompactPDFTemplate'
+import { AcademicPDFTemplate } from './templates/pdf/AcademicPDFTemplate'
+import { LaTeXPDFTemplate } from './templates/pdf/LaTeXPDFTemplate'
 import { CoverLetterPDFTemplate } from './templates/pdf/CoverLetterPDFTemplate'
 import { useCoverLetterStore } from './lib/coverLetterStore'
 import {
@@ -76,6 +84,14 @@ interface TabItem {
 const templates: Array<{ id: TemplateId; name: string }> = [
   { id: 1, name: 'Classic' },
   { id: 2, name: 'Modern' },
+  { id: 3, name: 'Minimal' },
+  { id: 4, name: 'Executive' },
+  { id: 5, name: 'Creative' },
+  { id: 6, name: 'Technical' },
+  { id: 7, name: 'Elegant' },
+  { id: 8, name: 'Compact' },
+  { id: 9, name: 'Academic' },
+  { id: 10, name: 'LaTeX' },
 ];
 
 function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boolean; onClick: () => void }) {
@@ -139,6 +155,24 @@ function App() {
   const [showCoverLetter, setShowCoverLetter] = useState(() => loadShowCoverLetter());
   const [isImporting, setIsImporting] = useState(false);
 
+  // Scroll to a section in continuous mode instead of switching tabs
+  const scrollToContinuousSection = (tabKey: TabKey) => {
+    const sectionId = `continuous-section-${tabKey}`;
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Handle sidebar tab click — scroll if continuous mode, else switch tab
+  const handleSidebarClick = (tabKey: TabKey) => {
+    if (continuousMode) {
+      scrollToContinuousSection(tabKey);
+    } else {
+      setActiveTab(tabKey);
+    }
+  };
+
   // Close export dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -150,16 +184,8 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Load saved data on mount, then apply URL hash data (which wins over localStorage)
+  // Load non-store persisted data on mount; resume store is auto-persisted via Zustand middleware
   useEffect(() => {
-    const savedResume = loadResumeData();
-    if (savedResume) {
-      if (savedResume.sections) {
-        savedResume.sections = Array.from(new Set(savedResume.sections));
-      }
-      useResumeStore.setState({ resumeData: savedResume });
-    }
-
     const savedCoverLetter = loadCoverLetterData();
     if (savedCoverLetter) {
       useCoverLetterStore.setState({ coverLetterData: savedCoverLetter });
@@ -194,15 +220,14 @@ function App() {
   useEffect(() => { saveShowResume(showResume); }, [showResume]);
   useEffect(() => { saveShowCoverLetter(showCoverLetter); }, [showCoverLetter]);
 
-  // Auto-save every 30 seconds
+  // Auto-save cover letter & document type every 30 seconds (resume store auto-persists via Zustand middleware)
   useEffect(() => {
     const interval = setInterval(() => {
-      saveResumeData(resumeData);
       saveCoverLetterData(coverLetterData);
       saveDocumentType(documentType);
     }, 30000);
     return () => clearInterval(interval);
-  }, [resumeData, coverLetterData, documentType]);
+  }, [coverLetterData, documentType]);
 
   // Sync documentType with toggles and activeTab
   useEffect(() => {
@@ -313,7 +338,8 @@ function App() {
         }
       } catch (error) {
         console.error('Import error:', error);
-        alert('Failed to import file. The file format may not be supported or the content could not be parsed.');
+        const msg = error instanceof Error ? error.message : 'Unknown error';
+        alert(`Failed to import file: ${msg}`);
       } finally {
         setIsImporting(false);
       }
@@ -402,8 +428,32 @@ function App() {
           case 2:
             templateComponent = <ModernPDFTemplate data={resumeData} />;
             break;
+          case 3:
+            templateComponent = <MinimalPDFTemplate data={resumeData} />;
+            break;
+          case 4:
+            templateComponent = <ExecutivePDFTemplate data={resumeData} />;
+            break;
+          case 5:
+            templateComponent = <CreativePDFTemplate data={resumeData} />;
+            break;
+          case 6:
+            templateComponent = <TechnicalPDFTemplate data={resumeData} />;
+            break;
+          case 7:
+            templateComponent = <ElegantPDFTemplate data={resumeData} />;
+            break;
+          case 8:
+            templateComponent = <CompactPDFTemplate data={resumeData} />;
+            break;
+          case 9:
+            templateComponent = <AcademicPDFTemplate data={resumeData} />;
+            break;
+          case 10:
+            templateComponent = <LaTeXPDFTemplate data={resumeData} />;
+            break;
           default:
-            templateComponent = <ModernPDFTemplate data={resumeData} />;
+            templateComponent = <ClassicPDFTemplate data={resumeData} />;
         }
         fileName = `${resumeData.basics.name || 'resume'}`.replace(/[^a-z0-9._-]/gi, '_');
       }
@@ -438,8 +488,32 @@ function App() {
           case 2:
             templateComponent = <ModernPDFTemplate data={resumeData} />;
             break;
+          case 3:
+            templateComponent = <MinimalPDFTemplate data={resumeData} />;
+            break;
+          case 4:
+            templateComponent = <ExecutivePDFTemplate data={resumeData} />;
+            break;
+          case 5:
+            templateComponent = <CreativePDFTemplate data={resumeData} />;
+            break;
+          case 6:
+            templateComponent = <TechnicalPDFTemplate data={resumeData} />;
+            break;
+          case 7:
+            templateComponent = <ElegantPDFTemplate data={resumeData} />;
+            break;
+          case 8:
+            templateComponent = <CompactPDFTemplate data={resumeData} />;
+            break;
+          case 9:
+            templateComponent = <AcademicPDFTemplate data={resumeData} />;
+            break;
+          case 10:
+            templateComponent = <LaTeXPDFTemplate data={resumeData} />;
+            break;
           default:
-            templateComponent = <ModernPDFTemplate data={resumeData} />;
+            templateComponent = <ClassicPDFTemplate data={resumeData} />;
         }
       }
 
@@ -462,7 +536,7 @@ function App() {
 
     // Template selector
     sections.push(
-      <div key="templates" className={dividerClass}>
+      <div key="templates" id="continuous-section-templates" className={dividerClass}>
         <h3 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-900'}`}>Choose Template</h3>
         <div className="grid grid-cols-2 gap-4">
           {templates.map((template) => (
@@ -522,14 +596,14 @@ function App() {
 
     // Formatting options
     sections.push(
-      <div key="formatting" className={dividerClass}>
+      <div key="formatting" id="continuous-section-formatting" className={dividerClass}>
         <FormattingForm />
       </div>
     );
 
     if (showResume) {
       sections.push(
-        <div key="basics" className={dividerClass}>
+        <div key="basics" id="continuous-section-basics" className={dividerClass}>
           <BasicsForm />
         </div>
       );
@@ -539,20 +613,20 @@ function App() {
         if (sKey === 'profile') continue; // Already rendered basics
 
         if (sKey === 'work') {
-          sections.push(<div key="work" className={dividerClass}><WorkForm /></div>);
+          sections.push(<div key="work" id="continuous-section-work" className={dividerClass}><WorkForm /></div>);
         } else if (sKey === 'education') {
-          sections.push(<div key="education" className={dividerClass}><EducationForm /></div>);
+          sections.push(<div key="education" id="continuous-section-education" className={dividerClass}><EducationForm /></div>);
         } else if (sKey === 'skills') {
-          sections.push(<div key="skills" className={dividerClass}><SkillsForm /></div>);
+          sections.push(<div key="skills" id="continuous-section-skills" className={dividerClass}><SkillsForm /></div>);
         } else if (sKey === 'projects') {
-          sections.push(<div key="projects" className={dividerClass}><ProjectsForm /></div>);
+          sections.push(<div key="projects" id="continuous-section-projects" className={dividerClass}><ProjectsForm /></div>);
         } else if (sKey === 'awards') {
-          sections.push(<div key="awards" className={dividerClass}><AwardsForm /></div>);
+          sections.push(<div key="awards" id="continuous-section-awards" className={dividerClass}><AwardsForm /></div>);
         } else {
           // Custom section — always render if found
           const cs = resumeData.customSections.find(c => c.id === sKey);
           if (cs) {
-            sections.push(<div key={sKey} className={dividerClass}><CustomSectionForm sectionId={sKey} /></div>);
+            sections.push(<div key={sKey} id={`continuous-section-${sKey}`} className={dividerClass}><CustomSectionForm sectionId={sKey} /></div>);
           }
         }
       }
@@ -560,7 +634,7 @@ function App() {
 
     if (showCoverLetter) {
       sections.push(
-        <div key="cover-letter" className={dividerClass}>
+        <div key="cover-letter" id="continuous-section-cover-letter" className={dividerClass}>
           <CoverLetterForm />
         </div>
       );
@@ -568,7 +642,7 @@ function App() {
 
     // AI Assistant at the end
     sections.push(
-      <div key="ai" className={dividerClass}>
+      <div key="ai" id="continuous-section-ai" className={dividerClass}>
         <AITab documentType={documentType} />
       </div>
     );
@@ -664,7 +738,7 @@ function App() {
                         key={tab.key}
                         tab={tab}
                         isActive={activeTab === tab.key && !continuousMode}
-                        onClick={() => { setContinuousMode(false); setActiveTab(tab.key); }}
+                        onClick={() => handleSidebarClick(tab.key)}
                       />
                     ))}
 
@@ -674,7 +748,7 @@ function App() {
                         key={tab.key}
                         tab={tab}
                         isActive={activeTab === tab.key && !continuousMode}
-                        onClick={() => { setContinuousMode(false); setActiveTab(tab.key); }}
+                        onClick={() => handleSidebarClick(tab.key)}
                       />
                     ))}
 
@@ -702,7 +776,7 @@ function App() {
                         key={tab.key}
                         tab={tab}
                         isActive={activeTab === tab.key && !continuousMode}
-                        onClick={() => { setContinuousMode(false); setActiveTab(tab.key); }}
+                        onClick={() => handleSidebarClick(tab.key)}
                       />
                     ))}
                   </div>

@@ -15,6 +15,7 @@ import {
     getPDFBulletGap,
     getPDFSectionHeaderStyle,
 } from '../../lib/pdfFormatting';
+import { parseBoldTextPDF } from '../../lib/parseBoldText';
 
 // Dynamic styles factory - creates styles based on formatting options
 const createStyles = (formatting: FormattingOptions) => {
@@ -150,14 +151,23 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
 
                 {/* Render sections in user-defined order */}
                 {sections.map((sectionKey) => {
-                    if (sectionKey === 'profile') return null;
+                    if (sectionKey === 'profile' && basics.summary) {
+                        return (
+                            <View key="profile" style={styles.section}>
+                                <Text style={styles.sectionHeader}>PROFESSIONAL SUMMARY</Text>
+                                <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1, lineHeight: 1.4 }}>
+                                    {basics.summary}
+                                </Text>
+                            </View>
+                        );
+                    }
 
                     if (sectionKey === 'education' && education.length > 0) {
                         return (
                             <View key="education" style={styles.section}>
                                 <Text style={styles.sectionHeader}>EDUCATION</Text>
                                 {education.map((edu, idx) => (
-                                    <View key={idx} style={styles.entryContainer}>
+                                    <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={styles.entryTitle}>{edu.institution}</Text>
                                             <Text style={styles.dateRange}>{edu.graduationDate}</Text>
@@ -177,7 +187,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                             <View key="work" style={styles.section}>
                                 <Text style={styles.sectionHeader}>EXPERIENCE</Text>
                                 {work.map((job, idx) => (
-                                    <View key={idx} style={styles.entryContainer}>
+                                    <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={styles.entryTitle}>{job.company}</Text>
                                             <Text style={styles.dateRange}>{job.startDate} - {job.endDate}</Text>
@@ -190,7 +200,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                                 {job.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                     <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                        <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                     </View>
                                                 ))}
                                             </View>
@@ -222,7 +232,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                             <View key="projects" style={styles.section}>
                                 <Text style={styles.sectionHeader}>PROJECTS</Text>
                                 {projects.map((project, idx) => (
-                                    <View key={idx} style={styles.entryContainer}>
+                                    <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                                 <Text style={styles.entryTitle}>{project.name}</Text>
@@ -244,7 +254,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                                 {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                     <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                        <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                     </View>
                                                 ))}
                                             </View>
@@ -260,7 +270,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                             <View key="awards" style={styles.section}>
                                 <Text style={styles.sectionHeader}>AWARDS</Text>
                                 {awards.map((award, idx) => (
-                                    <View key={idx} style={{ marginBottom: 6 }}>
+                                    <View key={idx} style={{ marginBottom: 6 }} wrap={true}>
                                         <Text style={{ fontSize: 11, fontWeight: 'bold' }}>
                                             {award.title}
                                             {award.date && <Text style={{ fontWeight: 'normal' }}> • {award.date}</Text>}
@@ -288,7 +298,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                             <View key={customSection.id} style={styles.section}>
                                 <Text style={styles.sectionHeader}>{customSection.title.toUpperCase()}</Text>
                                 {customSection.items.map((entry, idx) => (
-                                    <View key={idx} style={styles.entryContainer}>
+                                    <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <View style={{ flex: 1, paddingRight: 10 }}>
                                                 <Text style={styles.entryTitle}>{entry.title || 'Untitled'}</Text>
@@ -311,7 +321,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                                 {entry.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                     <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                        <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                     </View>
                                                 ))}
                                             </View>

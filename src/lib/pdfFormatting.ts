@@ -46,6 +46,10 @@ export function getPDFColorValue(theme: ColorTheme, customColor: string): string
         darkgreen: '#2ECC40',
         maroon: '#85144B',
         purple: '#B10DC9',
+        teal: '#0D9488',
+        slate: '#475569',
+        burgundy: '#6B1D38',
+        forest: '#166534',
         custom: customColor,
     };
     return colorMap[theme] || '#000000';
@@ -102,12 +106,12 @@ export function getPDFLineHeight(lineSpacing: string): number {
  */
 export function getPDFSectionMargin(spacing: import('../types').Spacing): number {
     const spacingMap = {
-        tight: 6,
-        normal: 12,
-        relaxed: 18,
-        spacious: 24,
+        tight: 4,
+        normal: 8,
+        relaxed: 14,
+        spacious: 20,
     };
-    return spacingMap[spacing] || 12;
+    return spacingMap[spacing] || 8;
 }
 
 /**
@@ -115,12 +119,12 @@ export function getPDFSectionMargin(spacing: import('../types').Spacing): number
  */
 export function getPDFEntrySpacing(spacing: import('../types').Spacing): number {
     const spacingMap = {
-        tight: 4,
-        normal: 8,
-        relaxed: 14,
-        spacious: 20,
+        tight: 2,
+        normal: 6,
+        relaxed: 10,
+        spacious: 16,
     };
-    return spacingMap[spacing] || 8;
+    return spacingMap[spacing] || 6;
 }
 
 /**

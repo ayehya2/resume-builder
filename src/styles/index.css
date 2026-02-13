@@ -139,19 +139,20 @@ code {
 }
 
 /* Deep override to prevent dark mode leaking into white paper */
-.pdf-paper,
-.pdf-paper div,
-.pdf-paper span,
-.pdf-paper p,
-.pdf-paper h1,
-.pdf-paper h2,
-.pdf-paper h3,
-.pdf-paper h4,
-.pdf-paper li,
-.pdf-paper ul,
-.pdf-paper a,
-.pdf-paper hr,
-.pdf-paper label {
+/* Exclude elements with inline background styles (e.g. Executive banner) */
+.pdf-paper:not([style*="background"]),
+.pdf-paper div:not([style*="background"]),
+.pdf-paper span:not([style*="background"]),
+.pdf-paper p:not([style*="background"]),
+.pdf-paper h1:not([style*="background"]),
+.pdf-paper h2:not([style*="background"]),
+.pdf-paper h3:not([style*="background"]),
+.pdf-paper h4:not([style*="background"]),
+.pdf-paper li:not([style*="background"]),
+.pdf-paper ul:not([style*="background"]),
+.pdf-paper a:not([style*="background"]),
+.pdf-paper hr:not([style*="background"]),
+.pdf-paper label:not([style*="background"]) {
   background-color: transparent !important;
 }
 

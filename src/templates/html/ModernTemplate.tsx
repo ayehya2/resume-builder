@@ -1,10 +1,11 @@
 import { useResumeStore } from '../../store';
 import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize } from '../../lib/formatting';
-import type { SectionKey, Education, WorkExperience, Skill, Project, Award } from '../../types';
+import { parseBoldText } from '../../lib/parseBoldText';
+import type { SectionKey, Education, WorkExperience, Skill, Project, Award, CustomSection } from '../../types';
 
 export function ModernTemplate() {
     const { resumeData } = useResumeStore();
-    const { basics, work, education, skills, projects, awards, sections, formatting } = resumeData;
+    const { basics, work, education, skills, projects, awards, sections, formatting, customSections } = resumeData;
 
     const colorValue = getColorValue(formatting.colorTheme, formatting.customColor);
     const bulletSymbol = getBulletSymbol(formatting.bulletStyle);
@@ -60,7 +61,28 @@ export function ModernTemplate() {
 
             {/* Sections */}
             {sections.map((sectionKey: SectionKey) => {
-                if (sectionKey === 'profile') return null;
+                const sectionHeaderStyle = {
+                    borderColor: colorValue,
+                    color: colorValue,
+                    fontSize: getSectionTitleSize(formatting.sectionTitleSize),
+                    textTransform: getSectionHeaderCase(formatting.sectionHeaderStyle),
+                    textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
+                    fontWeight: (formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal') as any,
+                    breakInside: 'avoid' as any
+                };
+
+                if (sectionKey === 'profile' && basics.summary) {
+                    return (
+                        <div key="profile" className="mb-6" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="font-bold mb-3 pl-3 border-l-8" style={sectionHeaderStyle}>
+                                Professional Summary
+                            </h2>
+                            <div className="pl-3 text-sm text-slate-700 leading-relaxed">
+                                {basics.summary}
+                            </div>
+                        </div>
+                    );
+                }
 
                 if (sectionKey === 'education' && education.length > 0) {
                     return (
@@ -115,7 +137,7 @@ export function ModernTemplate() {
                                             {job.bullets.filter((b: string) => b.trim() !== '').map((line: string, i: number) => (
                                                 <li key={i} className="flex items-start mb-0.5" style={{ gap: getBulletGapValue(formatting.bulletGap), breakInside: 'avoid' }}>
                                                     <span className="mt-0.5 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
-                                                    {line.replace(/^[•*-]\s*/, '')}
+                                                    <span>{parseBoldText(line.replace(/^[•*-]\s*/, ''))}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -171,7 +193,7 @@ export function ModernTemplate() {
                                             {project.bullets.filter((b: string) => b.trim() !== '').map((bullet: string, i: number) => (
                                                 <li key={i} className="flex gap-2 text-sm items-start text-left" style={{ breakInside: 'avoid' }}>
                                                     <span className="mt-1 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
-                                                    <span className="text-slate-700">{bullet.replace(/^[•*-]\s*/, '')}</span>
+                                                    <span className="text-slate-700">{parseBoldText(bullet.replace(/^[•*-]\s*/, ''))}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -197,6 +219,49 @@ export function ModernTemplate() {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    );
+                }
+
+                // Custom sections
+                const customSection = customSections.find((cs: CustomSection) => cs.id === sectionKey);
+                if (customSection && customSection.items && customSection.items.length > 0) {
+                    return (
+                        <div key={customSection.id} className="mb-6" style={{ breakInside: 'avoid-page' }}>
+                            <h2 className="font-bold mb-3 pl-3 border-l-8" style={sectionHeaderStyle}>
+                                {customSection.title}
+                            </h2>
+                            {customSection.items.map((entry, idx) => (
+                                <div key={idx} className="mb-4 pl-3" style={{ breakInside: 'avoid' }}>
+                                    <div className="flex justify-between items-baseline font-bold text-lg">
+                                        <span>{entry.title}</span>
+                                        <span className="text-sm font-normal text-slate-500">{entry.date}</span>
+                                    </div>
+                                    {entry.subtitle && (
+                                        <div className="italic text-slate-700 mb-2">
+                                            {entry.subtitle}{entry.location && `, ${entry.location}`}
+                                        </div>
+                                    )}
+                                    {customSection.type === 'bullets' ? (
+                                        entry.bullets && entry.bullets.filter(b => b.trim()).length > 0 && (
+                                            <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
+                                                {entry.bullets.filter(b => b.trim()).map((bullet, i) => (
+                                                    <li key={i} className="flex items-start mb-0.5" style={{ gap: getBulletGapValue(formatting.bulletGap), breakInside: 'avoid' }}>
+                                                        <span className="mt-0.5 flex-shrink-0" style={{ color: colorValue }}>{bulletSymbol}</span>
+                                                        <span>{parseBoldText(bullet.replace(/^[•*-]\s*/, ''))}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )
+                                    ) : (
+                                        entry.bullets && entry.bullets[0] && (
+                                            <div className="text-sm text-slate-700 leading-relaxed">
+                                                {parseBoldText(entry.bullets[0])}
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     );
                 }

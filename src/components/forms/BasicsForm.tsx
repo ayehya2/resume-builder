@@ -78,6 +78,20 @@ export function BasicsForm() {
                     </div>
                 </div>
 
+                {/* Professional Summary */}
+                <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Professional Summary <span className="font-normal text-slate-400 dark:text-slate-500">(Optional)</span>
+                    </label>
+                    <textarea
+                        value={basics.summary}
+                        onChange={(e) => updateBasics({ summary: e.target.value })}
+                        rows={3}
+                        className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all resize-y"
+                        placeholder="A brief 2-3 sentence summary of your professional background, key skills, and career goals..."
+                    />
+                </div>
+
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
                     <div className="flex justify-between items-center mb-3">
                         <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Websites & Links</h4>

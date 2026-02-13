@@ -7,55 +7,132 @@ interface PDFParseResult {
 }
 
 export async function parsePDF(file: File): Promise<PDFParseResult> {
-    const pdfjsLib = await import('pdfjs-dist');
+    // Dynamic import of pdfjs-dist
+    let pdfjsLib: any;
+    try {
+        pdfjsLib = await import('pdfjs-dist');
+    } catch (e) {
+        throw new Error('Failed to load PDF library. Please try again or use a different file format.');
+    }
 
-    // Use the bundled worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+    // Set up the worker — try multiple approaches for pdfjs-dist v5 compatibility
+    try {
+        // Approach 1: Use the Vite-bundled worker via import.meta.url
+        const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url);
+        pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl.href;
+    } catch {
+        try {
+            // Approach 2: CDN fallback with version-matched URL
+            const version = pdfjsLib.version || '5.4.624';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.mjs`;
+        } catch {
+            // Approach 3: Disable worker (runs on main thread — slower but works)
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+        }
+    }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let arrayBuffer: ArrayBuffer;
+    try {
+        arrayBuffer = await file.arrayBuffer();
+    } catch (e) {
+        throw new Error('Failed to read the PDF file. The file may be corrupted.');
+    }
+
+    let pdfDoc: any;
+    try {
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        pdfDoc = await loadingTask.promise;
+    } catch (e: any) {
+        // If worker fails, retry with worker disabled
+        try {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+            const loadingTask = pdfjsLib.getDocument({
+                data: arrayBuffer,
+                disableAutoFetch: true,
+            });
+            pdfDoc = await loadingTask.promise;
+        } catch (e2: any) {
+            throw new Error(
+                `Failed to parse PDF: ${e2?.message || e?.message || 'Unknown error'}. ` +
+                'The file may be corrupted or password-protected.'
+            );
+        }
+    }
+
+    if (!pdfDoc || pdfDoc.numPages === 0) {
+        throw new Error('The PDF file appears to be empty (0 pages).');
+    }
 
     const pages: string[] = [];
     const allLinks: string[] = [];
+    let totalTextItems = 0;
 
     for (let i = 1; i <= pdfDoc.numPages; i++) {
-        const page = await pdfDoc.getPage(i);
+        let page: any;
+        try {
+            page = await pdfDoc.getPage(i);
+        } catch {
+            continue; // Skip pages that fail to load
+        }
 
         // Extract text with spatial awareness
-        const content = await page.getTextContent();
-        const items = content.items.filter((item: any) => 'str' in item && item.str.trim().length > 0);
+        try {
+            const content = await page.getTextContent();
+            const items = content.items.filter((item: any) => 'str' in item && item.str.trim().length > 0);
 
-        if (items.length === 0) continue;
+            totalTextItems += items.length;
 
-        // Sort items by Y (descending = top-to-bottom) then X (ascending = left-to-right)
-        const sorted = [...items].sort((a: any, b: any) => {
-            const yDiff = b.transform[5] - a.transform[5];
-            if (Math.abs(yDiff) > 3) return yDiff; // different lines
-            return a.transform[4] - b.transform[4]; // same line, sort by x
-        });
+            if (items.length === 0) continue;
 
-        // Group items into lines based on Y-coordinate proximity
-        const lines: string[] = [];
-        let currentLine: string[] = [];
-        let lastY: number | null = null;
+            // Sort items by Y (descending = top-to-bottom) then X (ascending = left-to-right)
+            const sorted = [...items].sort((a: any, b: any) => {
+                const yDiff = b.transform[5] - a.transform[5];
+                if (Math.abs(yDiff) > 3) return yDiff; // different lines
+                return a.transform[4] - b.transform[4]; // same line, sort by x
+            });
 
-        for (const item of sorted as any[]) {
-            const y = item.transform[5];
-            if (lastY !== null && Math.abs(lastY - y) > 3) {
-                // New line
-                if (currentLine.length > 0) {
-                    lines.push(currentLine.join(' ').trim());
+            // Group items into lines based on Y-coordinate proximity
+            const lines: string[] = [];
+            let currentLine: string[] = [];
+            let lastY: number | null = null;
+            let lastX: number | null = null;
+
+            for (const item of sorted as any[]) {
+                const y = item.transform[5];
+                const x = item.transform[4];
+
+                if (lastY !== null && Math.abs(lastY - y) > 3) {
+                    // New line
+                    if (currentLine.length > 0) {
+                        lines.push(currentLine.join(' ').trim());
+                    }
+                    currentLine = [];
+                    lastX = null;
                 }
-                currentLine = [];
-            }
-            currentLine.push(item.str);
-            lastY = y;
-        }
-        if (currentLine.length > 0) {
-            lines.push(currentLine.join(' ').trim());
-        }
 
-        pages.push(lines.join('\n'));
+                // Add space between words that are far apart on the same line
+                if (lastX !== null && lastY !== null && Math.abs(lastY - y) <= 3) {
+                    const gap = x - lastX;
+                    if (gap > 20) {
+                        // Large gap — likely a column separator
+                        currentLine.push('  ');
+                    }
+                }
+
+                currentLine.push(item.str);
+                lastY = y;
+                const itemWidth = item.width || (item.str.length * 5); // approximate
+                lastX = x + itemWidth;
+            }
+            if (currentLine.length > 0) {
+                lines.push(currentLine.join(' ').trim());
+            }
+
+            pages.push(lines.join('\n'));
+        } catch {
+            // Page text extraction failed, skip
+            continue;
+        }
 
         // Extract links from page annotations
         try {
@@ -70,7 +147,22 @@ export async function parsePDF(file: File): Promise<PDFParseResult> {
         }
     }
 
+    // Check for scanned/image-only PDFs
+    if (totalTextItems === 0) {
+        throw new Error(
+            'No text could be extracted from this PDF. It appears to be a scanned (image-only) document. ' +
+            'Please use OCR software to convert it to a text-based PDF first, or manually enter your resume data.'
+        );
+    }
+
     const text = pages.join('\n\n');
+
+    if (!text || text.trim().length < 10) {
+        throw new Error(
+            'Very little text was extracted from this PDF. It may be image-based or heavily formatted. ' +
+            'Try saving it as a text-based PDF or plain text file.'
+        );
+    }
 
     // Also find URLs in the text itself via regex
     const urlRegex = /https?:\/\/[^\s,;)>\]"']+/gi;
@@ -86,10 +178,36 @@ export async function parsePDF(file: File): Promise<PDFParseResult> {
 
 // ─── DOCX Parsing ────────────────────────────────────────────────
 export async function parseDocx(file: File): Promise<string> {
-    const mammoth = await import('mammoth');
-    const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer });
-    return result.value;
+    let mammoth: any;
+    try {
+        mammoth = await import('mammoth');
+    } catch (e) {
+        throw new Error('Failed to load DOCX parsing library. Please try again or use a different file format.');
+    }
+
+    let arrayBuffer: ArrayBuffer;
+    try {
+        arrayBuffer = await file.arrayBuffer();
+    } catch (e) {
+        throw new Error('Failed to read the DOCX file. The file may be corrupted.');
+    }
+
+    try {
+        // mammoth expects { arrayBuffer } for browser usage
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        if (!result || !result.value || result.value.trim().length === 0) {
+            throw new Error('No text content found in the document.');
+        }
+        return result.value;
+    } catch (e: any) {
+        // mammoth may throw if the file isn't actually a valid DOCX
+        if (e?.message?.includes('No text content')) throw e;
+        throw new Error(
+            `Failed to parse DOCX file: ${e?.message || 'Unknown error'}. ` +
+            'Make sure this is a valid .docx file (not .doc). ' +
+            'Older .doc files are not supported — please re-save as .docx.'
+        );
+    }
 }
 
 // ─── LaTeX Parsing ───────────────────────────────────────────────
@@ -394,6 +512,16 @@ export function parseResumeText(text: string, links?: string[]): Partial<ResumeD
 export async function parseResumeFile(file: File): Promise<Partial<ResumeData>> {
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
 
+    // Validate file size (max 20MB)
+    if (file.size > 20 * 1024 * 1024) {
+        throw new Error('File is too large (max 20MB). Please use a smaller file.');
+    }
+
+    // Validate file has content
+    if (file.size === 0) {
+        throw new Error('The file appears to be empty.');
+    }
+
     try {
         switch (ext) {
             case 'pdf': {
@@ -403,13 +531,17 @@ export async function parseResumeFile(file: File): Promise<Partial<ResumeData>> 
                 }
                 return parseResumeText(text, links);
             }
-            case 'docx':
-            case 'doc': {
+            case 'docx': {
                 const text = await parseDocx(file);
                 if (!text || text.trim().length === 0) {
                     throw new Error('No text could be extracted from this document.');
                 }
                 return parseResumeText(text);
+            }
+            case 'doc': {
+                throw new Error(
+                    'The older .doc format is not supported. Please re-save the file as .docx (using Microsoft Word or LibreOffice) and try again.'
+                );
             }
             case 'tex':
             case 'latex': {
@@ -425,12 +557,18 @@ export async function parseResumeFile(file: File): Promise<Partial<ResumeData>> 
                 throw new Error('JSON_PASSTHROUGH');
             }
             default:
-                throw new Error(`Unsupported file type: .${ext}`);
+                throw new Error(`Unsupported file type: .${ext}. Supported formats: PDF, DOCX, TXT, LaTeX, JSON.`);
         }
     } catch (error: any) {
         // Re-throw with more descriptive messages
         if (error?.message === 'JSON_PASSTHROUGH') throw error;
         if (error?.message?.includes('No text')) throw error;
+        if (error?.message?.includes('not supported')) throw error;
+        if (error?.message?.includes('too large')) throw error;
+        if (error?.message?.includes('empty')) throw error;
+        if (error?.message?.includes('Failed to')) throw error;
+        if (error?.message?.includes('scanned')) throw error;
+        if (error?.message?.includes('image-based')) throw error;
 
         console.error(`Resume parser error for .${ext}:`, error);
         throw new Error(
@@ -439,4 +577,3 @@ export async function parseResumeFile(file: File): Promise<Partial<ResumeData>> 
         );
     }
 }
-

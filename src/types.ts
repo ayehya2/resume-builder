@@ -33,6 +33,7 @@ export interface Basics {
     email: string;
     phone: string;
     address: string;
+    summary: string;
     websites: Website[];
 }
 
@@ -83,7 +84,7 @@ export interface Award {
 }
 
 // Template Types
-export type TemplateId = 1 | 2 | 3 | 4;
+export type TemplateId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export type SectionKey = 'profile' | 'education' | 'work' | 'skills' | 'projects' | 'awards' | string;
 
 export interface TemplateMetadata {
@@ -143,7 +144,7 @@ export type Spacing = 'tight' | 'normal' | 'relaxed' | 'spacious';
 export type PageMargins = 'narrow' | 'normal' | 'wide' | 'custom';
 export type BulletStyle = 'bullet' | 'dash' | 'arrow' | 'circle' | 'square' | 'diamond' | 'star' | 'chevron';
 export type BulletIndent = 'none' | 'small' | 'medium' | 'large';
-export type ColorTheme = 'black' | 'navy' | 'darkblue' | 'darkgreen' | 'maroon' | 'purple' | 'custom';
+export type ColorTheme = 'black' | 'navy' | 'darkblue' | 'darkgreen' | 'maroon' | 'purple' | 'teal' | 'slate' | 'burgundy' | 'forest' | 'custom';
 export type SectionDivider = 'none' | 'line' | 'double' | 'thick' | 'dotted';
 export type HeaderLineStyle = 'none' | 'thin' | 'medium' | 'thick' | 'double' | 'dotted' | 'dashed';
 export type Alignment = 'left' | 'center' | 'right';

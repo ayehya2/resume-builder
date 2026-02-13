@@ -40,6 +40,10 @@ export function getColorValue(theme: ColorTheme, customColor: string): string {
         darkgreen: '#2ECC40',
         maroon: '#85144B',
         purple: '#B10DC9',
+        teal: '#0D9488',
+        slate: '#475569',
+        burgundy: '#6B1D38',
+        forest: '#166534',
         custom: customColor,
     };
     return colorMap[theme] || '#000000';

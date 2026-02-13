@@ -1,0 +1,303 @@
+import { Document, Page, Text, View, Link, StyleSheet } from '@react-pdf/renderer';
+import type { ResumeData, FormattingOptions } from '../../types';
+import {
+    getPDFFontFamily,
+    getPDFBulletSymbol,
+    getPDFColorValue,
+    getPDFFontSize,
+    getPDFSectionTitleSize,
+    getPDFSectionMargin,
+    getPDFBulletIndent,
+    getPDFEntrySpacing,
+    getPDFBulletGap,
+    getPDFSectionHeaderStyle,
+} from '../../lib/pdfFormatting';
+
+const createStyles = (formatting: FormattingOptions) => {
+    const accentColor = getPDFColorValue(formatting.colorTheme, formatting.customColor);
+    const baseFontSize = getPDFFontSize(formatting.baseFontSize);
+
+    return StyleSheet.create({
+        page: {
+            fontFamily: getPDFFontFamily(formatting.fontFamily),
+            fontSize: baseFontSize,
+            backgroundColor: '#ffffff',
+            flexDirection: 'row',
+            paddingTop: parseFloat(String(formatting.marginTop)) * 72,
+            paddingBottom: parseFloat(String(formatting.marginBottom)) * 72,
+        },
+        sidebar: {
+            width: '32%',
+            backgroundColor: accentColor + '10',
+            paddingLeft: parseFloat(String(formatting.marginLeft)) * 72,
+            paddingRight: 14,
+        },
+        mainContent: {
+            width: '68%',
+            paddingLeft: 18,
+            paddingRight: parseFloat(String(formatting.marginRight)) * 72,
+        },
+        sidebarName: {
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: accentColor,
+            lineHeight: 1.2,
+            marginBottom: 10,
+        },
+        sidebarContact: {
+            fontSize: 8.5,
+            color: '#555555',
+            lineHeight: 1.6,
+            marginBottom: 2,
+        },
+        sidebarLink: {
+            fontSize: 8.5,
+            color: accentColor,
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            marginBottom: 2,
+        },
+        sidebarSection: {
+            marginBottom: 16,
+        },
+        sidebarSectionHeader: {
+            fontSize: 10,
+            fontWeight: 'bold',
+            color: accentColor,
+            textTransform: 'uppercase',
+            letterSpacing: 1.5,
+            marginBottom: 8,
+            paddingBottom: 4,
+            borderBottom: `1.5pt solid ${accentColor}`,
+        },
+        sidebarSkillGroup: {
+            marginBottom: 6,
+        },
+        sidebarSkillCategory: {
+            fontSize: 8.5,
+            fontWeight: 'bold',
+            color: '#333333',
+            marginBottom: 2,
+        },
+        sidebarSkillItems: {
+            fontSize: baseFontSize - 3,
+            color: '#666666',
+            lineHeight: 1.5,
+        },
+        mainSection: {
+            marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
+        },
+        mainSectionHeader: {
+            fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
+            fontWeight: 'bold',
+            color: accentColor,
+            textTransform: getPDFSectionHeaderStyle(formatting.sectionHeaderStyle),
+            letterSpacing: 1,
+            marginBottom: 8,
+            paddingBottom: 3,
+            borderBottom: `1.5pt solid ${accentColor}`,
+        },
+        entryContainer: {
+            marginBottom: getPDFEntrySpacing(formatting.entrySpacing),
+        },
+        entryHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 2,
+        },
+        entryTitle: {
+            fontSize: baseFontSize + 1,
+            fontWeight: 'bold',
+            color: '#1a1a1a',
+        },
+        dateRange: {
+            fontSize: baseFontSize - 2,
+            color: '#888888',
+        },
+        entrySubtitle: {
+            fontSize: baseFontSize - 1,
+            fontStyle: 'italic',
+            color: '#333333',
+            marginBottom: 3,
+        },
+        bulletPoint: {
+            fontSize: baseFontSize - 1,
+            marginLeft: getPDFBulletIndent(formatting.bulletIndent),
+            marginBottom: 2,
+            color: '#1a1a1a',
+            flexDirection: 'row',
+        },
+        bulletSymbol: {
+            marginRight: getPDFBulletGap(formatting.bulletGap),
+        },
+    });
+};
+
+interface CreativePDFTemplateProps {
+    data: ResumeData;
+}
+
+export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
+    const { basics, work, education, skills, projects, awards, sections, formatting } = data;
+    const styles = createStyles(formatting);
+    const accentColor = getPDFColorValue(formatting.colorTheme, formatting.customColor);
+    const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
+
+    return (
+        <Document>
+            <Page size="LETTER" style={styles.page}>
+                {/* Left Sidebar */}
+                <View style={styles.sidebar}>
+                    <Text style={styles.sidebarName}>{basics.name || 'Your Name'}</Text>
+                    {basics.email && <Text style={styles.sidebarContact}>{basics.email}</Text>}
+                    {basics.phone && <Text style={styles.sidebarContact}>{basics.phone}</Text>}
+                    {basics.address && <Text style={styles.sidebarContact}>{basics.address}</Text>}
+                    {basics.websites.length > 0 && (
+                        <View style={{ marginTop: 8 }}>
+                            {basics.websites.map((site, idx) => (
+                                <Link key={idx} src={site.url} style={styles.sidebarLink}>
+                                    {site.name || site.url}
+                                </Link>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Skills in sidebar */}
+                    {skills.length > 0 && (
+                        <View style={[styles.sidebarSection, { marginTop: 16 }]}>
+                            <Text style={styles.sidebarSectionHeader}>Skills</Text>
+                            {skills.map((skillGroup, idx) => (
+                                <View key={idx} style={styles.sidebarSkillGroup}>
+                                    <Text style={styles.sidebarSkillCategory}>{skillGroup.category}</Text>
+                                    <Text style={styles.sidebarSkillItems}>{skillGroup.items.join(' · ')}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Awards in sidebar */}
+                    {awards.length > 0 && (
+                        <View style={styles.sidebarSection}>
+                            <Text style={styles.sidebarSectionHeader}>Awards</Text>
+                            {awards.map((award, idx) => (
+                                <View key={idx} style={{ marginBottom: 6 }} wrap={true}>
+                                    <Text style={{ fontSize: 8.5, fontWeight: 'bold', color: '#333333' }}>{award.title}</Text>
+                                    {award.date && <Text style={{ fontSize: 8, color: '#888888' }}>{award.date}</Text>}
+                                    {award.awarder && <Text style={{ fontSize: 8, fontStyle: 'italic', color: '#888888' }}>{award.awarder}</Text>}
+                                </View>
+                            ))}
+                        </View>
+                    )}
+                </View>
+
+                {/* Main Content */}
+                <View style={styles.mainContent}>
+                    {sections.map((sectionKey) => {
+                        if (sectionKey === 'profile' && basics.summary) {
+                            return (
+                                <View key="profile" style={styles.mainSection}>
+                                    <Text style={styles.mainSectionHeader}>Profile</Text>
+                                    <Text style={{ fontSize: 9.5, color: '#333333', lineHeight: 1.5 }}>
+                                        {basics.summary}
+                                    </Text>
+                                </View>
+                            );
+                        }
+                        if (sectionKey === 'skills') return null;
+                        if (sectionKey === 'awards') return null;
+
+                        if (sectionKey === 'education' && education.length > 0) {
+                            return (
+                                <View key="education" style={styles.mainSection}>
+                                    <Text style={styles.mainSectionHeader}>Education</Text>
+                                    {education.map((edu, idx) => (
+                                        <View key={idx} style={styles.entryContainer} wrap={true}>
+                                            <View style={styles.entryHeader}>
+                                                <Text style={styles.entryTitle}>{edu.institution}</Text>
+                                                <Text style={styles.dateRange}>{edu.graduationDate}</Text>
+                                            </View>
+                                            <Text style={styles.entrySubtitle}>
+                                                {edu.degree}{edu.field && ` in ${edu.field}`}
+                                            </Text>
+                                            {edu.gpa && <Text style={{ fontSize: 9, color: '#888888' }}>GPA: {edu.gpa}</Text>}
+                                        </View>
+                                    ))}
+                                </View>
+                            );
+                        }
+
+                        if (sectionKey === 'work' && work.length > 0) {
+                            return (
+                                <View key="work" style={styles.mainSection}>
+                                    <Text style={styles.mainSectionHeader}>Experience</Text>
+                                    {work.map((job, idx) => (
+                                        <View key={idx} style={styles.entryContainer} wrap={true}>
+                                            <View style={styles.entryHeader}>
+                                                <Text style={styles.entryTitle}>{job.company}</Text>
+                                                <Text style={styles.dateRange}>{job.startDate} — {job.endDate}</Text>
+                                            </View>
+                                            <Text style={styles.entrySubtitle}>
+                                                {job.position}{job.location && `, ${job.location}`}
+                                            </Text>
+                                            {job.bullets && job.bullets.filter(b => b.trim()).length > 0 && (
+                                                <View>
+                                                    {job.bullets.filter(b => b.trim()).map((bullet, i) => (
+                                                        <View key={i} style={styles.bulletPoint}>
+                                                            <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
+                                                            <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                        </View>
+                                                    ))}
+                                                </View>
+                                            )}
+                                        </View>
+                                    ))}
+                                </View>
+                            );
+                        }
+
+                        if (sectionKey === 'projects' && projects.length > 0) {
+                            return (
+                                <View key="projects" style={styles.mainSection}>
+                                    <Text style={styles.mainSectionHeader}>Projects</Text>
+                                    {projects.map((project, idx) => (
+                                        <View key={idx} style={styles.entryContainer} wrap={true}>
+                                            <View style={styles.entryHeader}>
+                                                <Text style={styles.entryTitle}>
+                                                    {project.name}
+                                                    {project.url && ' '}
+                                                    {project.url && (
+                                                        <Link src={project.url} style={{ fontSize: 9, color: accentColor }}>
+                                                            [{project.urlName || 'Link'}]
+                                                        </Link>
+                                                    )}
+                                                </Text>
+                                                <Text style={styles.dateRange}>{project.startDate} — {project.endDate}</Text>
+                                            </View>
+                                            {project.keywords.length > 0 && (
+                                                <Text style={{ fontSize: 8.5, color: '#999999', marginBottom: 2 }}>
+                                                    {project.keywords.join(' · ')}
+                                                </Text>
+                                            )}
+                                            {project.bullets && project.bullets.filter(b => b.trim()).length > 0 && (
+                                                <View>
+                                                    {project.bullets.filter(b => b.trim()).map((bullet, i) => (
+                                                        <View key={i} style={styles.bulletPoint}>
+                                                            <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
+                                                            <Text>{bullet.replace(/^[•\-\*]\s*/, '')}</Text>
+                                                        </View>
+                                                    ))}
+                                                </View>
+                                            )}
+                                        </View>
+                                    ))}
+                                </View>
+                            );
+                        }
+
+                        return null;
+                    })}
+                </View>
+            </Page>
+        </Document>
+    );
+}

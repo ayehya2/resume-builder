@@ -7,7 +7,8 @@ import {
     improveResumeBullet,
     generateCoverLetterOpening,
     generateCoverLetterBody,
-    improveCoverLetterContent
+    improveCoverLetterContent,
+    generateProfessionalSummary,
 } from '../../lib/geminiService';
 import { Key, Sparkles, Loader, ExternalLink, Eye, EyeOff, CheckCircle, XCircle, ShieldCheck } from 'lucide-react';
 
@@ -27,7 +28,7 @@ export function AITab({ documentType }: AITabProps) {
     const [error, setError] = useState('');
 
     // Form inputs for different AI generation types
-    const [generationType, setGenerationType] = useState<'resume-bullet' | 'cover-opening' | 'cover-body' | 'improve'>('resume-bullet');
+    const [generationType, setGenerationType] = useState<'resume-bullet' | 'resume-summary' | 'cover-opening' | 'cover-body' | 'improve'>('resume-bullet');
     const [position, setPosition] = useState('');
     const [company, setCompany] = useState('');
     const [description, setDescription] = useState('');
@@ -75,6 +76,16 @@ export function AITab({ documentType }: AITabProps) {
                         description,
                     });
                     setSuggestion(bullets.join('\n• '));
+                } else if (generationType === 'resume-summary') {
+                    const workExp = resumeData.work?.[0];
+                    const summary = await generateProfessionalSummary(apiKey, {
+                        name: resumeData.basics.name,
+                        currentRole: workExp ? `${workExp.position} at ${workExp.company}` : undefined,
+                        skills: resumeData.skills?.map(s => s.items.join(', ')).join('; '),
+                        experience: resumeData.work?.map(w => `${w.position} at ${w.company}`).join(', '),
+                        education: resumeData.education?.map(e => `${e.degree} in ${e.field} from ${e.institution}`).join(', '),
+                    });
+                    setSuggestion(summary);
                 } else if (generationType === 'improve' && contentToImprove) {
                     const improved = await improveResumeBullet(apiKey, contentToImprove);
                     setSuggestion(improved);
@@ -206,6 +217,7 @@ export function AITab({ documentType }: AITabProps) {
                                 {documentType === 'resume' ? (
                                     <>
                                         <option value="resume-bullet">Generate Resume Bullet Points</option>
+                                        <option value="resume-summary">Generate Professional Summary</option>
                                         <option value="improve">Improve Existing Content</option>
                                     </>
                                 ) : (

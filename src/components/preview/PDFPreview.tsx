@@ -7,6 +7,14 @@ import type { TemplateId, DocumentType } from '../../types';
 // Dynamically import PDF templates
 import { ClassicPDFTemplate } from '../../templates/pdf/ClassicPDFTemplate';
 import { ModernPDFTemplate } from '../../templates/pdf/ModernPDFTemplate';
+import { MinimalPDFTemplate } from '../../templates/pdf/MinimalPDFTemplate';
+import { ExecutivePDFTemplate } from '../../templates/pdf/ExecutivePDFTemplate';
+import { CreativePDFTemplate } from '../../templates/pdf/CreativePDFTemplate';
+import { TechnicalPDFTemplate } from '../../templates/pdf/TechnicalPDFTemplate';
+import { ElegantPDFTemplate } from '../../templates/pdf/ElegantPDFTemplate';
+import { CompactPDFTemplate } from '../../templates/pdf/CompactPDFTemplate';
+import { AcademicPDFTemplate } from '../../templates/pdf/AcademicPDFTemplate';
+import { LaTeXPDFTemplate } from '../../templates/pdf/LaTeXPDFTemplate';
 import { CoverLetterPDFTemplate } from '../../templates/pdf/CoverLetterPDFTemplate';
 
 interface PDFPreviewProps {
@@ -29,8 +37,24 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 return <ClassicPDFTemplate data={resumeData} />;
             case 2:
                 return <ModernPDFTemplate data={resumeData} />;
+            case 3:
+                return <MinimalPDFTemplate data={resumeData} />;
+            case 4:
+                return <ExecutivePDFTemplate data={resumeData} />;
+            case 5:
+                return <CreativePDFTemplate data={resumeData} />;
+            case 6:
+                return <TechnicalPDFTemplate data={resumeData} />;
+            case 7:
+                return <ElegantPDFTemplate data={resumeData} />;
+            case 8:
+                return <CompactPDFTemplate data={resumeData} />;
+            case 9:
+                return <AcademicPDFTemplate data={resumeData} />;
+            case 10:
+                return <LaTeXPDFTemplate data={resumeData} />;
             default:
-                return <ModernPDFTemplate data={resumeData} />;
+                return <ClassicPDFTemplate data={resumeData} />;
         }
     };
 
