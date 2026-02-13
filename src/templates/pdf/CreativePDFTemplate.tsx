@@ -4,14 +4,23 @@ import {
     getPDFFontFamily,
     getPDFBulletSymbol,
     getPDFColorValue,
+    getPDFPagePadding,
     getPDFFontSize,
+    getPDFNameSize,
     getPDFSectionTitleSize,
     getPDFSectionMargin,
     getPDFBulletIndent,
     getPDFEntrySpacing,
     getPDFBulletGap,
     getPDFSectionHeaderStyle,
+    getPDFSkillSeparator,
+    getPDFDateFormat,
+    getPDFDateSeparator,
+    getPDFBodyTextWeight,
+    getPDFParagraphSpacing,
+    getPDFSectionTitleSpacing
 } from '../../lib/pdfFormatting';
+import { parseBoldTextPDF } from '../../lib/parseBoldText';
 
 const createStyles = (formatting: FormattingOptions) => {
     const accentColor = getPDFColorValue(formatting.colorTheme, formatting.customColor);
@@ -27,13 +36,14 @@ const createStyles = (formatting: FormattingOptions) => {
             paddingBottom: parseFloat(String(formatting.marginBottom)) * 72,
         },
         sidebar: {
-            width: '32%',
+            width: 170,
             backgroundColor: accentColor + '10',
-            paddingLeft: parseFloat(String(formatting.marginLeft)) * 72,
+            paddingLeft: 14,
             paddingRight: 14,
+            paddingTop: 4,
         },
         mainContent: {
-            width: '68%',
+            flex: 1,
             paddingLeft: 18,
             paddingRight: parseFloat(String(formatting.marginRight)) * 72,
         },
@@ -169,7 +179,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                             {skills.map((skillGroup, idx) => (
                                 <View key={idx} style={styles.sidebarSkillGroup}>
                                     <Text style={styles.sidebarSkillCategory}>{skillGroup.category}</Text>
-                                    <Text style={styles.sidebarSkillItems}>{skillGroup.items.join(' · ')}</Text>
+                                    <Text style={styles.sidebarSkillItems}>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
                                 </View>
                             ))}
                         </View>
@@ -181,8 +191,8 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                             <Text style={styles.sidebarSectionHeader}>Awards</Text>
                             {awards.map((award, idx) => (
                                 <View key={idx} style={{ marginBottom: 6 }} wrap={true}>
-                                    <Text style={{ fontSize: 8.5, fontWeight: 'bold', color: '#333333' }}>{award.title}</Text>
-                                    {award.date && <Text style={{ fontSize: 8, color: '#888888' }}>{award.date}</Text>}
+                                    <Text style={{ fontSize: 9.5, fontWeight: 'bold' }}>{award.title}</Text>
+                                    {award.date && <Text style={{ fontSize: 8.5, color: '#666666' }}>{getPDFDateFormat(award.date, formatting.dateFormat)}</Text>}
                                     {award.awarder && <Text style={{ fontSize: 8, fontStyle: 'italic', color: '#888888' }}>{award.awarder}</Text>}
                                 </View>
                             ))}
@@ -213,13 +223,13 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                                     {education.map((edu, idx) => (
                                         <View key={idx} style={styles.entryContainer} wrap={true}>
                                             <View style={styles.entryHeader}>
-                                                <Text style={styles.entryTitle}>{edu.institution}</Text>
-                                                <Text style={styles.dateRange}>{edu.graduationDate}</Text>
+                                                <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{edu.institution}</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(edu.graduationDate, formatting.dateFormat)}</Text>
                                             </View>
                                             <Text style={styles.entrySubtitle}>
                                                 {edu.degree}{edu.field && ` in ${edu.field}`}
                                             </Text>
-                                            {edu.gpa && <Text style={{ fontSize: 9, color: '#888888' }}>GPA: {edu.gpa}</Text>}
+                                            {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#888888' }}>GPA: {edu.gpa}</Text>}
                                         </View>
                                     ))}
                                 </View>
@@ -233,11 +243,11 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                                     {work.map((job, idx) => (
                                         <View key={idx} style={styles.entryContainer} wrap={true}>
                                             <View style={styles.entryHeader}>
-                                                <Text style={styles.entryTitle}>{job.company}</Text>
-                                                <Text style={styles.dateRange}>{job.startDate} — {job.endDate}</Text>
+                                                <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                             </View>
                                             <Text style={styles.entrySubtitle}>
-                                                {job.position}{job.location && `, ${job.location}`}
+                                                {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
                                             </Text>
                                             {job.bullets && job.bullets.filter(b => b.trim()).length > 0 && (
                                                 <View>
@@ -271,7 +281,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                                                         </Link>
                                                     )}
                                                 </Text>
-                                                <Text style={styles.dateRange}>{project.startDate} — {project.endDate}</Text>
+                                                <Text style={styles.dateRange}>{project.startDate}{getPDFDateSeparator(formatting.dateSeparator)}{project.endDate}</Text>
                                             </View>
                                             {project.keywords.length > 0 && (
                                                 <Text style={{ fontSize: 8.5, color: '#999999', marginBottom: 2 }}>

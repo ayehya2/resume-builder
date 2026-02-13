@@ -1,12 +1,48 @@
+import { useEffect, useRef } from 'react';
 import { useResumeStore } from '../../store'
-import type { ColorTheme, SectionDivider, Alignment, FontFamily, NameSize, Spacing, BulletStyle, SectionTitleSize, BulletIndent, HeaderLineStyle } from '../../types';
+import { useCustomTemplateStore } from '../../lib/customTemplateStore';
+import { isCustomTemplate } from '../../lib/templateResolver';
+import type { ColorTheme, SectionDivider, Alignment, FontFamily, NameSize, Spacing, BulletStyle, SectionTitleSize, BulletIndent, HeaderLineStyle, DateFormat, SubHeaderWeight, SkillLayout, CompanyTitleOrder, BodyTextWeight, ItalicStyle, DateSeparator, AccentColorPosition } from '../../types';
 
 export function FormattingForm() {
     const { resumeData, updateFormatting, resetFormatting } = useResumeStore();
     const { formatting } = resumeData;
+    const { customTemplates, updateCustomTemplate } = useCustomTemplateStore();
+
+    // Find active custom template (if any)
+    const activeCustomTemplate = isCustomTemplate(resumeData.selectedTemplate)
+        ? customTemplates.find(t => t.id === resumeData.selectedTemplate)
+        : undefined;
+
+    // Auto-save formatting changes to custom template
+    const isInitialMount = useRef(true);
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        if (activeCustomTemplate) {
+            updateCustomTemplate(activeCustomTemplate.id, { formatting: { ...formatting } });
+        }
+    }, [formatting]);
 
     return (
         <div className="space-y-6">
+            {/* Custom template banner */}
+            {activeCustomTemplate && (
+                <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                    <div>
+                        <div className="text-sm font-bold text-blue-800 dark:text-blue-300">
+                            Editing: {activeCustomTemplate.name}
+                        </div>
+                        <div className="text-xs text-blue-600 dark:text-blue-400">
+                            Changes auto-save to this custom template
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <header className="space-y-1">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Extensive Resume Formatting</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -36,6 +72,9 @@ export function FormattingForm() {
                                 <option value="helvetica">Helvetica</option>
                                 <option value="palatino">Palatino</option>
                                 <option value="garamond">Garamond</option>
+                                <option value="cambria">Cambria</option>
+                                <option value="bookAntiqua">Book Antiqua</option>
+                                <option value="centurySchoolbook">Century Schoolbook</option>
                             </select>
                         </div>
 
@@ -48,6 +87,7 @@ export function FormattingForm() {
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
                                     <option value="9pt">9pt — Compact</option>
+                                    <option value="9.5pt">9.5pt</option>
                                     <option value="10pt">10pt — Small</option>
                                     <option value="10.5pt">10.5pt</option>
                                     <option value="11pt">11pt — Standard</option>
@@ -136,6 +176,32 @@ export function FormattingForm() {
                                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Underline Titles</span>
                             </label>
                         </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Body Text Weight</label>
+                                <select
+                                    value={formatting.bodyTextWeight}
+                                    onChange={(e) => updateFormatting({ bodyTextWeight: e.target.value as BodyTextWeight })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="light">Light</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="medium">Medium</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Italic Style</label>
+                                <select
+                                    value={formatting.italicStyle}
+                                    onChange={(e) => updateFormatting({ italicStyle: e.target.value as ItalicStyle })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="italic">Italic (default)</option>
+                                    <option value="normal">Normal (no italic)</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -167,6 +233,8 @@ export function FormattingForm() {
                                     <option value="1.0">1.0 Tight</option>
                                     <option value="1.15">1.15</option>
                                     <option value="1.2">1.2 Regular</option>
+                                    <option value="1.3">1.3</option>
+                                    <option value="1.4">1.4</option>
                                     <option value="1.5">1.5 Loose</option>
                                 </select>
                             </div>
@@ -223,6 +291,35 @@ export function FormattingForm() {
                                         />
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Paragraph Spacing</label>
+                                <select
+                                    value={formatting.paragraphSpacing}
+                                    onChange={(e) => updateFormatting({ paragraphSpacing: e.target.value as Spacing })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="tight">Tight</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="relaxed">Relaxed</option>
+                                    <option value="spacious">Spacious</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Section Title Spacing</label>
+                                <select
+                                    value={formatting.sectionTitleSpacing}
+                                    onChange={(e) => updateFormatting({ sectionTitleSpacing: e.target.value as Spacing })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="tight">Tight</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="relaxed">Relaxed</option>
+                                    <option value="spacious">Spacious</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -411,6 +508,11 @@ export function FormattingForm() {
                                     { theme: 'slate' as ColorTheme, color: '#475569' },
                                     { theme: 'burgundy' as ColorTheme, color: '#6B1D38' },
                                     { theme: 'forest' as ColorTheme, color: '#166534' },
+                                    { theme: 'charcoal' as ColorTheme, color: '#333333' },
+                                    { theme: 'steelblue' as ColorTheme, color: '#4682B4' },
+                                    { theme: 'indigo' as ColorTheme, color: '#4B0082' },
+                                    { theme: 'coral' as ColorTheme, color: '#FF6347' },
+                                    { theme: 'olive' as ColorTheme, color: '#556B2F' },
                                 ]).map(({ theme, color }) => (
                                     <button
                                         key={theme}
@@ -448,6 +550,145 @@ export function FormattingForm() {
                                     />
                                 )}
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Accent Color Position</label>
+                            <select
+                                value={formatting.accentColorPosition}
+                                onChange={(e) => updateFormatting({ accentColorPosition: e.target.value as AccentColorPosition })}
+                                className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                            >
+                                <option value="headers-only">Headers Only</option>
+                                <option value="headers-and-links">Headers &amp; Links</option>
+                                <option value="all-accents">All Accents</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Section 5: Content Controls */}
+                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 space-y-4 shadow-sm">
+                    <h4 className="font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                        Content Controls
+                    </h4>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Date Format</label>
+                                <select
+                                    value={formatting.dateFormat}
+                                    onChange={(e) => updateFormatting({ dateFormat: e.target.value as DateFormat })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="short">Short (Jan 2024)</option>
+                                    <option value="long">Long (January 2024)</option>
+                                    <option value="numeric">Numeric (01/2024)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Sub-Header Weight</label>
+                                <select
+                                    value={formatting.subHeaderWeight}
+                                    onChange={(e) => updateFormatting({ subHeaderWeight: e.target.value as SubHeaderWeight })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="normal">Normal</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="bold">Bold</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Skill Layout</label>
+                                <select
+                                    value={formatting.skillLayout}
+                                    onChange={(e) => updateFormatting({ skillLayout: e.target.value as SkillLayout })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="comma">Comma (A, B, C)</option>
+                                    <option value="pipe">Pipe (A | B | C)</option>
+                                    <option value="inline-tags">Inline Tags</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Company/Title Order</label>
+                                <select
+                                    value={formatting.companyTitleOrder}
+                                    onChange={(e) => updateFormatting({ companyTitleOrder: e.target.value as CompanyTitleOrder })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="company-first">Company First</option>
+                                    <option value="title-first">Title First</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Date Separator</label>
+                                <select
+                                    value={formatting.dateSeparator}
+                                    onChange={(e) => updateFormatting({ dateSeparator: e.target.value as DateSeparator })}
+                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                >
+                                    <option value="\u2014">Em Dash (\u2014)</option>
+                                    <option value="\u2013">En Dash (\u2013)</option>
+                                    <option value="to">to</option>
+                                    <option value="-">Hyphen (-)</option>
+                                </select>
+                            </div>
+                            <div />
+                        </div>
+
+                        <div className="flex flex-wrap gap-4 pt-2">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={formatting.showLocation}
+                                    onChange={(e) => updateFormatting({ showLocation: e.target.checked })}
+                                    className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
+                                />
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Show Location</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={formatting.showGPA}
+                                    onChange={(e) => updateFormatting({ showGPA: e.target.checked })}
+                                    className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
+                                />
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Show GPA</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={formatting.showEducationDescription}
+                                    onChange={(e) => updateFormatting({ showEducationDescription: e.target.checked })}
+                                    className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
+                                />
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Edu. Description</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={formatting.showProjectKeywords}
+                                    onChange={(e) => updateFormatting({ showProjectKeywords: e.target.checked })}
+                                    className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
+                                />
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Project Keywords</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={formatting.showAwardsSummaries}
+                                    onChange={(e) => updateFormatting({ showAwardsSummaries: e.target.checked })}
+                                    className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
+                                />
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Awards Summaries</span>
+                            </label>
                         </div>
                     </div>
                 </section>

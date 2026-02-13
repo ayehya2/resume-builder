@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store';
-import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize } from '../../lib/formatting';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize, getSubHeaderWeight, getSkillSeparator, getBodyTextWeight, getDateSeparatorChar } from '../../lib/formatting';
 import { parseBoldText } from '../../lib/parseBoldText';
 import type { SectionKey, Education, WorkExperience, Skill, Project, Award, CustomSection } from '../../types';
 
@@ -98,13 +98,13 @@ export function ExecutiveTemplate() {
                                 {education.map((edu: Education, idx: number) => (
                                     <div key={idx} style={{ marginBottom: getEntrySpacingValue(formatting.entrySpacing), breakInside: 'avoid' }}>
                                         <div className="flex justify-between items-baseline">
-                                            <span style={{ fontWeight: 'bold', fontSize: '11pt' }}>{edu.institution}</span>
+                                            <span style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight), fontSize: '11pt' }}>{edu.institution}</span>
                                             <span style={{ fontSize: '9pt', color: '#666666' }}>{edu.graduationDate}</span>
                                         </div>
                                         <div style={{ fontStyle: 'italic', fontSize: '10pt', color: '#444444' }}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </div>
-                                        {edu.gpa && <div style={{ fontSize: '9pt', color: '#666666', marginTop: '2pt' }}>GPA: {edu.gpa}</div>}
+                                        {formatting.showGPA && edu.gpa && <div style={{ fontSize: '9pt', color: '#666666', marginTop: '2pt' }}>GPA: {edu.gpa}</div>}
                                     </div>
                                 ))}
                             </div>
@@ -118,11 +118,11 @@ export function ExecutiveTemplate() {
                                 {work.map((job: WorkExperience, idx: number) => (
                                     <div key={idx} style={{ marginBottom: getEntrySpacingValue(formatting.entrySpacing), breakInside: 'avoid' }}>
                                         <div className="flex justify-between items-baseline">
-                                            <span style={{ fontWeight: 'bold', fontSize: '11pt' }}>{job.company}</span>
-                                            <span style={{ fontSize: '9pt', color: '#666666' }}>{job.startDate} — {job.endDate}</span>
+                                            <span style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight), fontSize: '11pt' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</span>
+                                            <span style={{ fontSize: '9pt', color: '#666666' }}>{job.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{job.endDate}</span>
                                         </div>
                                         <div style={{ fontStyle: 'italic', fontSize: '10pt', color: '#444444', marginBottom: '4pt' }}>
-                                            {job.position}{job.location && `, ${job.location}`}
+                                            {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location && `, ${job.location}`}
                                         </div>
                                         {job.bullets && job.bullets.filter(b => b.trim() !== '').length > 0 && (
                                             <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
@@ -148,7 +148,15 @@ export function ExecutiveTemplate() {
                                     {skills.map((skillGroup: Skill, idx: number) => (
                                         <div key={idx} style={{ fontSize: '10pt', breakInside: 'avoid' }}>
                                             <span style={{ fontWeight: 'bold' }}>{skillGroup.category}: </span>
-                                            <span style={{ color: '#444444' }}>{skillGroup.items.join(', ')}</span>
+                                            {formatting.skillLayout === 'inline-tags' ? (
+                                                <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '2px' }}>
+                                                    {skillGroup.items.map((item, i) => (
+                                                        <span key={i} style={{ background: `${colorValue}15`, border: `1px solid ${colorValue}40`, padding: '1px 6px', borderRadius: '3px', fontSize: '0.85em' }}>{item}</span>
+                                                    ))}
+                                                </span>
+                                            ) : (
+                                                <span style={{ color: '#444444' }}>{skillGroup.items.join(getSkillSeparator(formatting.skillLayout))}</span>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -171,7 +179,7 @@ export function ExecutiveTemplate() {
                                                     </a>
                                                 )}
                                             </div>
-                                            <span style={{ fontSize: '9pt', color: '#666666' }}>{project.startDate} — {project.endDate}</span>
+                                            <span style={{ fontSize: '9pt', color: '#666666' }}>{project.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{project.endDate}</span>
                                         </div>
                                         {project.keywords && project.keywords.length > 0 && (
                                             <div style={{ fontSize: '9pt', fontStyle: 'italic', color: '#666666', marginBottom: '2pt' }}>
@@ -204,7 +212,7 @@ export function ExecutiveTemplate() {
                                             <span style={{ fontWeight: 'bold' }}>{award.title}</span>
                                             {award.date && <span style={{ color: '#666666' }}> · {award.date}</span>}
                                             {award.awarder && <div style={{ fontStyle: 'italic', color: '#666666', fontSize: '9pt' }}>{award.awarder}</div>}
-                                            {award.summary && <div style={{ fontSize: '9pt', color: '#555555', marginTop: '2pt' }}>{award.summary}</div>}
+                                            {formatting.showAwardsSummaries && award.summary && <div style={{ fontSize: '9pt', color: '#555555', marginTop: '2pt' }}>{award.summary}</div>}
                                         </div>
                                     ))}
                                 </div>

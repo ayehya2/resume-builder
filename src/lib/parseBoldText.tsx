@@ -1,27 +1,30 @@
 import { createElement, type ReactNode } from 'react';
 
 /**
- * Parse **bold** markdown syntax in text and return React elements.
- * Handles nested bold markers within a string, e.g. "Created **5,000+** monthly reports"
- * becomes: ["Created ", <strong>5,000+</strong>, " monthly reports"]
+ * Parse **bold** and *italic* markdown syntax in text and return React elements.
  */
 export function parseBoldText(text: string): ReactNode[] {
     const parts: ReactNode[] = [];
-    const regex = /\*\*(.+?)\*\*/g;
+    // Matches **bold** or *italic*
+    // Group 1: **, Group 2: bold content, Group 3: *, Group 4: italic content
+    const regex = /(\*\*)(.+?)\*\*|(\*)(.+?)\*/g;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(text)) !== null) {
-        // Add text before the bold marker
         if (match.index > lastIndex) {
             parts.push(text.slice(lastIndex, match.index));
         }
-        // Add the bold content
-        parts.push(<strong key={match.index}>{match[1]}</strong>);
+
+        if (match[1] === '**') {
+            parts.push(<strong key={match.index}>{match[2]}</strong>);
+        } else if (match[3] === '*') {
+            parts.push(<em key={match.index}>{match[4]}</em>);
+        }
+
         lastIndex = regex.lastIndex;
     }
 
-    // Add any remaining text
     if (lastIndex < text.length) {
         parts.push(text.slice(lastIndex));
     }
@@ -30,15 +33,7 @@ export function parseBoldText(text: string): ReactNode[] {
 }
 
 /**
- * Parse **bold** markdown syntax for @react-pdf/renderer.
- * Returns an array of React elements using createElement to avoid JSX import issues.
- * Bold segments get fontFamily: 'Helvetica-Bold'.
- *
- * Usage in PDF templates:
- *   <Text>{parseBoldTextPDF(bullet, TextComponent)}</Text>
- *
- * @param text - The text to parse
- * @param TextComponent - The Text component from @react-pdf/renderer
+ * Parse **bold** and *italic* markdown syntax for @react-pdf/renderer.
  */
 export function parseBoldTextPDF(
     text: string,
@@ -46,7 +41,8 @@ export function parseBoldTextPDF(
     TextComponent: any
 ): ReactNode[] {
     const parts: ReactNode[] = [];
-    const regex = /\*\*(.+?)\*\*/g;
+    // Same regex as above
+    const regex = /(\*\*)(.+?)\*\*|(\*)(.+?)\*/g;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
@@ -54,11 +50,19 @@ export function parseBoldTextPDF(
         if (match.index > lastIndex) {
             parts.push(text.slice(lastIndex, match.index));
         }
+
+        const style: any = {};
+        if (match[1] === '**') {
+            style.fontWeight = 'bold';
+        } else if (match[3] === '*') {
+            style.fontStyle = 'italic';
+        }
+
         parts.push(
             createElement(
                 TextComponent,
-                { key: `b-${match.index}`, style: { fontFamily: 'Helvetica-Bold' } },
-                match[1]
+                { key: `s-${match.index}`, style },
+                match[2] || match[4]
             )
         );
         lastIndex = regex.lastIndex;
@@ -72,8 +76,8 @@ export function parseBoldTextPDF(
 }
 
 /**
- * Strip **bold** markers from text (for plain text contexts).
+ * Strip **bold** and *italic* markers from text (for plain text contexts).
  */
 export function stripBoldMarkers(text: string): string {
-    return text.replace(/\*\*(.+?)\*\*/g, '$1');
+    return text.replace(/(\*\*|\*)(.+?)\1/g, '$2');
 }

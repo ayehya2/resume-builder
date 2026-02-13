@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, Link, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData, FormattingOptions } from '../../types';
 import {
+    getPDFFontFamily,
     getPDFBulletSymbol,
     getPDFColorValue,
     getPDFPagePadding,
@@ -12,6 +13,12 @@ import {
     getPDFEntrySpacing,
     getPDFBulletGap,
     getPDFSectionHeaderStyle,
+    getPDFSkillSeparator,
+    getPDFDateFormat,
+    getPDFDateSeparator,
+    getPDFBodyTextWeight,
+    getPDFParagraphSpacing,
+    getPDFSectionTitleSpacing
 } from '../../lib/pdfFormatting';
 import { parseBoldTextPDF } from '../../lib/parseBoldText';
 
@@ -26,7 +33,7 @@ const createStyles = (formatting: FormattingOptions) => {
     return StyleSheet.create({
         page: {
             padding: getPDFPagePadding(formatting),
-            fontFamily: 'Times-Roman',  // Academic template always uses serif
+            fontFamily: 'NotoSerif',  // Academic template uses registered serif font
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
         },
@@ -170,14 +177,14 @@ export function AcademicPDFTemplate({ data }: AcademicPDFTemplateProps) {
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryRow}>
                                             <View style={styles.entryDateColumn}>
-                                                <Text style={styles.dateRange}>{edu.graduationDate}</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(edu.graduationDate, formatting.dateFormat)}</Text>
                                             </View>
                                             <View style={styles.entryContentColumn}>
-                                                <Text style={styles.entryTitle}>{edu.institution}</Text>
+                                                <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{edu.institution}</Text>
                                                 <Text style={styles.entrySubtitle}>
                                                     {edu.degree}{edu.field && ` in ${edu.field}`}
                                                 </Text>
-                                                {edu.gpa && <Text style={{ fontSize: 9, color: '#666666' }}>GPA: {edu.gpa}</Text>}
+                                                {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#666666' }}>GPA: {edu.gpa}</Text>}
                                             </View>
                                         </View>
                                     </View>
@@ -194,13 +201,13 @@ export function AcademicPDFTemplate({ data }: AcademicPDFTemplateProps) {
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryRow}>
                                             <View style={styles.entryDateColumn}>
-                                                <Text style={styles.dateRange}>{job.startDate} –</Text>
-                                                <Text style={styles.dateRange}>{job.endDate}</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} –</Text>
+                                                <Text style={styles.dateRange}>{getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                             </View>
                                             <View style={styles.entryContentColumn}>
-                                                <Text style={styles.entryTitle}>{job.company}</Text>
+                                                <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
                                                 <Text style={styles.entrySubtitle}>
-                                                    {job.position}{job.location && `, ${job.location}`}
+                                                    {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
                                                 </Text>
                                                 {job.bullets && job.bullets.filter(b => b.trim()).length > 0 && (
                                                     <View>
@@ -228,7 +235,7 @@ export function AcademicPDFTemplate({ data }: AcademicPDFTemplateProps) {
                                     <View key={idx} style={styles.skillCategory}>
                                         <Text>
                                             <Text style={{ fontWeight: 'bold' }}>{skillGroup.category}: </Text>
-                                            <Text style={{ color: '#444444' }}>{skillGroup.items.join(', ')}</Text>
+                                            <Text style={{ color: '#444444' }}>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
                                         </Text>
                                     </View>
                                 ))}
@@ -288,12 +295,12 @@ export function AcademicPDFTemplate({ data }: AcademicPDFTemplateProps) {
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryRow}>
                                             <View style={styles.entryDateColumn}>
-                                                {award.date && <Text style={styles.dateRange}>{award.date}</Text>}
+                                                {award.date && <Text style={styles.dateRange}>{getPDFDateFormat(award.date, formatting.dateFormat)}</Text>}
                                             </View>
                                             <View style={styles.entryContentColumn}>
                                                 <Text style={{ fontSize: 10, fontWeight: 'bold' }}>{award.title}</Text>
                                                 {award.awarder && <Text style={{ fontSize: 9, fontStyle: 'italic', color: '#666666' }}>{award.awarder}</Text>}
-                                                {award.summary && <Text style={{ fontSize: 9, color: '#555555', marginTop: 1 }}>{award.summary}</Text>}
+                                                {formatting.showAwardsSummaries && award.summary && <Text style={{ fontSize: 9, color: '#555555', marginTop: 1 }}>{award.summary}</Text>}
                                             </View>
                                         </View>
                                     </View>

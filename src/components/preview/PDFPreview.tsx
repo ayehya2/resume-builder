@@ -2,6 +2,8 @@ import { memo } from 'react';
 import { PDFViewer } from '@react-pdf/renderer';
 import { useResumeStore } from '../../store';
 import { useCoverLetterStore } from '../../lib/coverLetterStore';
+import { useCustomTemplateStore } from '../../lib/customTemplateStore';
+import { getEffectiveResumeData } from '../../lib/templateResolver';
 import type { TemplateId, DocumentType } from '../../types';
 
 // Dynamically import PDF templates
@@ -25,6 +27,10 @@ interface PDFPreviewProps {
 export const PDFPreview = memo(function PDFPreview({ templateId, documentType }: PDFPreviewProps) {
     const { resumeData } = useResumeStore();
     const { coverLetterData } = useCoverLetterStore();
+    const { customTemplates } = useCustomTemplateStore();
+
+    // Resolve custom templates: get base template ID + effective formatting
+    const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
 
     // Map template ID to the corresponding component
     const getTemplateComponent = () => {
@@ -32,29 +38,29 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
             return <CoverLetterPDFTemplate data={coverLetterData} />;
         }
 
-        switch (templateId) {
+        switch (effectiveData.selectedTemplate) {
             case 1:
-                return <ClassicPDFTemplate data={resumeData} />;
+                return <ClassicPDFTemplate data={effectiveData} />;
             case 2:
-                return <ModernPDFTemplate data={resumeData} />;
+                return <ModernPDFTemplate data={effectiveData} />;
             case 3:
-                return <MinimalPDFTemplate data={resumeData} />;
+                return <MinimalPDFTemplate data={effectiveData} />;
             case 4:
-                return <ExecutivePDFTemplate data={resumeData} />;
+                return <ExecutivePDFTemplate data={effectiveData} />;
             case 5:
-                return <CreativePDFTemplate data={resumeData} />;
+                return <CreativePDFTemplate data={effectiveData} />;
             case 6:
-                return <TechnicalPDFTemplate data={resumeData} />;
+                return <TechnicalPDFTemplate data={effectiveData} />;
             case 7:
-                return <ElegantPDFTemplate data={resumeData} />;
+                return <ElegantPDFTemplate data={effectiveData} />;
             case 8:
-                return <CompactPDFTemplate data={resumeData} />;
+                return <CompactPDFTemplate data={effectiveData} />;
             case 9:
-                return <AcademicPDFTemplate data={resumeData} />;
+                return <AcademicPDFTemplate data={effectiveData} />;
             case 10:
-                return <LaTeXPDFTemplate data={resumeData} />;
+                return <LaTeXPDFTemplate data={effectiveData} />;
             default:
-                return <ClassicPDFTemplate data={resumeData} />;
+                return <ClassicPDFTemplate data={effectiveData} />;
         }
     };
 
@@ -68,7 +74,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                     style={{ border: 'none', backgroundColor: '#ffffff' }}
                     key={documentType === 'coverletter'
                         ? `cl-${coverLetterData.company}-${coverLetterData.position}-${JSON.stringify(coverLetterData).length}`
-                        : `res-${templateId}-${resumeData.formatting.colorTheme}-${resumeData.basics.name}-${resumeData.sections.join(',')}-${resumeData.customSections.length}`}
+                        : `res-${templateId}-${effectiveData.formatting.colorTheme}-${effectiveData.basics.name}-${effectiveData.sections.join(',')}-${effectiveData.customSections.length}`}
                 >
                     {getTemplateComponent()}
                 </PDFViewer>
@@ -76,3 +82,4 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
         </div>
     );
 });
+

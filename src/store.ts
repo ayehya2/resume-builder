@@ -56,6 +56,22 @@ const getDefaultResumeData = (): ResumeData => ({
         sectionDividers: 'line',
         headerLineStyle: 'none',
         headerAlignment: 'center',
+        // Content Controls (Phase 4)
+        dateFormat: 'short',
+        subHeaderWeight: 'bold',
+        skillLayout: 'comma',
+        showLocation: true,
+        showGPA: true,
+        companyTitleOrder: 'company-first',
+        // Phase 4.5 — Extended Formatting
+        bodyTextWeight: 'normal',
+        italicStyle: 'italic',
+        sectionTitleSpacing: 'normal',
+        showEducationDescription: true,
+        showProjectKeywords: true,
+        showAwardsSummaries: true,
+        dateSeparator: '—',
+        accentColorPosition: 'headers-only',
     },
 });
 
@@ -658,7 +674,7 @@ export const useResumeStore = create<ResumeStore>()(
                     );
                 }
 
-                return { ...currentState, ...persisted, resumeData: { ...currentState.resumeData, ...data } };
+                return { ...currentState, ...persisted, resumeData: { ...currentState.resumeData, ...data, formatting: { ...currentState.resumeData.formatting, ...(data?.formatting || {}) } } };
             },
         },
     ),

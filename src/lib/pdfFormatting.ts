@@ -1,38 +1,74 @@
 import type { FormattingOptions, FontFamily, BulletStyle, ColorTheme } from '../types';
+import { Font } from '@react-pdf/renderer';
+
+/**
+ * Register custom fonts for full Unicode support in PDF rendering.
+ * Using .woff format (NOT .woff2 — react-pdf doesn't support woff2).
+ * Fonts loaded from jsDelivr CDN (fontsource packages).
+ */
+
+// Noto Sans — for sans-serif families
+Font.register({
+    family: 'NotoSans',
+    fonts: [
+        { src: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.6/files/noto-sans-latin-400-normal.woff', fontWeight: 400 },
+        { src: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.6/files/noto-sans-latin-700-normal.woff', fontWeight: 700 },
+        { src: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.6/files/noto-sans-latin-400-italic.woff', fontWeight: 400, fontStyle: 'italic' },
+        { src: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-sans@5.0.6/files/noto-sans-latin-700-italic.woff', fontWeight: 700, fontStyle: 'italic' },
+    ],
+});
+
+// Noto Serif — for serif families
+Font.register({
+    family: 'NotoSerif',
+    fonts: [
+        { src: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-serif@5.0.6/files/noto-serif-latin-400-normal.woff', fontWeight: 400 },
+        { src: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-serif@5.0.6/files/noto-serif-latin-700-normal.woff', fontWeight: 700 },
+        { src: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-serif@5.0.6/files/noto-serif-latin-400-italic.woff', fontWeight: 400, fontStyle: 'italic' },
+        { src: 'https://cdn.jsdelivr.net/npm/@fontsource/noto-serif@5.0.6/files/noto-serif-latin-700-italic.woff', fontWeight: 700, fontStyle: 'italic' },
+    ],
+});
+
+// Disable word hyphenation globally so PDF text doesn't break mid-word
+Font.registerHyphenationCallback((word) => [word]);
 
 /**
  * PDF Font Family Mapping
- * @react-pdf/renderer only supports built-in fonts: Helvetica, Times-Roman, Courier
+ * Uses registered custom fonts with full Unicode support.
  */
 export function getPDFFontFamily(fontFamily: FontFamily): string {
     const fontMap: Record<FontFamily, string> = {
-        default: 'Times-Roman',
-        times: 'Times-Roman',
-        arial: 'Helvetica',
-        calibri: 'Helvetica',
-        georgia: 'Times-Roman',
-        helvetica: 'Helvetica',
-        palatino: 'Times-Roman',
-        garamond: 'Times-Roman',
+        default: 'NotoSerif',
+        times: 'NotoSerif',
+        arial: 'NotoSans',
+        calibri: 'NotoSans',
+        georgia: 'NotoSerif',
+        helvetica: 'NotoSans',
+        palatino: 'NotoSerif',
+        garamond: 'NotoSerif',
+        cambria: 'NotoSerif',
+        bookAntiqua: 'NotoSerif',
+        centurySchoolbook: 'NotoSerif',
     };
-    return fontMap[fontFamily] || 'Times-Roman';
+    return fontMap[fontFamily] || 'NotoSerif';
 }
 
 /**
- * Get bullet symbol from formatting options
+ * Get bullet symbol from formatting options.
+ * Noto Sans/Serif fonts support these Unicode characters.
  */
 export function getPDFBulletSymbol(bulletStyle: BulletStyle): string {
     const bulletMap: Record<BulletStyle, string> = {
-        bullet: '•',
-        dash: '−',
-        arrow: '→',
-        circle: '○',
-        square: '■',
-        diamond: '◆',
-        star: '★',
-        chevron: '›',
+        bullet: '\u2022',   // •
+        dash: '\u2013',     // –
+        arrow: '\u2192',    // →
+        circle: '\u25CB',   // ○
+        square: '\u25A0',   // ■
+        diamond: '\u25C6',  // ◆
+        star: '\u2605',     // ★
+        chevron: '\u203A',  // ›
     };
-    return bulletMap[bulletStyle] || '•';
+    return bulletMap[bulletStyle] || '\u2022';
 }
 
 /**
@@ -50,6 +86,11 @@ export function getPDFColorValue(theme: ColorTheme, customColor: string): string
         slate: '#475569',
         burgundy: '#6B1D38',
         forest: '#166534',
+        charcoal: '#333333',
+        steelblue: '#4682B4',
+        indigo: '#4B0082',
+        coral: '#FF6347',
+        olive: '#556B2F',
         custom: customColor,
     };
     return colorMap[theme] || '#000000';
@@ -167,6 +208,8 @@ export function getPDFSectionBorderStyle(divider: import('../types').SectionDivi
             return { borderBottom: `2.5pt solid ${color}`, paddingBottom: 2 };
         case 'dotted':
             return { borderBottom: `1.5pt dotted ${color}`, paddingBottom: 2 };
+        case 'dashed':
+            return { borderBottom: `1.5pt dashed ${color}`, paddingBottom: 2 };
         case 'none':
         default:
             return { paddingBottom: 2 };
@@ -190,4 +233,104 @@ export function getPDFSectionHeaderStyle(style: 'uppercase' | 'capitalize' | 'no
         normal: 'none'
     };
     return styleMap[style] || 'uppercase';
+}
+
+/**
+ * Get sub-header font family based on weight for PDF.
+ * With registered custom fonts, bold is handled via fontWeight CSS property.
+ */
+export function getPDFSubHeaderFont(_weight: import('../types').SubHeaderWeight, baseFont: string): string {
+    // Custom registered fonts handle weight via fontWeight CSS property,
+    // not by appending '-Bold' to the font name.
+    return baseFont;
+}
+
+/**
+ * Get skill separator for PDF rendering
+ */
+export function getPDFSkillSeparator(layout: import('../types').SkillLayout): string {
+    const separatorMap = {
+        comma: ', ',
+        pipe: ' | ',
+        'inline-tags': ', ',
+    };
+    return separatorMap[layout] || ', ';
+}
+/**
+ * Format date for PDF (best effort)
+ */
+export function getPDFDateFormat(dateStr: string, format: import('../types').DateFormat): string {
+    if (!dateStr || dateStr.toLowerCase() === 'present' || dateStr.toLowerCase() === 'currently') {
+        return dateStr;
+    }
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fullMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    let date: Date | null = null;
+
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+        date = parsed;
+    } else {
+        if (/^\d{4}$/.test(dateStr)) {
+            date = new Date(parseInt(dateStr), 0, 1);
+        }
+        const mmYyyy = dateStr.match(/^(\d{1,2})\/(\d{4})$/);
+        if (mmYyyy) {
+            date = new Date(parseInt(mmYyyy[2]), parseInt(mmYyyy[1]) - 1, 1);
+        }
+    }
+
+    if (!date) return dateStr;
+
+    const mm = date.getMonth();
+    const yyyy = date.getFullYear();
+
+    switch (format) {
+        case 'numeric':
+            return `${(mm + 1).toString().padStart(2, '0')}/${yyyy}`;
+        case 'short':
+            return `${months[mm]} ${yyyy}`;
+        case 'long':
+            return `${fullMonths[mm]} ${yyyy}`;
+        default:
+            return dateStr;
+    }
+}
+
+// Body text font-weight for PDF
+export function getPDFBodyTextWeight(weight: import('../types').BodyTextWeight): number {
+    const weightMap = {
+        light: 300,
+        normal: 400,
+        medium: 500,
+    };
+    return weightMap[weight] || 400;
+}
+
+// Paragraph spacing for PDF (points)
+export function getPDFParagraphSpacing(spacing: import('../types').Spacing): number {
+    const spacingMap = {
+        tight: 2,
+        normal: 4,
+        relaxed: 8,
+        spacious: 14,
+    };
+    return spacingMap[spacing] || 4;
+}
+
+// Section title spacing for PDF (points, margin above title)
+export function getPDFSectionTitleSpacing(spacing: import('../types').Spacing): number {
+    const spacingMap = {
+        tight: 4,
+        normal: 8,
+        relaxed: 14,
+        spacious: 20,
+    };
+    return spacingMap[spacing] || 8;
+}
+
+// Date separator character for PDF
+export function getPDFDateSeparator(separator: import('../types').DateSeparator): string {
+    return ` ${separator} `;
 }

@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store';
-import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize } from '../../lib/formatting';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize, getSubHeaderWeight, getSkillSeparator, getBodyTextWeight, getDateSeparatorChar } from '../../lib/formatting';
 import { parseBoldText } from '../../lib/parseBoldText';
 import type { SectionKey, Education, WorkExperience, Skill, Project, Award, CustomSection } from '../../types';
 
@@ -18,6 +18,7 @@ export function ClassicTemplate() {
                 fontSize: formatting.baseFontSize,
                 lineHeight: formatting.lineSpacing,
                 padding: `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`,
+                fontWeight: getBodyTextWeight(formatting.bodyTextWeight) as any,
                 color: '#000000',
                 width: '8.5in',
                 minHeight: '11in',
@@ -98,14 +99,15 @@ export function ClassicTemplate() {
                             </h2>
                             {education.map((edu: Education, idx: number) => (
                                 <div key={idx} className="mb-3" style={{ breakInside: 'avoid' }}>
-                                    <div className="flex justify-between items-baseline font-bold">
+                                    <div className="flex justify-between items-baseline" style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight) as any }}>
                                         <span>{edu.institution}</span>
-                                        <span className="text-xs font-normal">{edu.graduationDate}</span>
+                                        <span className="text-xs" style={{ fontWeight: 'normal' }}>{edu.graduationDate}</span>
                                     </div>
-                                    <div className="italic text-sm">
+                                    <div className="text-sm" style={{ fontStyle: formatting.italicStyle }}>
                                         {edu.degree}{edu.field && ` in ${edu.field}`}
                                     </div>
-                                    {edu.gpa && <div className="text-xs mt-1">GPA: {edu.gpa}</div>}
+                                    {formatting.showGPA && edu.gpa && <div className="text-xs mt-1">GPA: {edu.gpa}</div>}
+                                    {formatting.showEducationDescription && edu.description && <div className="text-xs mt-1" style={{ color: '#333333' }}>{edu.description}</div>}
                                 </div>
                             ))}
                         </div>
@@ -126,12 +128,12 @@ export function ClassicTemplate() {
                             </h2>
                             {work.map((job: WorkExperience, idx: number) => (
                                 <div key={idx} style={{ marginBottom: getEntrySpacingValue(formatting.entrySpacing), breakInside: 'avoid' }}>
-                                    <div className="flex justify-between items-baseline font-bold">
-                                        <span>{job.company}</span>
-                                        <span className="text-xs font-normal">{job.startDate} — {job.endDate}</span>
+                                    <div className="flex justify-between items-baseline" style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight) as any }}>
+                                        <span>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</span>
+                                        <span className="text-xs" style={{ fontWeight: 'normal' }}>{job.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{job.endDate}</span>
                                     </div>
-                                    <div className="italic text-sm mb-1">
-                                        {job.position}{job.location && `, ${job.location}`}
+                                    <div className="text-sm mb-1" style={{ fontStyle: formatting.italicStyle }}>
+                                        {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location && `, ${job.location}`}
                                     </div>
                                     {job.bullets && job.bullets.filter(b => b.trim() !== '').length > 0 && (
                                         <ul className="list-none text-sm" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
@@ -169,7 +171,15 @@ export function ClassicTemplate() {
                                 {skills.map((skillGroup: Skill, idx: number) => (
                                     <div key={idx} className="text-sm" style={{ breakInside: 'avoid' }}>
                                         <span className="font-bold">{skillGroup.category}: </span>
-                                        <span>{skillGroup.items.join(', ')}</span>
+                                        {formatting.skillLayout === 'inline-tags' ? (
+                                            <span className="inline-flex flex-wrap gap-1">
+                                                {skillGroup.items.map((item, i) => (
+                                                    <span key={i} style={{ background: `${colorValue}15`, border: `1px solid ${colorValue}40`, padding: '1px 6px', borderRadius: '3px', fontSize: '0.8em' }}>{item}</span>
+                                                ))}
+                                            </span>
+                                        ) : (
+                                            <span>{skillGroup.items.join(getSkillSeparator(formatting.skillLayout))}</span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -204,11 +214,13 @@ export function ClassicTemplate() {
                                                 </a>
                                             )}
                                         </div>
-                                        <span className="text-xs font-normal whitespace-nowrap ml-4">{project.startDate} — {project.endDate}</span>
+                                        <span className="text-xs font-normal whitespace-nowrap ml-4">{project.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{project.endDate}</span>
                                     </div>
-                                    <div className="text-xs italic mb-1">
-                                        {project.keywords.join(', ')}
-                                    </div>
+                                    {formatting.showProjectKeywords && project.keywords.length > 0 && (
+                                        <div className="text-xs mb-1" style={{ fontStyle: formatting.italicStyle }}>
+                                            {project.keywords.join(', ')}
+                                        </div>
+                                    )}
                                     {project.bullets && project.bullets.filter(b => b.trim() !== '').length > 0 && (
                                         <ul className="list-none text-sm" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
                                             {project.bullets.filter((b: string) => b.trim() !== '').map((bullet: string, i: number) => (
@@ -245,8 +257,8 @@ export function ClassicTemplate() {
                                 {awards.map((award: Award, idx: number) => (
                                     <div key={idx} className="text-sm" style={{ breakInside: 'avoid' }}>
                                         <div className="font-bold">{award.title} {award.date && <span className="font-normal opacity-60">• {award.date}</span>}</div>
-                                        {award.awarder && <div className="italic">{award.awarder}</div>}
-                                        {award.summary && <div className="text-xs mt-1">{award.summary}</div>}
+                                        {award.awarder && <div style={{ fontStyle: formatting.italicStyle }}>{award.awarder}</div>}
+                                        {formatting.showAwardsSummaries && award.summary && <div className="text-xs mt-1">{award.summary}</div>}
                                     </div>
                                 ))}
                             </div>

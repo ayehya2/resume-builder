@@ -12,7 +12,7 @@ import { AITab } from './components/forms/AITab'
 import { FormattingForm } from './components/forms/FormattingForm'
 import { TemplateThumbnail } from './components/preview/TemplateThumbnail'
 import { PDFPreview } from './components/preview/PDFPreview'
-import type { TemplateId, SectionKey, DocumentType } from './types'
+import type { TemplateId, SectionKey, DocumentType, PreloadedTemplateId } from './types'
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
@@ -40,6 +40,8 @@ import { AcademicPDFTemplate } from './templates/pdf/AcademicPDFTemplate'
 import { LaTeXPDFTemplate } from './templates/pdf/LaTeXPDFTemplate'
 import { CoverLetterPDFTemplate } from './templates/pdf/CoverLetterPDFTemplate'
 import { useCoverLetterStore } from './lib/coverLetterStore'
+import { useCustomTemplateStore } from './lib/customTemplateStore'
+import { getEffectiveResumeData } from './lib/templateResolver'
 import {
   Plus,
   LayoutTemplate,
@@ -66,7 +68,10 @@ import {
   ChevronDown,
   Layers,
   FileCheck,
-  Mail
+  Mail,
+  Pencil,
+  Trash2,
+  Copy
 } from 'lucide-react'
 import './styles/index.css'
 
@@ -137,9 +142,11 @@ function App() {
     setSections,
     loadSampleData,
     reset,
-    addCustomSection
+    addCustomSection,
+    updateFormatting
   } = useResumeStore();
   const { coverLetterData } = useCoverLetterStore()
+  const { customTemplates, addCustomTemplate, updateCustomTemplate, deleteCustomTemplate } = useCustomTemplateStore()
   const [activeTab, setActiveTab] = useState<TabKey>(() => loadActiveTab() as TabKey)
   const [darkMode, setDarkMode] = useState(() => loadDarkMode())
   const [documentType, setDocumentType] = useState<DocumentType>('resume')
@@ -154,6 +161,13 @@ function App() {
   const [showResume, setShowResume] = useState(() => loadShowResume());
   const [showCoverLetter, setShowCoverLetter] = useState(() => loadShowCoverLetter());
   const [isImporting, setIsImporting] = useState(false);
+
+  // Custom template creation state
+  const [showCreateTemplate, setShowCreateTemplate] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [newTemplateBase, setNewTemplateBase] = useState<PreloadedTemplateId>(1);
+  const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
+  const [editingTemplateName, setEditingTemplateName] = useState('');
 
   // Scroll to a section in continuous mode instead of switching tabs
   const scrollToContinuousSection = (tabKey: TabKey) => {
@@ -421,39 +435,42 @@ function App() {
         templateComponent = <CoverLetterPDFTemplate data={coverLetterData} />;
         fileName = `cover_letter_${coverLetterData.company || 'document'}`.replace(/[^a-z0-9._-]/gi, '_');
       } else {
-        switch (resumeData.selectedTemplate) {
+        // Resolve custom templates to base template + effective formatting
+        const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
+
+        switch (effectiveData.selectedTemplate) {
           case 1:
-            templateComponent = <ClassicPDFTemplate data={resumeData} />;
+            templateComponent = <ClassicPDFTemplate data={effectiveData} />;
             break;
           case 2:
-            templateComponent = <ModernPDFTemplate data={resumeData} />;
+            templateComponent = <ModernPDFTemplate data={effectiveData} />;
             break;
           case 3:
-            templateComponent = <MinimalPDFTemplate data={resumeData} />;
+            templateComponent = <MinimalPDFTemplate data={effectiveData} />;
             break;
           case 4:
-            templateComponent = <ExecutivePDFTemplate data={resumeData} />;
+            templateComponent = <ExecutivePDFTemplate data={effectiveData} />;
             break;
           case 5:
-            templateComponent = <CreativePDFTemplate data={resumeData} />;
+            templateComponent = <CreativePDFTemplate data={effectiveData} />;
             break;
           case 6:
-            templateComponent = <TechnicalPDFTemplate data={resumeData} />;
+            templateComponent = <TechnicalPDFTemplate data={effectiveData} />;
             break;
           case 7:
-            templateComponent = <ElegantPDFTemplate data={resumeData} />;
+            templateComponent = <ElegantPDFTemplate data={effectiveData} />;
             break;
           case 8:
-            templateComponent = <CompactPDFTemplate data={resumeData} />;
+            templateComponent = <CompactPDFTemplate data={effectiveData} />;
             break;
           case 9:
-            templateComponent = <AcademicPDFTemplate data={resumeData} />;
+            templateComponent = <AcademicPDFTemplate data={effectiveData} />;
             break;
           case 10:
-            templateComponent = <LaTeXPDFTemplate data={resumeData} />;
+            templateComponent = <LaTeXPDFTemplate data={effectiveData} />;
             break;
           default:
-            templateComponent = <ClassicPDFTemplate data={resumeData} />;
+            templateComponent = <ClassicPDFTemplate data={effectiveData} />;
         }
         fileName = `${resumeData.basics.name || 'resume'}`.replace(/[^a-z0-9._-]/gi, '_');
       }
@@ -481,39 +498,42 @@ function App() {
       if (documentType === 'coverletter') {
         templateComponent = <CoverLetterPDFTemplate data={coverLetterData} />;
       } else {
-        switch (resumeData.selectedTemplate) {
+        // Resolve custom templates to base template + effective formatting
+        const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
+
+        switch (effectiveData.selectedTemplate) {
           case 1:
-            templateComponent = <ClassicPDFTemplate data={resumeData} />;
+            templateComponent = <ClassicPDFTemplate data={effectiveData} />;
             break;
           case 2:
-            templateComponent = <ModernPDFTemplate data={resumeData} />;
+            templateComponent = <ModernPDFTemplate data={effectiveData} />;
             break;
           case 3:
-            templateComponent = <MinimalPDFTemplate data={resumeData} />;
+            templateComponent = <MinimalPDFTemplate data={effectiveData} />;
             break;
           case 4:
-            templateComponent = <ExecutivePDFTemplate data={resumeData} />;
+            templateComponent = <ExecutivePDFTemplate data={effectiveData} />;
             break;
           case 5:
-            templateComponent = <CreativePDFTemplate data={resumeData} />;
+            templateComponent = <CreativePDFTemplate data={effectiveData} />;
             break;
           case 6:
-            templateComponent = <TechnicalPDFTemplate data={resumeData} />;
+            templateComponent = <TechnicalPDFTemplate data={effectiveData} />;
             break;
           case 7:
-            templateComponent = <ElegantPDFTemplate data={resumeData} />;
+            templateComponent = <ElegantPDFTemplate data={effectiveData} />;
             break;
           case 8:
-            templateComponent = <CompactPDFTemplate data={resumeData} />;
+            templateComponent = <CompactPDFTemplate data={effectiveData} />;
             break;
           case 9:
-            templateComponent = <AcademicPDFTemplate data={resumeData} />;
+            templateComponent = <AcademicPDFTemplate data={effectiveData} />;
             break;
           case 10:
-            templateComponent = <LaTeXPDFTemplate data={resumeData} />;
+            templateComponent = <LaTeXPDFTemplate data={effectiveData} />;
             break;
           default:
-            templateComponent = <ClassicPDFTemplate data={resumeData} />;
+            templateComponent = <ClassicPDFTemplate data={effectiveData} />;
         }
       }
 
@@ -590,6 +610,216 @@ function App() {
               </div>
             </button>
           ))}
+        </div>
+
+        {/* ── My Templates (Continuous Mode) ── */}
+        <div className={`border-t-2 pt-6 mt-6 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>My Templates</h3>
+            <button
+              onClick={() => setShowCreateTemplate(!showCreateTemplate)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-slate-800 hover:bg-slate-700 text-white'
+                }`}
+            >
+              <Plus size={14} />
+              <span>New Template</span>
+            </button>
+          </div>
+
+          {/* Create template form */}
+          {showCreateTemplate && (
+            <div className={`mb-4 p-4 rounded-lg border-2 ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-slate-50 border-slate-300'}`}>
+              <div className="space-y-3">
+                <div>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Template Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newTemplateName}
+                    onChange={(e) => setNewTemplateName(e.target.value)}
+                    placeholder="e.g. Software Engineer v1"
+                    className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
+                        ? 'bg-slate-700 border-slate-600 text-white placeholder:text-slate-500'
+                        : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
+                      }`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Base Template
+                  </label>
+                  <select
+                    value={newTemplateBase}
+                    onChange={(e) => setNewTemplateBase(Number(e.target.value) as PreloadedTemplateId)}
+                    className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
+                        ? 'bg-slate-700 border-slate-600 text-white'
+                        : 'bg-white border-slate-300 text-slate-900'
+                      }`}
+                  >
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      if (!newTemplateName.trim()) return;
+                      const newId = addCustomTemplate(newTemplateName.trim(), newTemplateBase, resumeData.formatting);
+                      setTemplate(newId);
+                      setNewTemplateName('');
+                      setShowCreateTemplate(false);
+                    }}
+                    disabled={!newTemplateName.trim()}
+                    className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${!newTemplateName.trim()
+                        ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-500 text-white'
+                      }`}
+                  >
+                    Create
+                  </button>
+                  <button
+                    onClick={() => { setShowCreateTemplate(false); setNewTemplateName(''); }}
+                    className={`px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                      }`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Custom templates grid */}
+          {customTemplates.length === 0 && !showCreateTemplate ? (
+            <div className={`text-center py-8 rounded-lg border-2 border-dashed ${darkMode ? 'border-slate-700 text-slate-500' : 'border-slate-300 text-slate-400'}`}>
+              <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
+              <p className="text-sm font-semibold">No custom templates yet</p>
+              <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {customTemplates.map((ct) => {
+                const baseName = templates.find(t => t.id === ct.baseTemplateId)?.name || 'Classic';
+                const isActive = resumeData.selectedTemplate === ct.id;
+                const isEditing = editingTemplateId === ct.id;
+
+                return (
+                  <div
+                    key={ct.id}
+                    className={`
+                      group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer
+                      ${isActive
+                        ? 'border-blue-500 ring-2 ring-blue-400/20'
+                        : darkMode
+                          ? 'border-slate-700 bg-slate-800 hover:border-slate-500'
+                          : 'border-slate-300 bg-slate-100 hover:border-slate-400'
+                      }
+                    `}
+                  >
+                    <button
+                      onClick={() => {
+                        setTemplate(ct.id);
+                        updateFormatting(ct.formatting);
+                      }}
+                      className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800 w-full"
+                    >
+                      <TemplateThumbnail templateId={ct.baseTemplateId} />
+                      {isActive && (
+                        <div className="absolute inset-0 border-4 border-blue-500/30 pointer-events-none"></div>
+                      )}
+                    </button>
+
+                    <div className={`p-3 text-left transition-colors relative ${isActive
+                        ? (darkMode ? 'bg-slate-900 border-t border-blue-800' : 'bg-blue-50 border-t border-blue-100')
+                        : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
+                      }`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editingTemplateName}
+                              onChange={(e) => setEditingTemplateName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && editingTemplateName.trim()) {
+                                  updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
+                                  setEditingTemplateId(null);
+                                }
+                                if (e.key === 'Escape') setEditingTemplateId(null);
+                              }}
+                              onBlur={() => {
+                                if (editingTemplateName.trim()) {
+                                  updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
+                                }
+                                setEditingTemplateId(null);
+                              }}
+                              autoFocus
+                              className={`w-full px-1.5 py-0.5 text-sm font-bold rounded border ${darkMode ? 'bg-slate-700 border-slate-500 text-white' : 'bg-white border-slate-300 text-slate-900'
+                                }`}
+                            />
+                          ) : (
+                            <div className={`font-bold text-sm leading-tight truncate ${isActive ? (darkMode ? 'text-white' : 'text-slate-900') : (darkMode ? 'text-slate-300' : 'text-slate-600')
+                              }`}>
+                              {ct.name}
+                            </div>
+                          )}
+                          <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${isActive ? (darkMode ? 'text-blue-400' : 'text-blue-600') : (darkMode ? 'text-slate-500' : 'text-slate-400')
+                            }`}>
+                            Based on {baseName}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {isActive && (
+                            <div className="bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
+                              <Check size={12} strokeWidth={3} />
+                            </div>
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setEditingTemplateId(ct.id); setEditingTemplateName(ct.name); }}
+                            title="Rename"
+                            className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'
+                              }`}
+                          >
+                            <Pencil size={12} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const newId = addCustomTemplate(`${ct.name} (Copy)`, ct.baseTemplateId, ct.formatting);
+                              setTemplate(newId);
+                              updateFormatting(ct.formatting);
+                            }}
+                            title="Duplicate"
+                            className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'
+                              }`}
+                          >
+                            <Copy size={12} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(`Delete "${ct.name}"?`)) {
+                                deleteCustomTemplate(ct.id);
+                                if (resumeData.selectedTemplate === ct.id) setTemplate(1);
+                              }
+                            }}
+                            title="Delete"
+                            className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-red-900/50 text-red-400' : 'hover:bg-red-100 text-red-500'
+                              }`}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -843,7 +1073,7 @@ function App() {
                 {activeTab === 'ai' && <AITab documentType={documentType} />}
                 {activeTab === 'formatting' && <FormattingForm />}
                 {activeTab === 'templates' && (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Choose Template</h3>
                     <div className="grid grid-cols-2 gap-4">
                       {templates.map((template) => (
@@ -898,6 +1128,225 @@ function App() {
                           </div>
                         </button>
                       ))}
+                    </div>
+
+                    {/* ── My Templates ── */}
+                    <div className={`border-t-2 pt-6 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>My Templates</h3>
+                        <button
+                          onClick={() => setShowCreateTemplate(!showCreateTemplate)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-slate-800 hover:bg-slate-700 text-white'
+                            }`}
+                        >
+                          <Plus size={14} />
+                          <span>New Template</span>
+                        </button>
+                      </div>
+
+                      {/* Create template form */}
+                      {showCreateTemplate && (
+                        <div className={`mb-4 p-4 rounded-lg border-2 ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-slate-50 border-slate-300'}`}>
+                          <div className="space-y-3">
+                            <div>
+                              <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                                Template Name
+                              </label>
+                              <input
+                                type="text"
+                                value={newTemplateName}
+                                onChange={(e) => setNewTemplateName(e.target.value)}
+                                placeholder="e.g. Software Engineer v1"
+                                className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
+                                  ? 'bg-slate-700 border-slate-600 text-white placeholder:text-slate-500'
+                                  : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
+                                  }`}
+                              />
+                            </div>
+                            <div>
+                              <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                                Base Template
+                              </label>
+                              <select
+                                value={newTemplateBase}
+                                onChange={(e) => setNewTemplateBase(Number(e.target.value) as PreloadedTemplateId)}
+                                className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
+                                  ? 'bg-slate-700 border-slate-600 text-white'
+                                  : 'bg-white border-slate-300 text-slate-900'
+                                  }`}
+                              >
+                                {templates.map((t) => (
+                                  <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  if (!newTemplateName.trim()) return;
+                                  const newId = addCustomTemplate(newTemplateName.trim(), newTemplateBase, resumeData.formatting);
+                                  setTemplate(newId);
+                                  setNewTemplateName('');
+                                  setShowCreateTemplate(false);
+                                }}
+                                disabled={!newTemplateName.trim()}
+                                className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${!newTemplateName.trim()
+                                  ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
+                                  : 'bg-green-600 hover:bg-green-500 text-white'
+                                  }`}
+                              >
+                                Create
+                              </button>
+                              <button
+                                onClick={() => { setShowCreateTemplate(false); setNewTemplateName(''); }}
+                                className={`px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                                  }`}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Custom templates grid */}
+                      {customTemplates.length === 0 && !showCreateTemplate ? (
+                        <div className={`text-center py-8 rounded-lg border-2 border-dashed ${darkMode ? 'border-slate-700 text-slate-500' : 'border-slate-300 text-slate-400'}`}>
+                          <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
+                          <p className="text-sm font-semibold">No custom templates yet</p>
+                          <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4">
+                          {customTemplates.map((ct) => {
+                            const baseName = templates.find(t => t.id === ct.baseTemplateId)?.name || 'Classic';
+                            const isActive = resumeData.selectedTemplate === ct.id;
+                            const isEditing = editingTemplateId === ct.id;
+
+                            return (
+                              <div
+                                key={ct.id}
+                                className={`
+                                  group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer
+                                  ${isActive
+                                    ? 'border-blue-500 ring-2 ring-blue-400/20'
+                                    : darkMode
+                                      ? 'border-slate-700 bg-slate-800 hover:border-slate-500'
+                                      : 'border-slate-300 bg-slate-100 hover:border-slate-400'
+                                  }
+                                `}
+                              >
+                                {/* Thumbnail — clicking selects the template */}
+                                <button
+                                  onClick={() => {
+                                    setTemplate(ct.id);
+                                    updateFormatting(ct.formatting);
+                                  }}
+                                  className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800 w-full"
+                                >
+                                  <TemplateThumbnail templateId={ct.baseTemplateId} />
+                                  {isActive && (
+                                    <div className="absolute inset-0 border-4 border-blue-500/30 pointer-events-none"></div>
+                                  )}
+                                </button>
+
+                                {/* Info area */}
+                                <div className={`p-3 text-left transition-colors relative ${isActive
+                                  ? (darkMode ? 'bg-slate-900 border-t border-blue-800' : 'bg-blue-50 border-t border-blue-100')
+                                  : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
+                                  }`}>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      {isEditing ? (
+                                        <input
+                                          type="text"
+                                          value={editingTemplateName}
+                                          onChange={(e) => setEditingTemplateName(e.target.value)}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && editingTemplateName.trim()) {
+                                              updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
+                                              setEditingTemplateId(null);
+                                            }
+                                            if (e.key === 'Escape') setEditingTemplateId(null);
+                                          }}
+                                          onBlur={() => {
+                                            if (editingTemplateName.trim()) {
+                                              updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
+                                            }
+                                            setEditingTemplateId(null);
+                                          }}
+                                          autoFocus
+                                          className={`w-full px-1.5 py-0.5 text-sm font-bold rounded border ${darkMode ? 'bg-slate-700 border-slate-500 text-white' : 'bg-white border-slate-300 text-slate-900'
+                                            }`}
+                                        />
+                                      ) : (
+                                        <div className={`font-bold text-sm leading-tight truncate ${isActive ? (darkMode ? 'text-white' : 'text-slate-900') : (darkMode ? 'text-slate-300' : 'text-slate-600')
+                                          }`}>
+                                          {ct.name}
+                                        </div>
+                                      )}
+                                      <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${isActive ? (darkMode ? 'text-blue-400' : 'text-blue-600') : (darkMode ? 'text-slate-500' : 'text-slate-400')
+                                        }`}>
+                                        Based on {baseName}
+                                      </div>
+                                    </div>
+
+                                    {/* Action buttons */}
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      {isActive && (
+                                        <div className="bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
+                                          <Check size={12} strokeWidth={3} />
+                                        </div>
+                                      )}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setEditingTemplateId(ct.id);
+                                          setEditingTemplateName(ct.name);
+                                        }}
+                                        title="Rename"
+                                        className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'
+                                          }`}
+                                      >
+                                        <Pencil size={12} />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const newId = addCustomTemplate(`${ct.name} (Copy)`, ct.baseTemplateId, ct.formatting);
+                                          setTemplate(newId);
+                                          updateFormatting(ct.formatting);
+                                        }}
+                                        title="Duplicate"
+                                        className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'
+                                          }`}
+                                      >
+                                        <Copy size={12} />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (confirm(`Delete "${ct.name}"?`)) {
+                                            deleteCustomTemplate(ct.id);
+                                            if (resumeData.selectedTemplate === ct.id) {
+                                              setTemplate(1); // Fall back to Classic
+                                            }
+                                          }
+                                        }}
+                                        title="Delete"
+                                        className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-red-900/50 text-red-400' : 'hover:bg-red-100 text-red-500'
+                                          }`}
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

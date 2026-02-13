@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store';
-import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize } from '../../lib/formatting';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize, getSubHeaderWeight, getSkillSeparator, getBodyTextWeight, getDateSeparatorChar } from '../../lib/formatting';
 import { parseBoldText } from '../../lib/parseBoldText';
 import type { SectionKey, Education, WorkExperience, Skill, Project, Award, CustomSection } from '../../types';
 
@@ -103,14 +103,14 @@ export function ModernTemplate() {
                             </h2>
                             {education.map((edu: Education, idx: number) => (
                                 <div key={idx} style={{ marginBottom: getEntrySpacingValue(formatting.entrySpacing), breakInside: 'avoid' }}>
-                                    <div className="flex justify-between items-baseline font-bold">
+                                    <div className="flex justify-between items-baseline" style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight) as any }}>
                                         <span className="text-lg">{edu.institution}</span>
-                                        <span className="text-xs font-normal text-slate-500">{edu.graduationDate}</span>
+                                        <span className="text-xs text-slate-500" style={{ fontWeight: 'normal' }}>{edu.graduationDate}</span>
                                     </div>
                                     <div className="italic text-slate-700">
                                         {edu.degree}{edu.field && ` in ${edu.field}`}
                                     </div>
-                                    {edu.gpa && <div className="text-sm mt-1 font-semibold">GPA: {edu.gpa}</div>}
+                                    {formatting.showGPA && edu.gpa && <div className="text-sm mt-1 font-semibold">GPA: {edu.gpa}</div>}
                                 </div>
                             ))}
                         </div>
@@ -125,12 +125,12 @@ export function ModernTemplate() {
                             </h2>
                             {work.map((job: WorkExperience, idx: number) => (
                                 <div key={idx} className="mb-5 pl-3" style={{ breakInside: 'avoid' }}>
-                                    <div className="flex justify-between items-baseline font-bold text-lg">
-                                        <span>{job.company}</span>
-                                        <span className="text-sm font-normal text-slate-500">{job.startDate} — {job.endDate}</span>
+                                    <div className="flex justify-between items-baseline text-lg" style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight) as any }}>
+                                        <span>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</span>
+                                        <span className="text-sm text-slate-500" style={{ fontWeight: 'normal' }}>{job.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{job.endDate}</span>
                                     </div>
                                     <div className="italic text-slate-700 mb-2">
-                                        {job.position}{job.location && `, ${job.location}`}
+                                        {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location && `, ${job.location}`}
                                     </div>
                                     {job.bullets && job.bullets.filter(b => b.trim() !== '').length > 0 && (
                                         <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
@@ -158,7 +158,15 @@ export function ModernTemplate() {
                                 {skills.map((skillGroup: Skill, idx: number) => (
                                     <div key={idx} className="text-sm text-left" style={{ breakInside: 'avoid' }}>
                                         <span className="font-bold">{skillGroup.category}: </span>
-                                        <span className="text-slate-700">{skillGroup.items.join(', ')}</span>
+                                        {formatting.skillLayout === 'inline-tags' ? (
+                                            <span className="inline-flex flex-wrap gap-1">
+                                                {skillGroup.items.map((item, i) => (
+                                                    <span key={i} style={{ background: `${colorValue}15`, border: `1px solid ${colorValue}40`, padding: '1px 6px', borderRadius: '3px', fontSize: '0.8em' }}>{item}</span>
+                                                ))}
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-700">{skillGroup.items.join(getSkillSeparator(formatting.skillLayout))}</span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -183,7 +191,7 @@ export function ModernTemplate() {
                                                 </a>
                                             )}
                                         </div>
-                                        <span className="text-sm font-normal text-slate-500 whitespace-nowrap ml-4">{project.startDate} — {project.endDate}</span>
+                                        <span className="text-sm font-normal text-slate-500 whitespace-nowrap ml-4">{project.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{project.endDate}</span>
                                     </div>
                                     <div className="text-sm italic text-slate-600 mb-2">
                                         {project.keywords.join(' • ')}
@@ -215,7 +223,7 @@ export function ModernTemplate() {
                                     <div key={idx} className="text-sm text-left" style={{ breakInside: 'avoid' }}>
                                         <div className="font-bold text-left">{award.title} {award.date && <span className="font-normal opacity-60 ml-1">— {award.date}</span>}</div>
                                         {award.awarder && <div className="italic text-slate-600 text-left">{award.awarder}</div>}
-                                        {award.summary && <div className="text-xs mt-1 text-slate-500 text-left">{award.summary}</div>}
+                                        {formatting.showAwardsSummaries && award.summary && <div className="text-xs mt-1 text-slate-500 text-left">{award.summary}</div>}
                                     </div>
                                 ))}
                             </div>

@@ -13,6 +13,12 @@ import {
     getPDFEntrySpacing,
     getPDFBulletGap,
     getPDFSectionHeaderStyle,
+    getPDFSkillSeparator,
+    getPDFDateFormat,
+    getPDFDateSeparator,
+    getPDFBodyTextWeight,
+    getPDFParagraphSpacing,
+    getPDFSectionTitleSpacing
 } from '../../lib/pdfFormatting';
 import { parseBoldTextPDF } from '../../lib/parseBoldText';
 
@@ -183,11 +189,11 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                                         {work.map((job, idx) => (
                                             <View key={idx} style={styles.entryContainer} wrap={true}>
                                                 <View style={styles.entryHeader}>
-                                                    <Text style={styles.entryTitle}>{job.company}</Text>
-                                                    <Text style={styles.dateRange}>{job.startDate} – {job.endDate}</Text>
+                                                    <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
+                                                    <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                                 </View>
                                                 <Text style={styles.entrySubtitle}>
-                                                    {job.position}{job.location && `, ${job.location}`}
+                                                    {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
                                                 </Text>
                                                 {job.bullets && job.bullets.filter(b => b.trim()).length > 0 && (
                                                     <View>
@@ -221,7 +227,7 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                                                             </Link>
                                                         )}
                                                     </Text>
-                                                    <Text style={styles.dateRange}>{project.startDate} – {project.endDate}</Text>
+                                                    <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} – {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                                 </View>
                                                 {project.keywords.length > 0 && (
                                                     <Text style={{ fontSize: 7.5, color: '#999999', marginBottom: 1 }}>
@@ -306,10 +312,10 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                                         <Text style={sideHeaderStyle}>Education</Text>
                                         {education.map((edu, idx) => (
                                             <View key={idx} style={{ marginBottom: 5, fontSize: 8.5 }}>
-                                                <Text style={{ fontWeight: 'bold' }}>{edu.institution}</Text>
+                                                <Text style={{ fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{edu.institution}</Text>
                                                 <Text style={{ color: '#555555', fontSize: 8 }}>{edu.degree}{edu.field && ` in ${edu.field}`}</Text>
-                                                <Text style={{ color: '#888888', fontSize: 7.5 }}>{edu.graduationDate}</Text>
-                                                {edu.gpa && <Text style={{ fontSize: 7.5, color: '#888888' }}>GPA: {edu.gpa}</Text>}
+                                                <Text style={{ color: '#888888', fontSize: 7.5 }}>{getPDFDateFormat(edu.graduationDate, formatting.dateFormat)}</Text>
+                                                {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 7.5, color: '#888888' }}>GPA: {edu.gpa}</Text>}
                                             </View>
                                         ))}
                                     </View>
@@ -323,7 +329,7 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                                         {skills.map((skillGroup, idx) => (
                                             <View key={idx} style={{ marginBottom: 4 }}>
                                                 <Text style={{ fontWeight: 'bold', fontSize: 8, color: '#333333' }}>{skillGroup.category}</Text>
-                                                <Text style={{ fontSize: 7.5, color: '#666666', lineHeight: 1.4 }}>{skillGroup.items.join(', ')}</Text>
+                                                <Text style={{ fontSize: 7.5, color: '#666666', lineHeight: 1.4 }}>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
                                             </View>
                                         ))}
                                     </View>
@@ -336,8 +342,8 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
                                         <Text style={sideHeaderStyle}>Awards</Text>
                                         {awards.map((award, idx) => (
                                             <View key={idx} style={{ marginBottom: 4, fontSize: 8 }}>
-                                                <Text style={{ fontWeight: 'bold' }}>{award.title}</Text>
-                                                {award.date && <Text style={{ color: '#888888', fontSize: 7.5 }}>{award.date}</Text>}
+                                                <Text style={{ fontWeight: 'bold', fontSize: 8.5 }}>{award.title}</Text>
+                                                {award.date && <Text style={{ color: '#888888', fontSize: 7.5 }}>{getPDFDateFormat(award.date, formatting.dateFormat)}</Text>}
                                                 {award.awarder && <Text style={{ fontStyle: 'italic', color: '#999999', fontSize: 7.5 }}>{award.awarder}</Text>}
                                             </View>
                                         ))}

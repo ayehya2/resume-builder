@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store';
-import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase } from '../../lib/formatting';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getSubHeaderWeight, getSkillSeparator, getBodyTextWeight, getDateSeparatorChar } from '../../lib/formatting';
 import { parseBoldText } from '../../lib/parseBoldText';
 import type { SectionKey, Education, WorkExperience, Skill, Project, Award, CustomSection } from '../../types';
 
@@ -92,7 +92,15 @@ export function CreativeTemplate() {
                                     {skillGroup.category}
                                 </div>
                                 <div style={{ fontSize: '8pt', color: '#666666', lineHeight: '1.5' }}>
-                                    {skillGroup.items.join(' · ')}
+                                    {formatting.skillLayout === 'inline-tags' ? (
+                                        <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '2px' }}>
+                                            {skillGroup.items.map((item, i) => (
+                                                <span key={i} style={{ background: `${colorValue}20`, padding: '1px 4px', borderRadius: '2px', fontSize: '7.5pt' }}>{item}</span>
+                                            ))}
+                                        </span>
+                                    ) : (
+                                        skillGroup.items.join(getSkillSeparator(formatting.skillLayout))
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -165,13 +173,13 @@ export function CreativeTemplate() {
                                 {education.map((edu: Education, idx: number) => (
                                     <div key={idx} style={{ marginBottom: getEntrySpacingValue(formatting.entrySpacing), breakInside: 'avoid' }}>
                                         <div className="flex justify-between items-baseline">
-                                            <span style={{ fontWeight: 'bold' }}>{edu.institution}</span>
+                                            <span style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight) }}>{edu.institution}</span>
                                             <span style={{ fontSize: '9pt', color: '#888888' }}>{edu.graduationDate}</span>
                                         </div>
                                         <div style={{ fontStyle: 'italic', fontSize: '9.5pt', color: '#555555' }}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </div>
-                                        {edu.gpa && <div style={{ fontSize: '9pt', color: '#888888' }}>GPA: {edu.gpa}</div>}
+                                        {formatting.showGPA && edu.gpa && <div style={{ fontSize: '9pt', color: '#888888' }}>GPA: {edu.gpa}</div>}
                                     </div>
                                 ))}
                             </div>
@@ -185,11 +193,11 @@ export function CreativeTemplate() {
                                 {work.map((job: WorkExperience, idx: number) => (
                                     <div key={idx} style={{ marginBottom: getEntrySpacingValue(formatting.entrySpacing), breakInside: 'avoid' }}>
                                         <div className="flex justify-between items-baseline">
-                                            <span style={{ fontWeight: 'bold' }}>{job.company}</span>
-                                            <span style={{ fontSize: '9pt', color: '#888888' }}>{job.startDate} — {job.endDate}</span>
+                                            <span style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight) }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</span>
+                                            <span style={{ fontSize: '9pt', color: '#888888' }}>{job.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{job.endDate}</span>
                                         </div>
                                         <div style={{ fontStyle: 'italic', fontSize: '9.5pt', color: '#555555', marginBottom: '3pt' }}>
-                                            {job.position}{job.location && `, ${job.location}`}
+                                            {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location && `, ${job.location}`}
                                         </div>
                                         {job.bullets && job.bullets.filter(b => b.trim() !== '').length > 0 && (
                                             <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
@@ -222,7 +230,7 @@ export function CreativeTemplate() {
                                                     </a>
                                                 )}
                                             </div>
-                                            <span style={{ fontSize: '9pt', color: '#888888' }}>{project.startDate} — {project.endDate}</span>
+                                            <span style={{ fontSize: '9pt', color: '#888888' }}>{project.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{project.endDate}</span>
                                         </div>
                                         {project.keywords && project.keywords.length > 0 && (
                                             <div style={{ fontSize: '8.5pt', color: '#999999', marginBottom: '2pt' }}>

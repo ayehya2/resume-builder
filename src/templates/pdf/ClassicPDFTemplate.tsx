@@ -10,14 +10,18 @@ import {
     getPDFSectionTitleSize,
     getPDFSectionMargin,
     getPDFBulletIndent,
-    getPDFSectionBorderStyle,
     getPDFEntrySpacing,
     getPDFBulletGap,
     getPDFSectionHeaderStyle,
+    getPDFSkillSeparator,
+    getPDFDateFormat,
+    getPDFDateSeparator,
+    getPDFBodyTextWeight,
+    getPDFParagraphSpacing,
+    getPDFSectionTitleSpacing
 } from '../../lib/pdfFormatting';
 import { parseBoldTextPDF } from '../../lib/parseBoldText';
 
-// Dynamic styles factory - creates styles based on formatting options
 const createStyles = (formatting: FormattingOptions) => {
     const accentColor = getPDFColorValue(formatting.colorTheme, formatting.customColor);
     const baseFontSize = getPDFFontSize(formatting.baseFontSize);
@@ -169,13 +173,13 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                 {education.map((edu, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
-                                            <Text style={styles.entryTitle}>{edu.institution}</Text>
-                                            <Text style={styles.dateRange}>{edu.graduationDate}</Text>
+                                            <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{edu.institution}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(edu.graduationDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {edu.gpa && <Text style={{ fontSize: 10 }}>GPA: {edu.gpa}</Text>}
+                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 10 }}>GPA: {edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -189,11 +193,11 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                 {work.map((job, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
-                                            <Text style={styles.entryTitle}>{job.company}</Text>
-                                            <Text style={styles.dateRange}>{job.startDate} - {job.endDate}</Text>
+                                            <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
-                                            {job.position}{job.location && `, ${job.location}`}
+                                            {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
                                         </Text>
                                         {job.bullets && job.bullets.filter(b => b.trim()).length > 0 && (
                                             <View>
@@ -219,7 +223,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                     <View key={idx} style={styles.skillCategory}>
                                         <Text>
                                             <Text style={styles.skillCategoryName}>{skillGroup.category}: </Text>
-                                            <Text>{skillGroup.items.join(', ')}</Text>
+                                            <Text>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
                                         </Text>
                                     </View>
                                 ))}
@@ -242,7 +246,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                                     </Link>
                                                 )}
                                             </View>
-                                            <Text style={styles.dateRange}>{project.startDate} - {project.endDate}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} – {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                         </View>
                                         {project.keywords && project.keywords.length > 0 && (
                                             <Text style={styles.projectKeywords}>
@@ -280,7 +284,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                                                 ({award.awarder})
                                             </Text>
                                         )}
-                                        {award.summary && (
+                                        {formatting.showAwardsSummaries && award.summary && (
                                             <Text style={{ fontSize: 10, marginTop: 2 }}>
                                                 {award.summary}
                                             </Text>

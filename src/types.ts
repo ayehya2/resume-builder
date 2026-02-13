@@ -84,8 +84,17 @@ export interface Award {
 }
 
 // Template Types
-export type TemplateId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+export type TemplateId = number;
+export type PreloadedTemplateId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export type SectionKey = 'profile' | 'education' | 'work' | 'skills' | 'projects' | 'awards' | string;
+
+export interface CustomTemplate {
+    id: number;              // IDs start at 100
+    name: string;
+    baseTemplateId: PreloadedTemplateId;
+    formatting: FormattingOptions;
+    createdAt: string;
+}
 
 export interface TemplateMetadata {
     id: TemplateId;
@@ -135,19 +144,43 @@ export interface FormattingOptions {
     headerLineStyle: HeaderLineStyle;
     headerAlignment: Alignment;
     separator: '•' | '|' | '·' | '—'; // Universal separator for contact info and lists
+    // Content Controls (Phase 4)
+    dateFormat: DateFormat;
+    subHeaderWeight: SubHeaderWeight;
+    skillLayout: SkillLayout;
+    showLocation: boolean;
+    showGPA: boolean;
+    companyTitleOrder: CompanyTitleOrder;
+    // Phase 4.5 — Extended Formatting
+    bodyTextWeight: BodyTextWeight;
+    italicStyle: ItalicStyle;
+    sectionTitleSpacing: Spacing;
+    showEducationDescription: boolean;
+    showProjectKeywords: boolean;
+    showAwardsSummaries: boolean;
+    dateSeparator: DateSeparator;
+    accentColorPosition: AccentColorPosition;
 }
 
-export type FontFamily = 'default' | 'times' | 'arial' | 'calibri' | 'georgia' | 'helvetica' | 'palatino' | 'garamond';
+export type FontFamily = 'default' | 'times' | 'arial' | 'calibri' | 'georgia' | 'helvetica' | 'palatino' | 'garamond' | 'cambria' | 'bookAntiqua' | 'centurySchoolbook';
 export type NameSize = 'huge' | 'large' | 'large2' | 'normal';
 export type SectionTitleSize = 'large' | 'normal' | 'small';
 export type Spacing = 'tight' | 'normal' | 'relaxed' | 'spacious';
 export type PageMargins = 'narrow' | 'normal' | 'wide' | 'custom';
 export type BulletStyle = 'bullet' | 'dash' | 'arrow' | 'circle' | 'square' | 'diamond' | 'star' | 'chevron';
 export type BulletIndent = 'none' | 'small' | 'medium' | 'large';
-export type ColorTheme = 'black' | 'navy' | 'darkblue' | 'darkgreen' | 'maroon' | 'purple' | 'teal' | 'slate' | 'burgundy' | 'forest' | 'custom';
-export type SectionDivider = 'none' | 'line' | 'double' | 'thick' | 'dotted';
+export type ColorTheme = 'black' | 'navy' | 'darkblue' | 'darkgreen' | 'maroon' | 'purple' | 'teal' | 'slate' | 'burgundy' | 'forest' | 'charcoal' | 'steelblue' | 'indigo' | 'coral' | 'olive' | 'custom';
+export type SectionDivider = 'none' | 'line' | 'double' | 'thick' | 'dotted' | 'dashed';
 export type HeaderLineStyle = 'none' | 'thin' | 'medium' | 'thick' | 'double' | 'dotted' | 'dashed';
 export type Alignment = 'left' | 'center' | 'right';
+export type DateFormat = 'short' | 'long' | 'numeric';
+export type SubHeaderWeight = 'normal' | 'medium' | 'bold';
+export type SkillLayout = 'comma' | 'pipe' | 'inline-tags';
+export type CompanyTitleOrder = 'company-first' | 'title-first';
+export type BodyTextWeight = 'light' | 'normal' | 'medium';
+export type ItalicStyle = 'normal' | 'italic';
+export type DateSeparator = '—' | '–' | 'to' | '-';
+export type AccentColorPosition = 'headers-only' | 'headers-and-links' | 'all-accents';
 
 // API Types
 export interface GeneratePDFRequest {

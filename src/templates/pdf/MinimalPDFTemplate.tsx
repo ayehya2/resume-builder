@@ -13,6 +13,12 @@ import {
     getPDFEntrySpacing,
     getPDFBulletGap,
     getPDFSectionHeaderStyle,
+    getPDFSkillSeparator,
+    getPDFDateFormat,
+    getPDFDateSeparator,
+    getPDFBodyTextWeight,
+    getPDFParagraphSpacing,
+    getPDFSectionTitleSpacing
 } from '../../lib/pdfFormatting';
 import { parseBoldTextPDF } from '../../lib/parseBoldText';
 
@@ -162,13 +168,13 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                 {education.map((edu, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
-                                            <Text style={styles.entryTitle}>{edu.institution}</Text>
-                                            <Text style={styles.dateRange}>{edu.graduationDate}</Text>
+                                            <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{edu.institution}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(edu.graduationDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {edu.gpa && <Text style={{ fontSize: baseFontSize - 1, color: '#888888' }}>GPA: {edu.gpa}</Text>}
+                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: baseFontSize - 1, color: '#888888' }}>GPA: {edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -182,11 +188,11 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                 {work.map((job, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
-                                            <Text style={styles.entryTitle}>{job.company}</Text>
-                                            <Text style={styles.dateRange}>{job.startDate} — {job.endDate}</Text>
+                                            <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} – {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
-                                            {job.position}{job.location && `, ${job.location}`}
+                                            {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
                                         </Text>
                                         {job.bullets && job.bullets.filter(b => b.trim()).length > 0 && (
                                             <View>
@@ -211,7 +217,7 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                 {skills.map((skillGroup, idx) => (
                                     <View key={idx} style={styles.skillRow}>
                                         <Text style={styles.skillCategory}>{skillGroup.category}: </Text>
-                                        <Text style={styles.skillItems}>{skillGroup.items.join(', ')}</Text>
+                                        <Text style={styles.skillItems}>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
                                     </View>
                                 ))}
                             </View>
@@ -236,7 +242,7 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                                     </Link>
                                                 )}
                                             </Text>
-                                            <Text style={styles.dateRange}>{project.startDate} — {project.endDate}</Text>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} — {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                         </View>
                                         {project.keywords.length > 0 && (
                                             <Text style={{ fontSize: baseFontSize - 1.5, color: '#999999', marginBottom: 2 }}>
@@ -266,11 +272,11 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                 {awards.map((award, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
-                                            <Text style={styles.entryTitle}>{award.title}</Text>
-                                            <Text style={styles.dateRange}>{award.date}</Text>
+                                            <Text style={{ fontSize: 10, fontWeight: 'bold' }}>{award.title}</Text>
+                                            {award.date && <Text style={styles.dateRange}>{getPDFDateFormat(award.date, formatting.dateFormat)}</Text>}
                                         </View>
                                         <Text style={styles.entrySubtitle}>{award.awarder}</Text>
-                                        {award.summary && <Text style={{ fontSize: baseFontSize - 1, color: '#444444' }}>{award.summary}</Text>}
+                                        {formatting.showAwardsSummaries && award.summary && <Text style={{ fontSize: baseFontSize - 1, color: '#444444' }}>{award.summary}</Text>}
                                     </View>
                                 ))}
                             </View>

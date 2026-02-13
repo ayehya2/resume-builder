@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../store';
-import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize } from '../../lib/formatting';
+import { getFontFamilyCSS, getBulletSymbol, getColorValue, getBulletIndentValue, getSectionTitleSize, getEntrySpacingValue, getBulletGapValue, getSectionHeaderCase, getNameSize, getSubHeaderWeight, getSkillSeparator, getBodyTextWeight, getDateSeparatorChar } from '../../lib/formatting';
 import { parseBoldText } from '../../lib/parseBoldText';
 import type { SectionKey, Education, WorkExperience, Skill, Project, Award, CustomSection } from '../../types';
 
@@ -105,13 +105,13 @@ export function ElegantTemplate() {
                                 {education.map((edu: Education, idx: number) => (
                                     <div key={idx} style={{ marginBottom: getEntrySpacingValue(formatting.entrySpacing), breakInside: 'avoid' }}>
                                         <div className="flex justify-between items-baseline">
-                                            <span style={{ fontWeight: 'bold' }}>{edu.institution}</span>
+                                            <span style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight) }}>{edu.institution}</span>
                                             <span style={{ fontSize: '9pt', color: '#888888', fontStyle: 'italic' }}>{edu.graduationDate}</span>
                                         </div>
                                         <div style={{ fontSize: '9.5pt', color: '#555555' }}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </div>
-                                        {edu.gpa && <div style={{ fontSize: '9pt', color: '#888888' }}>GPA: {edu.gpa}</div>}
+                                        {formatting.showGPA && edu.gpa && <div style={{ fontSize: '9pt', color: '#888888' }}>GPA: {edu.gpa}</div>}
                                     </div>
                                 ))}
                             </div>
@@ -125,11 +125,11 @@ export function ElegantTemplate() {
                                 {work.map((job: WorkExperience, idx: number) => (
                                     <div key={idx} style={{ marginBottom: getEntrySpacingValue(formatting.entrySpacing), breakInside: 'avoid' }}>
                                         <div className="flex justify-between items-baseline">
-                                            <span style={{ fontWeight: 'bold' }}>{job.company}</span>
-                                            <span style={{ fontSize: '9pt', color: '#888888', fontStyle: 'italic' }}>{job.startDate} — {job.endDate}</span>
+                                            <span style={{ fontWeight: getSubHeaderWeight(formatting.subHeaderWeight) }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</span>
+                                            <span style={{ fontSize: '9pt', color: '#888888', fontStyle: 'italic' }}>{job.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{job.endDate}</span>
                                         </div>
                                         <div style={{ fontSize: '9.5pt', color: '#555555', marginBottom: '3pt' }}>
-                                            {job.position}{job.location && `, ${job.location}`}
+                                            {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location && `, ${job.location}`}
                                         </div>
                                         {job.bullets && job.bullets.filter(b => b.trim() !== '').length > 0 && (
                                             <ul className="list-none" style={{ marginLeft: getBulletIndentValue(formatting.bulletIndent) }}>
@@ -155,7 +155,15 @@ export function ElegantTemplate() {
                                     {skills.map((skillGroup: Skill, idx: number) => (
                                         <div key={idx} style={{ fontSize: '9.5pt', breakInside: 'avoid' }}>
                                             <span style={{ fontWeight: 'bold', color: '#333333' }}>{skillGroup.category}: </span>
-                                            <span style={{ color: '#555555' }}>{skillGroup.items.join(', ')}</span>
+                                            {formatting.skillLayout === 'inline-tags' ? (
+                                                <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '2px' }}>
+                                                    {skillGroup.items.map((item, i) => (
+                                                        <span key={i} style={{ background: `${colorValue}12`, border: `1px solid ${colorValue}30`, padding: '1px 6px', borderRadius: '3px', fontSize: '0.85em' }}>{item}</span>
+                                                    ))}
+                                                </span>
+                                            ) : (
+                                                <span style={{ color: '#555555' }}>{skillGroup.items.join(getSkillSeparator(formatting.skillLayout))}</span>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -178,7 +186,7 @@ export function ElegantTemplate() {
                                                     </a>
                                                 )}
                                             </div>
-                                            <span style={{ fontSize: '9pt', color: '#888888', fontStyle: 'italic' }}>{project.startDate} — {project.endDate}</span>
+                                            <span style={{ fontSize: '9pt', color: '#888888', fontStyle: 'italic' }}>{project.startDate}{getDateSeparatorChar(formatting.dateSeparator)}{project.endDate}</span>
                                         </div>
                                         {project.keywords && project.keywords.length > 0 && (
                                             <div style={{ fontSize: '8.5pt', color: '#999999', marginBottom: '2pt' }}>
@@ -210,7 +218,7 @@ export function ElegantTemplate() {
                                         <div key={idx} style={{ fontSize: '9.5pt', breakInside: 'avoid' }}>
                                             <div style={{ fontWeight: 'bold' }}>{award.title} {award.date && <span style={{ fontWeight: 'normal', color: '#888888', fontStyle: 'italic' }}>• {award.date}</span>}</div>
                                             {award.awarder && <div style={{ color: '#666666', fontStyle: 'italic' }}>{award.awarder}</div>}
-                                            {award.summary && <div style={{ fontSize: '9pt', color: '#777777', marginTop: '2pt' }}>{award.summary}</div>}
+                                            {formatting.showAwardsSummaries && award.summary && <div style={{ fontSize: '9pt', color: '#777777', marginTop: '2pt' }}>{award.summary}</div>}
                                         </div>
                                     ))}
                                 </div>
