@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, Link, StyleSheet } from '@react-pdf/renderer';
-import type { ResumeData, FormattingOptions } from '../../types';
+import type { ResumeData, FormattingOptions } from '../types';
 import {
     getPDFFontFamily,
     getPDFBulletSymbol,
@@ -19,8 +19,8 @@ import {
     getPDFBodyTextWeight,
     getPDFParagraphSpacing,
     getPDFSectionTitleSpacing
-} from '../../lib/pdfFormatting';
-import { parseBoldTextPDF } from '../../lib/parseBoldText';
+} from '../lib/pdfFormatting';
+import { parseBoldTextPDF } from '../lib/parseBoldText';
 
 const createStyles = (formatting: FormattingOptions) => {
     const accentColor = getPDFColorValue(formatting.colorTheme, formatting.customColor);
@@ -36,24 +36,28 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         header: {
             textAlign: formatting.headerAlignment,
-            marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
-            marginTop: getPDFSectionTitleSpacing(formatting.sectionTitleSpacing),
+            marginBottom: 14,
+            paddingBottom: 10,
+            borderBottom: `2pt solid ${accentColor}`,
         },
         name: {
             fontSize: getPDFNameSize(formatting.nameSize),
             fontWeight: formatting.fontWeightName === 'HEAVY' ? 'bold' : formatting.fontWeightName === 'BOLD' ? 'bold' : 'normal',
-            color: accentColor,
+            color: '#1a1a1a',
             marginBottom: 4,
         },
-        contactInfo: {
-            fontSize: baseFontSize - 1,
-            color: '#444444',
-            marginBottom: 8,
+        contactRow: {
+            fontSize: 9,
+            color: '#666666',
+            fontFamily: 'Courier',
         },
-        accentLine: {
-            height: 2,
-            backgroundColor: accentColor,
-            marginBottom: 10,
+        contactSeparator: {
+            color: accentColor,
+            marginHorizontal: 6,
+        },
+        websiteLink: {
+            color: accentColor,
+            textDecoration: 'none',
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
@@ -61,15 +65,19 @@ const createStyles = (formatting: FormattingOptions) => {
         },
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
-            fontWeight: formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal',
-            color: accentColor,
+            fontWeight: 'bold',
+            color: '#1a1a1a',
             textTransform: getPDFSectionHeaderStyle(formatting.sectionHeaderStyle),
+            fontFamily: 'Courier',
             marginBottom: 8,
-            letterSpacing: 0.5,
-            textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
+        },
+        promptSymbol: {
+            color: accentColor,
         },
         entryContainer: {
             marginBottom: getPDFEntrySpacing(formatting.entrySpacing),
+            borderLeft: `2pt solid ${accentColor}20`,
+            paddingLeft: 10,
         },
         entryHeader: {
             flexDirection: 'row',
@@ -79,52 +87,57 @@ const createStyles = (formatting: FormattingOptions) => {
         entryTitle: {
             fontSize: baseFontSize + 1,
             fontWeight: 'bold',
-            color: '#000000',
+            color: '#1a1a1a',
         },
         dateRange: {
-            fontSize: baseFontSize - 1,
-            color: '#666666',
+            fontSize: baseFontSize - 2,
+            color: '#888888',
+            fontFamily: 'Courier',
         },
         entrySubtitle: {
             fontSize: baseFontSize - 1,
-            fontStyle: 'italic',
-            color: '#333333',
-            marginBottom: 2,
+            color: '#555555',
+            marginBottom: 3,
         },
         bulletPoint: {
             fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
             marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
-            color: '#333333',
+            color: '#1a1a1a',
             flexDirection: 'row',
         },
         bulletSymbol: {
             marginRight: getPDFBulletGap(formatting.bulletGap),
-            color: '#bbbbbb',
+            color: accentColor,
         },
         skillRow: {
             fontSize: baseFontSize - 1,
             marginBottom: 4,
-            flexDirection: 'row',
         },
         skillCategory: {
             fontWeight: 'bold',
+            fontFamily: 'Courier',
             color: accentColor,
         },
         skillItems: {
-            color: '#444444',
+            color: '#333333',
+        },
+        projectKeywords: {
+            fontSize: 8.5,
+            color: '#999999',
+            fontFamily: 'Courier',
+            marginBottom: 2,
         },
     });
 };
 
-interface MinimalPDFTemplateProps {
+interface TechnicalPDFTemplateProps {
     data: ResumeData;
 }
 
-export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
+export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
     const styles = createStyles(formatting);
-    const baseFontSize = getPDFFontSize(formatting.baseFontSize);
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
 
     return (
@@ -133,41 +146,72 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                 {/* Header */}
                 <View style={styles.header}>
                     <Text style={styles.name}>{basics.name || 'Your Name'}</Text>
-                    <Text style={styles.contactInfo}>
+                    <Text style={styles.contactRow}>
                         {basics.email && basics.email}
-                        {basics.email && basics.phone && ' · '}
+                        {basics.email && basics.phone && (
+                            <Text style={styles.contactSeparator}> | </Text>
+                        )}
                         {basics.phone && basics.phone}
-                        {(basics.email || basics.phone) && basics.address && ' · '}
+                        {(basics.email || basics.phone) && basics.address && (
+                            <Text style={styles.contactSeparator}> | </Text>
+                        )}
                         {basics.address && basics.address}
-                        {(basics.email || basics.phone || basics.address) && basics.websites.length > 0 && ' · '}
-                        {basics.websites.map((site, i) => (
-                            <Text key={i}>
-                                {i > 0 && ' · '}
-                                <Link src={site.url} style={{ color: '#444444', textDecoration: 'none' }}>
-                                    {site.name || site.url}
-                                </Link>
-                            </Text>
-                        ))}
                     </Text>
-                    <View style={styles.accentLine} />
+                    {basics.websites.length > 0 && (
+                        <Text style={[styles.contactRow, { marginTop: 4 }]}>
+                            {basics.websites.map((site, i) => (
+                                <Text key={i}>
+                                    {i > 0 && <Text style={styles.contactSeparator}> | </Text>}
+                                    <Link src={site.url} style={styles.websiteLink}>
+                                        {site.name || site.url}
+                                    </Link>
+                                </Text>
+                            ))}
+                        </Text>
+                    )}
                 </View>
 
+                {/* Skills first {getPDFDateSeparator(formatting.dateSeparator)} prominent */}
+                {skills.length > 0 && sections.includes('skills') && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionHeader}>
+                            <Text style={styles.promptSymbol}>{'> '}</Text>Skills
+                        </Text>
+                        {skills.map((skillGroup, idx) => (
+                            <View key={idx} style={styles.skillRow}>
+                                <Text>
+                                    <Text style={styles.skillCategory}>{skillGroup.category}: </Text>
+                                    <Text style={styles.skillItems}>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                {/* Other sections */}
                 {sections.map((sectionKey) => {
                     if (sectionKey === 'profile' && basics.summary) {
                         return (
                             <View key="profile" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Profile</Text>
-                                <Text style={{ fontSize: baseFontSize - 1, color: '#444444', lineHeight: 1.6 }}>
-                                    {parseBoldTextPDF(basics.summary, Text)}
+                                <Text style={styles.sectionHeader}>
+                                    <Text style={styles.promptSymbol}>{'> '}</Text>Profile
                                 </Text>
+                                <View style={{ borderLeft: `2pt solid ${getPDFColorValue(formatting.colorTheme, formatting.customColor)}20`, paddingLeft: 10 }}>
+                                    <Text style={{ fontSize: 9.5, color: '#333333', lineHeight: 1.5 }}>
+                                        {parseBoldTextPDF(basics.summary, Text)}
+                                    </Text>
+                                </View>
                             </View>
                         );
                     }
+                    if (sectionKey === 'skills') return null;
 
                     if (sectionKey === 'education' && education.length > 0) {
                         return (
                             <View key="education" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Education</Text>
+                                <Text style={styles.sectionHeader}>
+                                    <Text style={styles.promptSymbol}>{'> '}</Text>Education
+                                </Text>
                                 {education.map((edu, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
@@ -177,7 +221,7 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: baseFontSize - 1, color: '#888888' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
+                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#888888' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -187,7 +231,9 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                     if (sectionKey === 'work' && work.length > 0) {
                         return (
                             <View key="work" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Experience</Text>
+                                <Text style={styles.sectionHeader}>
+                                    <Text style={styles.promptSymbol}>{'> '}</Text>Experience
+                                </Text>
                                 {work.map((job, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
@@ -195,7 +241,7 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                             <Text style={styles.dateRange}>{getPDFDateFormat(job.startDate, formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(job.endDate, formatting.dateFormat)}</Text>
                                         </View>
                                         <Text style={styles.entrySubtitle}>
-                                            {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? `, ${job.location}` : ''}
+                                            {formatting.companyTitleOrder === 'title-first' ? job.company : job.position}{formatting.showLocation && job.location ? ` · ${job.location}` : ''}
                                         </Text>
                                         {job.bullets && job.bullets.filter(b => b.trim()).length > 0 && (
                                             <View>
@@ -213,34 +259,20 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                         );
                     }
 
-                    if (sectionKey === 'skills' && skills.length > 0) {
-                        return (
-                            <View key="skills" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Skills</Text>
-                                {skills.map((skillGroup, idx) => (
-                                    <View key={idx} style={styles.skillRow}>
-                                        <Text style={styles.skillCategory}>{skillGroup.category}: </Text>
-                                        <Text style={styles.skillItems}>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
-                                    </View>
-                                ))}
-                            </View>
-                        );
-                    }
-
                     if (sectionKey === 'projects' && projects.length > 0) {
                         return (
                             <View key="projects" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Projects</Text>
+                                <Text style={styles.sectionHeader}>
+                                    <Text style={styles.promptSymbol}>{'> '}</Text>Projects
+                                </Text>
                                 {projects.map((project, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={styles.entryTitle}>
                                                 {project.name}
+                                                {project.url && ' '}
                                                 {project.url && (
-                                                    <Text style={{ fontSize: baseFontSize - 1, color: '#888888' }}> </Text>
-                                                )}
-                                                {project.url && (
-                                                    <Link src={project.url} style={{ fontSize: baseFontSize - 1, color: '#888888', textDecoration: 'none' }}>
+                                                    <Link src={project.url} style={{ fontSize: 9, color: getPDFColorValue(formatting.colorTheme, formatting.customColor), fontFamily: 'Courier' }}>
                                                         [{project.urlName || 'Link'}]
                                                     </Link>
                                                 )}
@@ -248,8 +280,8 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                             <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                         </View>
                                         {project.keywords.length > 0 && (
-                                            <Text style={{ fontSize: baseFontSize - 1.5, color: '#999999', marginBottom: 2 }}>
-                                                {project.keywords.join(' · ')}
+                                            formatting.showProjectKeywords && <Text style={styles.projectKeywords}>
+                                                [{project.keywords.join(', ')}]
                                             </Text>
                                         )}
                                         {project.bullets && project.bullets.filter(b => b.trim()).length > 0 && (
@@ -257,7 +289,7 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                                                 {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                     <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                        <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                     </View>
                                                 ))}
                                             </View>
@@ -271,15 +303,17 @@ export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
                     if (sectionKey === 'awards' && awards.length > 0) {
                         return (
                             <View key="awards" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Awards</Text>
+                                <Text style={styles.sectionHeader}>
+                                    <Text style={styles.promptSymbol}>{'> '}</Text>Awards
+                                </Text>
                                 {awards.map((award, idx) => (
-                                    <View key={idx} style={styles.entryContainer} wrap={true}>
+                                    <View key={idx} style={[styles.entryContainer, { marginBottom: 4 }]} wrap={true}>
                                         <View style={styles.entryHeader}>
-                                            <Text style={{ fontSize: 10, fontWeight: 'bold' }}>{award.title}</Text>
+                                            <Text style={{ fontSize: 10, fontWeight: 'bold', fontFamily: 'Courier' }}>{`> ${award.title}`}</Text>
                                             {award.date && <Text style={styles.dateRange}>{getPDFDateFormat(award.date, formatting.dateFormat)}</Text>}
                                         </View>
-                                        <Text style={styles.entrySubtitle}>{award.awarder}</Text>
-                                        {formatting.showAwardsSummaries && award.summary && <Text style={{ fontSize: baseFontSize - 1, color: '#444444' }}>{award.summary}</Text>}
+                                        {award.awarder && <Text style={{ fontSize: 9, fontStyle: 'italic', color: '#888888' }}>{award.awarder}</Text>}
+                                        {formatting.showAwardsSummaries && award.summary && <Text style={{ fontSize: 9, color: '#666666', marginTop: 2 }}>{award.summary}</Text>}
                                     </View>
                                 ))}
                             </View>

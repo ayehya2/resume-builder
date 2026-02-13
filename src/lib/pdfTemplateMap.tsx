@@ -1,17 +1,17 @@
 import type { ReactElement } from 'react';
 import type { ResumeData, CoverLetterData, DocumentType } from '../types';
 
-import { ClassicPDFTemplate } from '../templates/pdf/ClassicPDFTemplate';
-import { ModernPDFTemplate } from '../templates/pdf/ModernPDFTemplate';
-import { MinimalPDFTemplate } from '../templates/pdf/MinimalPDFTemplate';
-import { ExecutivePDFTemplate } from '../templates/pdf/ExecutivePDFTemplate';
-import { CreativePDFTemplate } from '../templates/pdf/CreativePDFTemplate';
-import { TechnicalPDFTemplate } from '../templates/pdf/TechnicalPDFTemplate';
-import { ElegantPDFTemplate } from '../templates/pdf/ElegantPDFTemplate';
-import { CompactPDFTemplate } from '../templates/pdf/CompactPDFTemplate';
-import { AcademicPDFTemplate } from '../templates/pdf/AcademicPDFTemplate';
-import { LaTeXPDFTemplate } from '../templates/pdf/LaTeXPDFTemplate';
-import { CoverLetterPDFTemplate } from '../templates/pdf/CoverLetterPDFTemplate';
+import { ClassicPDFTemplate } from '../templates/ClassicPDFTemplate';
+import { ModernPDFTemplate } from '../templates/ModernPDFTemplate';
+import { MinimalPDFTemplate } from '../templates/MinimalPDFTemplate';
+import { ExecutivePDFTemplate } from '../templates/ExecutivePDFTemplate';
+import { CreativePDFTemplate } from '../templates/CreativePDFTemplate';
+import { TechnicalPDFTemplate } from '../templates/TechnicalPDFTemplate';
+import { ElegantPDFTemplate } from '../templates/ElegantPDFTemplate';
+import { CompactPDFTemplate } from '../templates/CompactPDFTemplate';
+import { AcademicPDFTemplate } from '../templates/AcademicPDFTemplate';
+import { LaTeXPDFTemplate } from '../templates/LaTeXPDFTemplate';
+import { CoverLetterPDFTemplate } from '../templates/CoverLetterPDFTemplate';
 
 /**
  * Single source of truth for mapping a template ID to its PDF component.

@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, Link, StyleSheet } from '@react-pdf/renderer';
-import type { ResumeData, FormattingOptions } from '../../types';
+import type { ResumeData, FormattingOptions } from '../types';
 import {
     getPDFFontFamily,
     getPDFBulletSymbol,
@@ -18,8 +18,8 @@ import {
     getPDFDateSeparator,
     getPDFBodyTextWeight,
     getPDFParagraphSpacing
-} from '../../lib/pdfFormatting';
-import { parseBoldTextPDF } from '../../lib/parseBoldText';
+} from '../lib/pdfFormatting';
+import { parseBoldTextPDF } from '../lib/parseBoldText';
 
 /**
  * Compact PDF Template (#9)

@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, Link, StyleSheet } from '@react-pdf/renderer';
-import type { ResumeData, FormattingOptions } from '../../types';
+import type { ResumeData, FormattingOptions } from '../types';
 import {
+    getPDFFontFamily,
     getPDFBulletSymbol,
     getPDFColorValue,
     getPDFPagePadding,
@@ -18,51 +19,48 @@ import {
     getPDFBodyTextWeight,
     getPDFParagraphSpacing,
     getPDFSectionTitleSpacing
-} from '../../lib/pdfFormatting';
-import { parseBoldTextPDF } from '../../lib/parseBoldText';
+} from '../lib/pdfFormatting';
+import { parseBoldTextPDF } from '../lib/parseBoldText';
 
-/**
- * LaTeX PDF Template (#11)
- * Mimics the look of LaTeX/Overleaf academic resumes:
- * Serif font, minimal decoration, full-width rules, very clean layout.
- */
 const createStyles = (formatting: FormattingOptions) => {
     const accentColor = getPDFColorValue(formatting.colorTheme, formatting.customColor);
     const baseFontSize = getPDFFontSize(formatting.baseFontSize);
 
     return StyleSheet.create({
-        page: {
-            padding: getPDFPagePadding(formatting),
-            fontFamily: 'NotoSerif',  // LaTeX template uses registered serif font
+        page: { padding: getPDFPagePadding(formatting),
+            fontFamily: getPDFFontFamily(formatting.fontFamily),
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
             fontWeight: getPDFBodyTextWeight(formatting.bodyTextWeight),
             fontStyle: formatting.italicStyle,
         },
         header: {
+            borderBottom: `2pt solid ${accentColor}`,
+            paddingBottom: 15,
+            marginBottom: 20,
             textAlign: formatting.headerAlignment,
-            marginBottom: 10,
         },
         name: {
             fontSize: getPDFNameSize(formatting.nameSize),
             fontWeight: formatting.fontWeightName === 'HEAVY' ? 'bold' : formatting.fontWeightName === 'BOLD' ? 'bold' : 'normal',
-            color: '#000000',
-            letterSpacing: 1,
-            marginBottom: 4,
+            color: '#0f172a',
+            marginBottom: 6,
         },
         contactInfo: {
-            fontSize: 9,
-            color: '#444444',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: formatting.headerAlignment === 'center' ? 'center' : formatting.headerAlignment === 'right' ? 'flex-end' : 'flex-start',
+            fontSize: baseFontSize - 1,
+            color: '#64748b',
+            gap: 8,
+        },
+        contactSeparator: {
+            color: accentColor,
+            fontWeight: 'bold',
         },
         websiteLink: {
             color: accentColor,
-            textDecoration: 'underline',
-        },
-        headerRule: {
-            width: '100%',
-            height: 2,
-            backgroundColor: '#000000',
-            marginTop: 6,
+            textDecoration: 'none',
         },
         section: {
             marginBottom: getPDFSectionMargin(formatting.sectionSpacing),
@@ -71,15 +69,18 @@ const createStyles = (formatting: FormattingOptions) => {
         sectionHeader: {
             fontSize: getPDFSectionTitleSize(formatting.sectionTitleSize),
             fontWeight: formatting.fontWeightSectionTitle === 'BOLD' ? 'bold' : 'normal',
-            color: '#000000',
+            color: accentColor,
             textTransform: getPDFSectionHeaderStyle(formatting.sectionHeaderStyle),
-            marginBottom: 4,
-            paddingBottom: 2,
-            borderBottom: `1pt solid #000000`,
+            marginBottom: 10,
             letterSpacing: 0.5,
+            paddingLeft: 12,
+            borderLeft: `3pt solid ${accentColor}`,
+            textDecoration: formatting.sectionTitleUnderline ? 'underline' : 'none',
         },
         entryContainer: {
             marginBottom: getPDFEntrySpacing(formatting.entrySpacing),
+            paddingLeft: 12,
+            borderLeft: `1pt solid #e2e8f0`,
         },
         entryHeader: {
             flexDirection: 'row',
@@ -87,44 +88,64 @@ const createStyles = (formatting: FormattingOptions) => {
             marginBottom: 2,
         },
         entryTitle: {
-            fontSize: baseFontSize + 0.5,
+            fontSize: baseFontSize + 1,
             fontWeight: 'bold',
-            color: '#000000',
+            color: '#1e293b',
         },
         dateRange: {
-            fontSize: 9,
-            color: '#444444',
+            fontSize: baseFontSize - 1,
+            fontWeight: 'bold',
+            color: '#64748b',
         },
         entrySubtitle: {
-            fontSize: baseFontSize - 0.5,
+            fontSize: baseFontSize - 1,
             fontStyle: 'italic',
-            color: '#444444',
-            marginBottom: 2,
+            color: '#475569',
+            marginBottom: 4,
         },
         bulletPoint: {
-            fontSize: baseFontSize - 0.5,
+            fontSize: baseFontSize - 1,
             marginLeft: getPDFBulletIndent(formatting.bulletIndent),
             marginBottom: getPDFParagraphSpacing(formatting.paragraphSpacing),
-            color: '#000000',
+            color: '#334155',
             flexDirection: 'row',
         },
         bulletSymbol: {
             marginRight: getPDFBulletGap(formatting.bulletGap),
-            color: '#000000',
+            color: accentColor,
+            fontWeight: 'bold',
         },
         skillCategory: {
-            fontSize: baseFontSize - 0.5,
-            marginBottom: 3,
+            marginBottom: 6,
+            paddingLeft: 12,
+            borderLeft: `1pt solid #e2e8f0`,
+        },
+        skillCategoryName: {
+            fontSize: baseFontSize - 1,
+            fontWeight: 'bold',
+            color: '#334155',
+        },
+        skillItems: {
+            fontSize: baseFontSize - 1,
+            color: '#64748b',
+        },
+        projectKeywords: {
+            fontSize: baseFontSize - 2,
+            fontStyle: 'italic',
+            color: '#64748b',
+            marginTop: 2,
         },
     });
 };
 
-interface LaTeXPDFTemplateProps {
+interface ModernPDFTemplateProps {
     data: ResumeData;
 }
 
-export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
+export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
+
+    // Create dynamic styles based on formatting options
     const styles = createStyles(formatting);
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
 
@@ -134,34 +155,39 @@ export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
                 {/* Header */}
                 <View style={styles.header}>
                     <Text style={styles.name}>{basics.name || 'Your Name'}</Text>
-                    <Text style={styles.contactInfo}>
-                        {basics.email && basics.email}
-                        {basics.email && basics.phone && '  ·  '}
-                        {basics.phone && basics.phone}
-                        {(basics.email || basics.phone) && basics.address && '  ·  '}
-                        {basics.address && basics.address}
-                        {(basics.email || basics.phone || basics.address) && basics.websites.length > 0 && '  ·  '}
+                    <View style={styles.contactInfo}>
+                        {basics.email && <Text>{basics.email}</Text>}
+                        {basics.email && basics.phone && <Text style={styles.contactSeparator}>{formatting.separator}</Text>}
+                        {basics.phone && <Text>{basics.phone}</Text>}
+                        {(basics.email || basics.phone) && basics.address && <Text style={styles.contactSeparator}>{formatting.separator}</Text>}
+                        {basics.address && <Text>{basics.address}</Text>}
+
+                        {(basics.email || basics.phone || basics.address) && basics.websites.length > 0 && (
+                            <Text style={styles.contactSeparator}>{formatting.separator}</Text>
+                        )}
+
                         {basics.websites.map((site, i) => (
-                            <Text key={i}>
-                                {i > 0 && '  ·  '}
+                            <View key={i} style={{ flexDirection: 'row' }}>
+                                {i > 0 && <Text style={styles.contactSeparator}>{formatting.separator}</Text>}
                                 <Link src={site.url} style={styles.websiteLink}>
                                     {site.name || site.url}
                                 </Link>
-                            </Text>
+                            </View>
                         ))}
-                    </Text>
-                    <View style={styles.headerRule} />
+                    </View>
                 </View>
 
-                {/* Sections */}
+                {/* Render sections in user-defined order */}
                 {sections.map((sectionKey) => {
                     if (sectionKey === 'profile' && basics.summary) {
                         return (
                             <View key="profile" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Research Interests</Text>
-                                <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 0.5, color: '#333333', lineHeight: 1.5 }}>
-                                    {parseBoldTextPDF(basics.summary, Text)}
-                                </Text>
+                                <Text style={styles.sectionHeader}>Professional Summary</Text>
+                                <View style={{ paddingLeft: 12, borderLeft: `1pt solid transparent` }}>
+                                    <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1, color: '#334155', lineHeight: 1.5 }}>
+                                        {parseBoldTextPDF(basics.summary, Text)}
+                                    </Text>
+                                </View>
                             </View>
                         );
                     }
@@ -179,7 +205,7 @@ export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
                                         <Text style={styles.entrySubtitle}>
                                             {edu.degree}{edu.field && ` in ${edu.field}`}
                                         </Text>
-                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: 9, color: '#666666' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
+                                        {formatting.showGPA && edu.gpa && <Text style={{ fontSize: getPDFFontSize(formatting.baseFontSize) - 1, fontWeight: 'bold' }}>GPA: {formatting.showGPA && edu.gpa}</Text>}
                                     </View>
                                 ))}
                             </View>
@@ -222,8 +248,8 @@ export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
                                 {skills.map((skillGroup, idx) => (
                                     <View key={idx} style={styles.skillCategory}>
                                         <Text>
-                                            <Text style={{ fontWeight: 'bold' }}>{skillGroup.category}: </Text>
-                                            <Text style={{ color: '#333333' }}>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
+                                            <Text style={styles.skillCategoryName}>{skillGroup.category}: </Text>
+                                            <Text style={styles.skillItems}>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
                                         </Text>
                                     </View>
                                 ))}
@@ -238,28 +264,27 @@ export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
                                 {projects.map((project, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
-                                            <Text style={styles.entryTitle}>
-                                                {project.name}
-                                                {project.url && ' '}
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                <Text style={styles.entryTitle}>{project.name}</Text>
                                                 {project.url && (
-                                                    <Link src={project.url} style={{ fontSize: 9, color: getPDFColorValue(formatting.colorTheme, formatting.customColor), textDecoration: 'underline' }}>
+                                                    <Link src={project.url} style={{ fontSize: 10, color: '#4f46e5', textDecoration: 'underline' }}>
                                                         [{project.urlName || 'Link'}]
                                                     </Link>
                                                 )}
-                                            </Text>
-                                            <Text style={styles.dateRange}>{project.startDate}{getPDFDateSeparator(formatting.dateSeparator)}{project.endDate}</Text>
+                                            </View>
+                                            <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                         </View>
-                                        {project.keywords.length > 0 && (
-                                            <Text style={{ fontSize: 8.5, fontStyle: 'italic', color: '#777777', marginBottom: 2 }}>
-                                                {project.keywords.join(', ')}
+                                        {project.keywords && project.keywords.length > 0 && (
+                                            formatting.showProjectKeywords && <Text style={styles.projectKeywords}>
+                                                {project.keywords.join(' • ')}
                                             </Text>
                                         )}
                                         {project.bullets && project.bullets.filter(b => b.trim()).length > 0 && (
-                                            <View>
+                                            <View style={{ marginTop: 4 }}>
                                                 {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                     <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                        <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                     </View>
                                                 ))}
                                             </View>
@@ -273,15 +298,23 @@ export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
                     if (sectionKey === 'awards' && awards.length > 0) {
                         return (
                             <View key="awards" style={styles.section}>
-                                <Text style={styles.sectionHeader}>Honors & Awards</Text>
+                                <Text style={styles.sectionHeader}>Awards</Text>
                                 {awards.map((award, idx) => (
-                                    <View key={idx} style={{ marginBottom: 4 }} wrap={true}>
-                                        <Text style={{ fontSize: 10 }}>
-                                            <Text style={{ fontWeight: 'bold' }}>{award.title}</Text>
-                                            {award.date && <Text style={{ color: '#666666' }}> · {award.date}</Text>}
+                                    <View key={idx} style={{ marginBottom: 8 }} wrap={true}>
+                                        <Text style={{ fontSize: 11, fontWeight: 'bold' }}>
+                                            {award.title}
+                                            {award.date && <Text style={{ fontWeight: 'normal', color: '#64748b' }}> {getPDFDateSeparator(formatting.dateSeparator)} {award.date}</Text>}
                                         </Text>
-                                        {award.awarder && <Text style={{ fontSize: 9, fontStyle: 'italic', color: '#666666' }}>{award.awarder}</Text>}
-                                        {formatting.showAwardsSummaries && award.summary && <Text style={{ fontSize: 9, color: '#555555', marginTop: 1 }}>{award.summary}</Text>}
+                                        {award.awarder && (
+                                            <Text style={{ fontSize: 10, fontStyle: 'italic', color: '#64748b' }}>
+                                                {award.awarder}
+                                            </Text>
+                                        )}
+                                        {formatting.showAwardsSummaries && award.summary && (
+                                            <Text style={{ fontSize: 9, color: '#334155', marginTop: 2 }}>
+                                                {award.summary}
+                                            </Text>
+                                        )}
                                     </View>
                                 ))}
                             </View>
@@ -297,33 +330,35 @@ export function LaTeXPDFTemplate({ data }: LaTeXPDFTemplateProps) {
                                 {customSection.items.map((entry, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
-                                            <View style={{ flex: 1, paddingRight: 10 }}>
+                                            <View style={{ flex: 1, paddingRight: 12 }}>
                                                 <Text style={styles.entryTitle}>{entry.title || 'Untitled'}</Text>
                                                 {entry.subtitle && <Text style={styles.entrySubtitle}>{entry.subtitle}</Text>}
                                             </View>
                                             <View style={{ alignItems: 'flex-end' }}>
                                                 {entry.date && <Text style={styles.dateRange}>{entry.date}</Text>}
-                                                {entry.location && <Text style={{ fontSize: 8, color: '#666666' }}>{entry.location}</Text>}
+                                                {entry.location && <Text style={{ fontSize: 9, color: '#64748b' }}>{entry.location}</Text>}
                                             </View>
                                         </View>
+
                                         {entry.link && (
-                                            <Link src={entry.link} style={{ fontSize: 8, color: getPDFColorValue(formatting.colorTheme, formatting.customColor), marginBottom: 3, textDecoration: 'underline' }}>
+                                            <Link src={entry.link} style={{ fontSize: 9, color: getPDFColorValue(formatting.colorTheme, formatting.customColor), marginBottom: 4, textDecoration: 'none' }}>
                                                 {entry.link}
                                             </Link>
                                         )}
+
                                         {customSection.type === 'bullets' ? (
-                                            <View>
+                                            <View style={{ marginTop: 2 }}>
                                                 {entry.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                     <View key={i} style={styles.bulletPoint}>
                                                         <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                        <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                        <Text style={{ color: '#000000' }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
                                                     </View>
                                                 ))}
                                             </View>
                                         ) : (
-                                            <View>
+                                            <View style={{ marginTop: 2 }}>
                                                 {entry.bullets.filter(b => b.trim()).map((paragraph, i) => (
-                                                    <Text key={i} style={{ fontSize: 9, marginBottom: 3, textAlign: 'justify' }}>
+                                                    <Text key={i} style={{ fontSize: 10, marginBottom: 4, color: '#334155', textAlign: 'justify' }}>
                                                         {paragraph}
                                                     </Text>
                                                 ))}

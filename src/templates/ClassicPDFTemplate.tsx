@@ -1,5 +1,5 @@
 import { Document, Page, Text, View, Link, StyleSheet } from '@react-pdf/renderer';
-import type { ResumeData, FormattingOptions } from '../../types';
+import type { ResumeData, FormattingOptions } from '../types';
 import {
     getPDFFontFamily,
     getPDFBulletSymbol,
@@ -20,8 +20,8 @@ import {
     getPDFParagraphSpacing,
     getPDFSectionTitleSpacing,
     getPDFSectionBorderStyle
-} from '../../lib/pdfFormatting';
-import { parseBoldTextPDF } from '../../lib/parseBoldText';
+} from '../lib/pdfFormatting';
+import { parseBoldTextPDF } from '../lib/parseBoldText';
 
 const createStyles = (formatting: FormattingOptions) => {
     const accentColor = getPDFColorValue(formatting.colorTheme, formatting.customColor);
