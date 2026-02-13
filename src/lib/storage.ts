@@ -154,3 +154,51 @@ export function loadDocumentType(): DocumentType {
     const type = localStorage.getItem(DOCUMENT_TYPE_KEY) as DocumentType;
     return type || 'resume';
 }
+
+// Continuous mode storage
+const CONTINUOUS_MODE_KEY = 'resume-builder-continuous-mode';
+
+export function saveContinuousMode(enabled: boolean): void {
+    localStorage.setItem(CONTINUOUS_MODE_KEY, JSON.stringify(enabled));
+}
+
+export function loadContinuousMode(): boolean {
+    try {
+        const saved = localStorage.getItem(CONTINUOUS_MODE_KEY);
+        return saved ? JSON.parse(saved) : false;
+    } catch {
+        return false;
+    }
+}
+
+// Show resume toggle storage
+const SHOW_RESUME_KEY = 'resume-builder-show-resume';
+
+export function saveShowResume(enabled: boolean): void {
+    localStorage.setItem(SHOW_RESUME_KEY, JSON.stringify(enabled));
+}
+
+export function loadShowResume(): boolean {
+    try {
+        const saved = localStorage.getItem(SHOW_RESUME_KEY);
+        return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+        return true;
+    }
+}
+
+// Show cover letter toggle storage
+const SHOW_COVER_LETTER_KEY = 'resume-builder-show-cover-letter';
+
+export function saveShowCoverLetter(enabled: boolean): void {
+    localStorage.setItem(SHOW_COVER_LETTER_KEY, JSON.stringify(enabled));
+}
+
+export function loadShowCoverLetter(): boolean {
+    try {
+        const saved = localStorage.getItem(SHOW_COVER_LETTER_KEY);
+        return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+        return false;
+    }
+}
