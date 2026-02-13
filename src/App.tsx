@@ -531,7 +531,7 @@ function App() {
                 </button>
                 <button
                   onClick={reset}
-                  className="px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2"
+                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 bg-red-700 hover:bg-red-800 text-white ${darkMode ? 'border-transparent' : 'border-slate-300'}`}
                 >
                   <RotateCcw size={14} />
                   <span>Reset</span>
@@ -541,7 +541,7 @@ function App() {
                   <button
                     onClick={() => setExportDropdownOpen(prev => !prev)}
                     disabled={isGeneratingPDF || isPrinting}
-                    className={`px-4 py-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold uppercase tracking-widest transition-all shadow-sm flex items-center gap-2 ${(isGeneratingPDF || isPrinting) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 bg-teal-700 hover:bg-teal-800 text-white ${(isGeneratingPDF || isPrinting) ? 'opacity-50 cursor-not-allowed' : ''} ${darkMode ? 'border-transparent' : 'border-slate-300'}`}
                   >
                     <FileDown size={14} />
                     <span>{isGeneratingPDF ? 'Generating...' : isPrinting ? 'Preparing...' : 'Export'}</span>
