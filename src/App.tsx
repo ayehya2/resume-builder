@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useResumeStore } from './store'
 import { BasicsForm } from './components/forms/BasicsForm'
 import { WorkForm } from './components/forms/WorkForm'
@@ -47,7 +47,8 @@ import {
   FileText,
   RotateCcw,
   FileDown,
-  GripVertical
+  GripVertical,
+  ChevronDown
 } from 'lucide-react'
 import './styles/index.css'
 
@@ -119,6 +120,19 @@ function App() {
 
   const [isPrinting, setIsPrinting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const exportDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close export dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(e.target as Node)) {
+        setExportDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Load saved data on mount, then apply URL hash data (which wins over localStorage)
   useEffect(() => {
@@ -509,13 +523,6 @@ function App() {
                   <span>Import</span>
                 </button>
                 <button
-                  onClick={handleExport}
-                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 ${darkMode ? 'bg-slate-600 hover:bg-slate-500 text-white border-transparent' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'}`}
-                >
-                  <Download size={14} />
-                  <span>Export</span>
-                </button>
-                <button
                   onClick={loadSampleData}
                   className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 ${darkMode ? 'bg-slate-600 hover:bg-slate-500 text-white border-transparent' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'}`}
                 >
@@ -529,22 +536,46 @@ function App() {
                   <RotateCcw size={14} />
                   <span>Reset</span>
                 </button>
-                <button
-                  onClick={handlePrint}
-                  disabled={isPrinting}
-                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''} ${darkMode ? 'bg-slate-600 hover:bg-slate-500 text-white border-transparent' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'}`}
-                >
-                  <Printer size={14} />
-                  <span>{isPrinting ? 'Wait...' : 'Print'}</span>
-                </button>
-                <button
-                  onClick={handleDownloadPDF}
-                  disabled={isGeneratingPDF}
-                  className={`px-4 py-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold uppercase tracking-widest transition-all shadow-sm flex items-center gap-2 ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <FileDown size={14} />
-                  <span>{isGeneratingPDF ? 'Wait...' : 'Download'}</span>
-                </button>
+                {/* Export Dropdown */}
+                <div ref={exportDropdownRef} className="relative">
+                  <button
+                    onClick={() => setExportDropdownOpen(prev => !prev)}
+                    disabled={isGeneratingPDF || isPrinting}
+                    className={`px-4 py-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold uppercase tracking-widest transition-all shadow-sm flex items-center gap-2 ${(isGeneratingPDF || isPrinting) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <FileDown size={14} />
+                    <span>{isGeneratingPDF ? 'Generating...' : isPrinting ? 'Preparing...' : 'Export'}</span>
+                    <ChevronDown size={12} className={`transition-transform ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {exportDropdownOpen && (
+                    <div className={`absolute right-0 top-full mt-1 w-52 rounded shadow-xl border-2 z-50 overflow-hidden ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-300'}`}>
+                      <button
+                        onClick={() => { setExportDropdownOpen(false); handleDownloadPDF(); }}
+                        disabled={isGeneratingPDF}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''} ${darkMode ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-100'}`}
+                      >
+                        <FileDown size={14} className="text-teal-500" />
+                        Download PDF
+                      </button>
+                      <button
+                        onClick={() => { setExportDropdownOpen(false); handlePrint(); }}
+                        disabled={isPrinting}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''} ${darkMode ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-100'}`}
+                      >
+                        <Printer size={14} className="text-blue-500" />
+                        Print / Preview
+                      </button>
+                      <div className={`border-t ${darkMode ? 'border-slate-600' : 'border-slate-200'}`} />
+                      <button
+                        onClick={() => { setExportDropdownOpen(false); handleExport(); }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${darkMode ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-100'}`}
+                      >
+                        <Download size={14} className="text-amber-500" />
+                        Export JSON
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
