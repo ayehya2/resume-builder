@@ -79,8 +79,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     const [pdfMetadata, setPdfMetadata] = useState<Record<string, string>>({});
     const [thumbnails, setThumbnails] = useState<string[]>([]);
 
-    // No iframeRef needed — we don't manipulate the iframe imperatively.
-    // Zoom/page changes trigger a single clean remount via key.
+    const iframeRef = useRef<HTMLIFrameElement>(null);
 
     const downloadFileName = generateDocumentFileName({
         userName: resumeData.basics.name || '',
@@ -144,7 +143,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 const doc = await pdfjsLib.getDocument({ data: ab }).promise;
                 if (cancelled) { doc.destroy(); return; }
                 setTotalPages(doc.numPages);
-                setCurrentPage(p => p > doc.numPages ? 1 : p);
+                setCurrentPage(1);
 
                 // Metadata
                 try {
@@ -387,6 +386,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                     {pdfUrl && (
                         <iframe
                             key={iframeKey}
+                            ref={iframeRef}
                             src={iframeSrc}
                             className="w-full h-full border-0"
                             title="PDF Preview"
