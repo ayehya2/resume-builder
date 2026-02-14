@@ -43,7 +43,7 @@ export function CoverLetterForm() {
             <div className="p-5 border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
                 <h4 className="font-semibold text-slate-900 dark:text-white uppercase tracking-tight text-sm pb-2 mb-4 border-b border-slate-200 dark:border-slate-800">Recipient Information</h4>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
                             Recipient Name

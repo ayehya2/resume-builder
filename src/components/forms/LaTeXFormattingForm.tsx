@@ -51,7 +51,7 @@ export function LaTeXFormattingForm() {
             {/* Page Layout */}
             <div className={sectionClass}>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Page Layout</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className={labelClass}>Font Size</label>
                         <select
@@ -103,7 +103,7 @@ export function LaTeXFormattingForm() {
             {/* Typography */}
             <div className={sectionClass}>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Typography</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className={labelClass}>Name Size</label>
                         <select
@@ -135,7 +135,7 @@ export function LaTeXFormattingForm() {
             {/* Section Spacing */}
             <div className={sectionClass}>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Spacing</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className={labelClass}>Space Before Sections</label>
                         <select
@@ -168,7 +168,7 @@ export function LaTeXFormattingForm() {
                         </select>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className={labelClass}>Entry Gap (Jobs/Edu)</label>
                         <select

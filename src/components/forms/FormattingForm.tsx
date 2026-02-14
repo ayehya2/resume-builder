@@ -44,25 +44,25 @@ export function FormattingForm() {
             )}
 
             <header className="space-y-1">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Extensive Resume Formatting</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-white">Formatting</h3>
+                <p className="text-[10px] sm:text-sm text-slate-500 dark:text-slate-400 font-medium italic">
                     Deep customization for professional-grade resumes. Changes apply to all templates.
                 </p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Section 1: Typography */}
-                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 space-y-4 shadow-sm">
-                    <h4 className="font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 sm:p-5 space-y-3 sm:space-y-4 shadow-sm">
+                    <h4 className="font-black text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-2">
                         Typography & Case
                     </h4>
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Font Family</label>
+                            <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Font Family</label>
                             <select
                                 value={formatting.fontFamily}
                                 onChange={(e) => updateFormatting({ fontFamily: e.target.value as FontFamily })}
-                                className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                             >
                                 <option value="default">Default (Times New Roman)</option>
                                 <option value="times">Times New Roman</option>
@@ -78,13 +78,13 @@ export function FormattingForm() {
                             </select>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Base Font Size</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Base Size</label>
                                 <select
                                     value={formatting.baseFontSize}
                                     onChange={(e) => updateFormatting({ baseFontSize: e.target.value })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="9pt">9pt — Compact</option>
                                     <option value="9.5pt">9.5pt</option>
@@ -96,11 +96,11 @@ export function FormattingForm() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Name Size</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Name Size</label>
                                 <select
                                     value={formatting.nameSize}
                                     onChange={(e) => updateFormatting({ nameSize: e.target.value as NameSize })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="huge">Huge (24pt)</option>
                                     <option value="large">Large (20pt)</option>
@@ -110,7 +110,7 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Name Weight</label>
                                 <select
@@ -138,7 +138,7 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Section Case</label>
                                 <select
@@ -177,7 +177,7 @@ export function FormattingForm() {
                             </label>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Body Text Weight</label>
                                 <select
@@ -206,29 +206,29 @@ export function FormattingForm() {
                 </section>
 
                 {/* Section 2: Layout & Spacing */}
-                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 space-y-4 shadow-sm">
-                    <h4 className="font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 sm:p-5 space-y-3 sm:space-y-4 shadow-sm">
+                    <h4 className="font-black text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-2">
                         Layout & Spacing
                     </h4>
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3 sm:space-y-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Page Size</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Page Size</label>
                                 <select
                                     value={formatting.pageFormat}
                                     onChange={(e) => updateFormatting({ pageFormat: e.target.value as 'Letter' | 'A4' })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="Letter">Letter (US)</option>
                                     <option value="A4">A4 (ISO)</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Line Height</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Line Height</label>
                                 <select
                                     value={formatting.lineSpacing}
                                     onChange={(e) => updateFormatting({ lineSpacing: e.target.value })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="1.0">1.0 Tight</option>
                                     <option value="1.15">1.15</option>
@@ -240,13 +240,13 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Section Gap</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Section Gap</label>
                                 <select
                                     value={formatting.sectionSpacing}
                                     onChange={(e) => updateFormatting({ sectionSpacing: e.target.value as Spacing })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="tight">Tight (4pt)</option>
                                     <option value="normal">Normal (6pt)</option>
@@ -255,11 +255,11 @@ export function FormattingForm() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Entry Gap (Work/Edu)</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Entry Gap</label>
                                 <select
                                     value={formatting.entrySpacing}
                                     onChange={(e) => updateFormatting({ entrySpacing: e.target.value as Spacing })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="tight">Tight</option>
                                     <option value="normal">Normal</option>
@@ -270,8 +270,8 @@ export function FormattingForm() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Margins (inches)</label>
-                            <div className="grid grid-cols-4 gap-2">
+                            <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Margins (inches)</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                 {[
                                     { key: 'marginTop', label: 'T' },
                                     { key: 'marginBottom', label: 'B' },
@@ -286,7 +286,7 @@ export function FormattingForm() {
                                             step="0.05"
                                             value={String(formatting[key as keyof typeof formatting])}
                                             onChange={(e) => updateFormatting({ [key]: e.target.value })}
-                                            className="w-full px-2 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all text-center text-xs"
+                                            className="w-full px-2 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-center text-[10px] sm:text-xs"
                                             title={label}
                                         />
                                     </div>
@@ -294,7 +294,7 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Paragraph Spacing</label>
                                 <select
@@ -326,18 +326,18 @@ export function FormattingForm() {
                 </section>
 
                 {/* Section 3: Bullets & Icons */}
-                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 space-y-4 shadow-sm">
-                    <h4 className="font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 sm:p-5 space-y-3 sm:space-y-4 shadow-sm">
+                    <h4 className="font-black text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-2">
                         Bullets & Icons
                     </h4>
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3 sm:space-y-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Bullet Style</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Bullet Style</label>
                                 <select
                                     value={formatting.bulletStyle}
                                     onChange={(e) => updateFormatting({ bulletStyle: e.target.value as BulletStyle })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="bullet">• Bullet</option>
                                     <option value="dash">- Dash</option>
@@ -350,11 +350,11 @@ export function FormattingForm() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Bullet Gap</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Bullet Gap</label>
                                 <select
                                     value={formatting.bulletGap}
                                     onChange={(e) => updateFormatting({ bulletGap: e.target.value })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="2pt">Tight (2pt)</option>
                                     <option value="4pt">Normal (4pt)</option>
@@ -363,13 +363,13 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Bullet Indent</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Bullet Indent</label>
                                 <select
                                     value={formatting.bulletIndent}
                                     onChange={(e) => updateFormatting({ bulletIndent: e.target.value as BulletIndent })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="none">None</option>
                                     <option value="small">Small (0.2in)</option>
@@ -378,11 +378,11 @@ export function FormattingForm() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Bullet Spacing</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Bullet Spacing</label>
                                 <select
                                     value={formatting.bulletSpacing}
                                     onChange={(e) => updateFormatting({ bulletSpacing: e.target.value as Spacing })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="tight">Tight</option>
                                     <option value="normal">Normal</option>
@@ -392,13 +392,13 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Social Icons</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Social Icons</label>
                                 <select
                                     value={formatting.socialIconStyle}
                                     onChange={(e) => updateFormatting({ socialIconStyle: e.target.value as 'circle' | 'square' | 'none' })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="none">Text Only</option>
                                     <option value="square">Square Icons</option>
@@ -416,25 +416,25 @@ export function FormattingForm() {
                                     onChange={(e) => updateFormatting({ showIcons: e.target.checked })}
                                     className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
                                 />
-                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Contact Icons</span>
+                                <span className="text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Contact Icons</span>
                             </label>
                         </div>
                     </div>
                 </section>
 
-                {/* Section 4: Decorative & Colors */}
-                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 space-y-4 shadow-sm">
-                    <h4 className="font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                {/* Section 4: Decorative & Style */}
+                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 sm:p-5 space-y-3 sm:space-y-4 shadow-sm">
+                    <h4 className="font-black text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-2">
                         Decorative & Style
                     </h4>
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3 sm:space-y-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Section Divider</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Section Divider</label>
                                 <select
                                     value={formatting.sectionDividers}
                                     onChange={(e) => updateFormatting({ sectionDividers: e.target.value as SectionDivider })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="none">None</option>
                                     <option value="line">Thin Line</option>
@@ -444,11 +444,11 @@ export function FormattingForm() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Separator Char</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Separator Char</label>
                                 <select
                                     value={formatting.separator}
                                     onChange={(e) => updateFormatting({ separator: e.target.value as '•' | '|' | '·' | '—' })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="•">Bullet</option>
                                     <option value="|">Pipe</option>
@@ -458,15 +458,15 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Header Alignment</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Header Align</label>
                                 <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-950">
                                     {(['left', 'center', 'right'] as Alignment[]).map((align) => (
                                         <button
                                             key={align}
                                             onClick={() => updateFormatting({ headerAlignment: align })}
-                                            className={`flex-1 py-1 px-2 text-sm font-semibold transition-all ${formatting.headerAlignment === align
+                                            className={`flex-1 py-1 px-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${formatting.headerAlignment === align
                                                 ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white'
                                                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                                 }`}
@@ -477,11 +477,11 @@ export function FormattingForm() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Header Line Style</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Header Line</label>
                                 <select
                                     value={formatting.headerLineStyle}
                                     onChange={(e) => updateFormatting({ headerLineStyle: e.target.value as HeaderLineStyle })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="none">None</option>
                                     <option value="thin">Thin</option>
@@ -495,8 +495,8 @@ export function FormattingForm() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Color Theme</label>
-                            <div className="grid grid-cols-4 gap-2">
+                            <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Color Theme</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                 {([
                                     { theme: 'black' as ColorTheme, color: '#000000' },
                                     { theme: 'navy' as ColorTheme, color: '#001f3f' },
@@ -533,7 +533,7 @@ export function FormattingForm() {
                             <div className="mt-3 flex items-center gap-3">
                                 <button
                                     onClick={() => updateFormatting({ colorTheme: 'custom' as ColorTheme })}
-                                    className={`flex items-center gap-2 px-3 py-2 border-2 transition-all text-sm font-semibold ${formatting.colorTheme === 'custom'
+                                    className={`flex items-center gap-2 px-3 py-1.5 sm:py-2 border-2 transition-all text-[10px] sm:text-sm font-black uppercase tracking-widest ${formatting.colorTheme === 'custom'
                                         ? 'border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
                                         : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300'
                                         }`}
@@ -553,11 +553,11 @@ export function FormattingForm() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Accent Color Position</label>
+                            <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Accent Position</label>
                             <select
                                 value={formatting.accentColorPosition}
                                 onChange={(e) => updateFormatting({ accentColorPosition: e.target.value as AccentColorPosition })}
-                                className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                             >
                                 <option value="headers-only">Headers Only</option>
                                 <option value="headers-and-links">Headers &amp; Links</option>
@@ -568,18 +568,18 @@ export function FormattingForm() {
                 </section>
 
                 {/* Section 5: Content Controls */}
-                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 space-y-4 shadow-sm">
-                    <h4 className="font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                <section className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 sm:p-5 space-y-3 sm:space-y-4 shadow-sm">
+                    <h4 className="font-black text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-2">
                         Content Controls
                     </h4>
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3 sm:space-y-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Date Format</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Date Format</label>
                                 <select
                                     value={formatting.dateFormat}
                                     onChange={(e) => updateFormatting({ dateFormat: e.target.value as DateFormat })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="short">Short (Jan 2024)</option>
                                     <option value="long">Long (January 2024)</option>
@@ -587,11 +587,11 @@ export function FormattingForm() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Sub-Header Weight</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">SubHeader Wt.</label>
                                 <select
                                     value={formatting.subHeaderWeight}
                                     onChange={(e) => updateFormatting({ subHeaderWeight: e.target.value as SubHeaderWeight })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="normal">Normal</option>
                                     <option value="medium">Medium</option>
@@ -600,13 +600,13 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Skill Layout</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Skill Layout</label>
                                 <select
                                     value={formatting.skillLayout}
                                     onChange={(e) => updateFormatting({ skillLayout: e.target.value as SkillLayout })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="comma">Comma (A, B, C)</option>
                                     <option value="pipe">Pipe (A | B | C)</option>
@@ -614,11 +614,11 @@ export function FormattingForm() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Company/Title Order</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Company/Title</label>
                                 <select
                                     value={formatting.companyTitleOrder}
                                     onChange={(e) => updateFormatting({ companyTitleOrder: e.target.value as CompanyTitleOrder })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="company-first">Company First</option>
                                     <option value="title-first">Title First</option>
@@ -626,13 +626,13 @@ export function FormattingForm() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Date Separator</label>
+                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Date Sep.</label>
                                 <select
                                     value={formatting.dateSeparator}
                                     onChange={(e) => updateFormatting({ dateSeparator: e.target.value as DateSeparator })}
-                                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
+                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
                                     <option value="\u2014">Em Dash (\u2014)</option>
                                     <option value="\u2013">En Dash (\u2013)</option>
@@ -643,7 +643,7 @@ export function FormattingForm() {
                             <div />
                         </div>
 
-                        <div className="flex flex-wrap gap-4 pt-2">
+                        <div className="flex flex-wrap gap-x-4 gap-y-2 pt-2">
                             <label className="flex items-center gap-2 cursor-pointer group">
                                 <input
                                     type="checkbox"
@@ -651,7 +651,7 @@ export function FormattingForm() {
                                     onChange={(e) => updateFormatting({ showLocation: e.target.checked })}
                                     className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
                                 />
-                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Show Location</span>
+                                <span className="text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Location</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer group">
                                 <input
@@ -660,7 +660,7 @@ export function FormattingForm() {
                                     onChange={(e) => updateFormatting({ showGPA: e.target.checked })}
                                     className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
                                 />
-                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Show GPA</span>
+                                <span className="text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">GPA</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer group">
                                 <input
@@ -669,7 +669,7 @@ export function FormattingForm() {
                                     onChange={(e) => updateFormatting({ showEducationDescription: e.target.checked })}
                                     className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
                                 />
-                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Edu. Description</span>
+                                <span className="text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Edu Desc.</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer group">
                                 <input
@@ -678,7 +678,7 @@ export function FormattingForm() {
                                     onChange={(e) => updateFormatting({ showProjectKeywords: e.target.checked })}
                                     className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
                                 />
-                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Project Keywords</span>
+                                <span className="text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Proj Tags</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer group">
                                 <input
@@ -687,7 +687,7 @@ export function FormattingForm() {
                                     onChange={(e) => updateFormatting({ showAwardsSummaries: e.target.checked })}
                                     className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
                                 />
-                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Awards Summaries</span>
+                                <span className="text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Award Desc.</span>
                             </label>
                         </div>
                     </div>
@@ -697,7 +697,7 @@ export function FormattingForm() {
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button
                     onClick={resetFormatting}
-                    className="flex-1 px-4 py-3 bg-red-600 text-white border-2 border-transparent font-bold hover:bg-red-700 transition-all shadow-md"
+                    className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white border-2 border-transparent font-black uppercase tracking-widest transition-all active:scale-95 shadow-md text-[10px] sm:text-xs"
                 >
                     Reset All Formatting
                 </button>

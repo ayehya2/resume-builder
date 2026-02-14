@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 
 interface BulletListProps {
     bullets: string[];
@@ -29,41 +30,44 @@ export function BulletList({ bullets, onChange, placeholder }: BulletListProps) 
     return (
         <div className="space-y-2">
             {bullets.map((bullet, idx) => (
-                <div key={idx} className="flex gap-2 items-center">
+                <div key={idx} className="flex gap-1.5 sm:gap-2 items-center">
                     <span className="text-xl leading-none text-slate-600 dark:text-slate-400">-</span>
                     <input
                         type="text"
                         value={bullet}
                         onChange={(e) => updateBullet(idx, e.target.value)}
                         className={`
-                            flex-1 px-2 py-1.5 border-2
+                            flex-1 px-2 py-1 sm:py-1.5 border-2
                             focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500
                             bg-white border-slate-300 text-slate-900
                             dark:bg-slate-950 dark:border-slate-600 dark:text-white
+                            text-xs sm:text-sm
                         `}
                         placeholder={placeholder || 'Enter bullet point'}
                     />
                     {bullets.length > 1 && (
                         <button
                             onClick={() => removeBullet(idx)}
-                            className="px-3 py-2 bg-red-700 text-white hover:bg-red-600 font-semibold transition-colors"
+                            className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 bg-red-700 text-white hover:bg-red-600 font-black transition-colors flex items-center justify-center rounded-sm"
                             type="button"
+                            title="Remove point"
                         >
-                            X
+                            <X size={14} strokeWidth={3} className="sm:hidden" />
+                            <X size={16} strokeWidth={3} className="hidden sm:block" />
                         </button>
                     )}
                 </div>
             ))}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 pt-1">
                 <button
                     onClick={addBullet}
-                    className="px-4 py-2 btn-accent font-semibold transition-colors"
+                    className="px-2 py-1 sm:px-3 sm:py-1.5 btn-accent font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all active:scale-95 shadow-sm rounded-sm"
                     type="button"
                 >
-                    + Add Bullet Point
+                    + Add Point
                 </button>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 italic">
-                    Tip: Use <strong>**bold**</strong> and <em>*italic*</em> inside bullets.
+                <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 italic leading-tight">
+                    Tip: Use <strong>**bold**</strong> and <em>*italic*</em>
                 </p>
             </div>
         </div>

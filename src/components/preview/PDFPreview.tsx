@@ -286,10 +286,10 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     return (
         <div className="w-full h-full flex flex-col" style={{ backgroundColor: 'var(--main-bg)' }}>
             {/* ━━ Toolbar ━━ */}
-            <div className="flex items-center justify-between px-2 py-1.5 border-b-2 flex-shrink-0 gap-1" style={toolbarBg}>
+            <div className="flex flex-wrap items-center justify-between px-2 py-1.5 border-b-2 flex-shrink-0 gap-y-2 gap-x-1" style={toolbarBg}>
                 {/* Left: filename + page nav */}
                 <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-xs font-semibold truncate max-w-[120px]" style={txt}
+                    <span className="hidden sm:inline text-xs font-semibold truncate max-w-[120px]" style={txt}
                         title={`${downloadFileName}.pdf`}>
                         {downloadFileName}.pdf
                     </span>
@@ -301,53 +301,54 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                         <div className="flex items-center gap-0.5 flex-shrink-0">
                             <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage <= 1}
                                 className="p-1 border transition-colors disabled:opacity-30" style={btn}>
-                                <ChevronLeft size={12} />
+                                <ChevronLeft size={14} />
                             </button>
-                            <span className="text-[11px] font-semibold px-1 tabular-nums" style={txt}>
+                            <span className="text-[11px] font-bold px-1 tabular-nums" style={txt}>
                                 {currentPage}/{totalPages}
                             </span>
                             <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage >= totalPages}
                                 className="p-1 border transition-colors disabled:opacity-30" style={btn}>
-                                <ChevronRight size={12} />
+                                <ChevronRight size={14} />
                             </button>
                         </div>
                     )}
                 </div>
 
                 {/* Center: zoom + fit */}
-                <div className="flex items-center gap-1">
-                    <button onClick={handleZoomOut} className="p-1.5 border transition-colors" style={btn} title="Zoom Out">
-                        <ZoomOut size={13} />
+                <div className="flex items-center gap-1 order-3 sm:order-none w-full sm:w-auto justify-center sm:justify-start">
+                    <button onClick={handleZoomOut} className="p-2 sm:p-1.5 border transition-colors" style={btn} title="Zoom Out">
+                        <ZoomOut size={16} />
                     </button>
                     <span className="text-[11px] font-bold min-w-[36px] text-center select-none tabular-nums" style={txt}>
                         {zoomLabel}
                     </span>
-                    <button onClick={handleZoomIn} className="p-1.5 border transition-colors" style={btn} title="Zoom In">
-                        <ZoomIn size={13} />
+                    <button onClick={handleZoomIn} className="p-2 sm:p-1.5 border transition-colors" style={btn} title="Zoom In">
+                        <ZoomIn size={16} />
                     </button>
-                    <button onClick={handleFitToWidth} className="p-1.5 border transition-colors"
+                    <button onClick={handleFitToWidth} className="p-2 sm:p-1.5 border transition-colors"
                         style={zoom === 0 ? btnOn : btn} title="Fit to Width">
-                        <Maximize size={13} />
+                        <Maximize size={16} />
                     </button>
                 </div>
 
                 {/* Right: thumbnails, properties, print, download */}
                 <div className="flex items-center gap-1">
-                    <button onClick={() => setShowThumbnails(v => !v)} className="p-1.5 border transition-colors"
+                    <button onClick={() => setShowThumbnails(v => !v)} className="p-2 sm:p-1.5 border transition-colors"
                         style={showThumbnails ? btnOn : btn} title="Thumbnails">
-                        <PanelLeft size={13} />
+                        <PanelLeft size={16} strokeWidth={showThumbnails ? 3 : 2} />
                     </button>
-                    <button onClick={() => setShowProperties(v => !v)} className="p-1.5 border transition-colors"
+                    <button onClick={() => setShowProperties(v => !v)} className="hidden sm:block p-1.5 border transition-colors"
                         style={showProperties ? btnOn : btn} title="Document Properties">
-                        <Info size={13} />
+                        <Info size={16} />
                     </button>
-                    <div className="w-px h-5 mx-0.5" style={{ backgroundColor: 'var(--card-border)' }} />
-                    <button onClick={handlePrint} className="p-1.5 border transition-colors" style={btn} title="Print">
-                        <Printer size={13} />
+                    <div className="hidden sm:block w-px h-5 mx-0.5" style={{ backgroundColor: 'var(--card-border)' }} />
+                    <button onClick={handlePrint} className="p-2 sm:p-1.5 border transition-colors" style={btn} title="Print">
+                        <Printer size={16} />
                     </button>
-                    <button onClick={handleDownload} className="btn-accent flex items-center gap-1 px-2 py-1.5 text-xs font-bold"
+                    <button onClick={handleDownload} className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-sm"
                         title="Download PDF">
-                        <Download size={13} />
+                        <Download size={14} strokeWidth={3} />
+                        <span className="hidden xs:inline">PDF</span>
                     </button>
                 </div>
             </div>

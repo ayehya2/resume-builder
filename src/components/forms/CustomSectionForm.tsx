@@ -45,37 +45,38 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
             {sectionsToRender.map((section: CustomSection) => (
                 <div key={section.id} className="space-y-6">
                     {/* Section Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b-2 border-slate-200 dark:border-slate-800">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b-2 border-slate-200 dark:border-slate-800">
                         <div className="flex items-center gap-3 flex-1">
                             <input
                                 type="text"
                                 value={section.title}
                                 onChange={(e) => handleTitleChange(section.id, e.target.value)}
-                                className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold text-xl transition-all h-[46px]"
-                                placeholder="Section Title (e.g., Certifications)"
+                                className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-black text-lg sm:text-xl transition-all h-[40px] sm:h-[46px]"
+                                placeholder="Section Title"
                             />
                         </div>
-                        <div className="flex items-center gap-4">
-                            <div className="flex bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 p-1 h-[46px]">
+                        <div className="flex items-center gap-3">
+                            <div className="flex bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 p-1 h-[40px] sm:h-[46px]">
                                 <button
                                     onClick={() => handleTypeChange(section.id, 'bullets')}
-                                    className={`px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'bullets' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
+                                    className={`px-3 sm:px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'bullets' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
                                 >
                                     Bullets
                                 </button>
                                 <button
                                     onClick={() => handleTypeChange(section.id, 'text')}
-                                    className={`px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'text' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
+                                    className={`px-3 sm:px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'text' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
                                 >
                                     Paragraph
                                 </button>
                             </div>
                             <button
                                 onClick={() => handleRemoveSection(section.id)}
-                                className="text-red-600 hover:text-red-700 font-semibold text-sm px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-2 border-transparent hover:border-red-100 dark:hover:border-red-900/40 h-[46px]"
+                                className="text-red-500 hover:text-red-600 font-black text-[10px] uppercase tracking-widest px-2 sm:px-3 py-1.5 sm:py-2 transition-all active:scale-90 border-2 border-transparent h-[40px] sm:h-[46px]"
                                 title="Delete Entire Section"
                             >
-                                Remove Section
+                                <span className="hidden sm:inline">Remove Section</span>
+                                <span className="sm:hidden">Delete</span>
                             </button>
                         </div>
                     </div>
@@ -83,73 +84,73 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                     {/* Entries Container */}
                     <div className="space-y-4">
                         {section.items.map((item: CustomSectionEntry, index: number) => (
-                            <div key={index} className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 space-y-4 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-600 relative group">
+                            <div key={index} className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 sm:p-5 space-y-3 sm:space-y-4 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-600 relative group">
                                 <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-700">
-                                    <h4 className="font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-tight text-sm">Entry {index + 1}</h4>
+                                    <h4 className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[10px]">Entry #{index + 1}</h4>
                                     <button
                                         onClick={() => removeCustomSectionItem(section.id, index)}
-                                        className="text-red-600 hover:text-red-700 font-semibold text-sm px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                        className="text-red-500 hover:text-red-600 font-bold text-[10px] uppercase tracking-widest px-2 py-1 transition-all active:scale-90"
                                         title="Remove Entry"
                                     >
                                         Remove
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Primary Heading</label>
+                                        <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Primary Heading</label>
                                         <input
                                             type="text"
                                             value={item.title}
                                             onChange={(e) => updateCustomSectionItem(section.id, index, { title: e.target.value })}
-                                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                                             placeholder="e.g., Google Cloud Architect certificate"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Sub-heading</label>
+                                        <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Sub-heading</label>
                                         <input
                                             type="text"
                                             value={item.subtitle}
                                             onChange={(e) => updateCustomSectionItem(section.id, index, { subtitle: e.target.value })}
-                                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                                             placeholder="e.g., Google Training"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Date</label>
+                                        <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Date</label>
                                         <input
                                             type="text"
                                             value={item.date}
                                             onChange={(e) => updateCustomSectionItem(section.id, index, { date: e.target.value })}
-                                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                                             placeholder="Jan 2024 - Present"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Location</label>
+                                        <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Location</label>
                                         <input
                                             type="text"
                                             value={item.location}
                                             onChange={(e) => updateCustomSectionItem(section.id, index, { location: e.target.value })}
-                                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                                             placeholder="Remote / Sydney, AU"
                                         />
                                     </div>
                                     <div>
                                         <div className="flex justify-between items-center mb-1">
-                                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Link</label>
+                                            <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Link</label>
                                             {item.link && (
                                                 <a
                                                     href={item.link.startsWith('http') ? item.link : `https://${item.link}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-blue-500 hover:text-blue-600 flex items-center gap-1 text-xs font-bold"
+                                                    className="text-blue-500 hover:text-blue-600 flex items-center gap-1 text-[10px] font-bold"
                                                 >
-                                                    <ExternalLink size={12} />
+                                                    <ExternalLink size={10} />
                                                     Visit
                                                 </a>
                                             )}
@@ -158,14 +159,14 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                                             type="text"
                                             value={item.link}
                                             onChange={(e) => updateCustomSectionItem(section.id, index, { link: e.target.value })}
-                                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                                             placeholder="https://verify.link/..."
                                         />
                                     </div>
                                 </div>
 
                                 <div className="pt-2">
-                                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 font-bold uppercase tracking-wider text-xs px-1">Content Details</label>
+                                    <label className="block text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2 px-1">Content Details</label>
                                     {section.type === 'bullets' ? (
                                         <BulletList
                                             bullets={item.bullets}
@@ -176,8 +177,8 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                                             value={item.bullets[0] || ''}
                                             onChange={(e) => updateCustomSectionItem(section.id, index, { bullets: [e.target.value] })}
                                             rows={3}
-                                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
-                                            placeholder="Describe your achievements or responsibilities..."
+                                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                            placeholder="Describe your achievements..."
                                         />
                                     )}
                                 </div>

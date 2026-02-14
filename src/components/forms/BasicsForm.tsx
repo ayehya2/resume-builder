@@ -1,4 +1,5 @@
 import { useResumeStore } from '../../store'
+import { X } from 'lucide-react'
 
 export function BasicsForm() {
     const { resumeData, updateBasics } = useResumeStore();
@@ -29,26 +30,26 @@ export function BasicsForm() {
                 </p>
             </header>
 
-            <div className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-5 space-y-4 shadow-sm">
+            <div className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 sm:p-5 space-y-4 shadow-sm">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                        <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Full Name</label>
                         <input
                             type="text"
                             value={basics.name}
                             onChange={(e) => updateBasics({ name: e.target.value })}
-                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                             placeholder="John Doe"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                        <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Email</label>
                         <input
                             type="email"
                             value={basics.email}
                             onChange={(e) => updateBasics({ email: e.target.value })}
-                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                             placeholder="john@example.com"
                         />
                     </div>
@@ -56,23 +57,23 @@ export function BasicsForm() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Phone</label>
+                        <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Phone</label>
                         <input
                             type="tel"
                             value={basics.phone}
                             onChange={(e) => updateBasics({ phone: e.target.value })}
-                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                             placeholder="(555) 000-0000"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Address</label>
+                        <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Address</label>
                         <input
                             type="text"
                             value={basics.address}
                             onChange={(e) => updateBasics({ address: e.target.value })}
-                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                             placeholder="City, State"
                         />
                     </div>
@@ -80,14 +81,14 @@ export function BasicsForm() {
 
                 {/* Professional Summary */}
                 <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">
                         Professional Summary <span className="font-normal text-slate-400 dark:text-slate-500">(Optional)</span>
                     </label>
                     <textarea
                         value={basics.summary}
                         onChange={(e) => updateBasics({ summary: e.target.value })}
                         rows={3}
-                        className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all resize-y"
+                        className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all resize-y"
                         placeholder="A brief 2-3 sentence summary of your professional background, key skills, and career goals..."
                     />
                     <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500 italic">
@@ -100,9 +101,9 @@ export function BasicsForm() {
                         <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Websites & Links</h4>
                         <button
                             onClick={addWebsite}
-                            className="text-slate-700 dark:text-slate-300 font-semibold text-sm bg-slate-100 dark:bg-slate-800 px-3 py-1 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            className="px-3 py-1.5 btn-accent font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-sm rounded-sm"
                         >
-                            + Add Website
+                            + Add Link
                         </button>
                     </div>
 
@@ -131,10 +132,10 @@ export function BasicsForm() {
                                 </div>
                                 <button
                                     onClick={() => removeWebsite(index)}
-                                    className="px-3 py-2 bg-red-700 text-white hover:bg-red-600 font-bold transition-colors flex-shrink-0"
+                                    className="w-9 h-9 flex-shrink-0 bg-red-700 text-white hover:bg-red-600 font-black transition-colors flex items-center justify-center rounded-sm"
                                     title="Remove Link"
                                 >
-                                    X
+                                    <X size={16} strokeWidth={3} />
                                 </button>
                             </div>
                         ))}

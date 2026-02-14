@@ -68,7 +68,10 @@ import {
   Code2,
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Menu,
+  X,
+  Eye
 } from 'lucide-react'
 import './styles/index.css'
 
@@ -172,6 +175,10 @@ function App() {
   const [showCoverLetter, setShowCoverLetter] = useState(() => loadShowCoverLetter());
   const [isImporting, setIsImporting] = useState(false);
 
+  // Mobile / responsive state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileView, setMobileView] = useState<'form' | 'preview'>('form');
+
   // Custom template creation state
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
@@ -196,6 +203,7 @@ function App() {
     } else {
       setActiveTab(tabKey);
     }
+    setSidebarOpen(false); // close mobile sidebar on navigation
   };
 
   // Track which section is visible when scrolling in continuous mode
@@ -537,7 +545,7 @@ function App() {
 
   // Pagination controls JSX (reused in both modes)
   const templatePaginationControls = filteredTemplates.length > 10 ? (
-    <div className="flex items-center justify-between mt-4 pt-4 border-t-2" style={{ borderColor: 'var(--card-border)' }}>
+    <div className="flex items-center justify-between flex-wrap gap-2 mt-4 pt-4 border-t-2" style={{ borderColor: 'var(--card-border)' }}>
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>
           Per page:
@@ -696,54 +704,54 @@ function App() {
       <div key="templates" id="continuous-section-templates" className={dividerClass}>
         <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--main-text)' }}>Choose Template</h3>
         {templateFilterBar}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {paginatedTemplates.map((template) => {
             const isSelected = resumeData.selectedTemplate === template.id;
             return (
-            <button
-              key={template.id}
-              onClick={() => setTemplate(template.id)}
-              className="group relative flex flex-col overflow-hidden border-2 transition-all"
-              style={{
-                borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
-                backgroundColor: 'var(--card-bg)',
-              }}
-            >
-              <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
-                <TemplateThumbnail templateId={template.id} />
-                {isSelected && (
-                  <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
-                )}
-                {template.isLatex && (
-                  <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
-                    pdfTeX
-                  </div>
-                )}
-              </div>
-              <div
-                className="p-3 text-left transition-colors relative"
+              <button
+                key={template.id}
+                onClick={() => setTemplate(template.id)}
+                className="group relative flex flex-col overflow-hidden border-2 transition-all"
                 style={{
-                  backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
-                  borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
+                  borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
+                  backgroundColor: 'var(--card-bg)',
                 }}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
-                      {template.name}
-                    </div>
-                    <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
-                      {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
-                    </div>
-                  </div>
+                <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
+                  <TemplateThumbnail templateId={template.id} />
                   {isSelected && (
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
-                      <Check size={14} strokeWidth={3} />
+                    <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
+                  )}
+                  {template.isLatex && (
+                    <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
+                      pdfTeX
                     </div>
                   )}
                 </div>
-              </div>
-            </button>
+                <div
+                  className="p-3 text-left transition-colors relative"
+                  style={{
+                    backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
+                    borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
+                        {template.name}
+                      </div>
+                      <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
+                        {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
+                        <Check size={14} strokeWidth={3} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </button>
             );
           })}
         </div>
@@ -830,7 +838,7 @@ function App() {
               <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {customTemplates.map((ct) => {
                 const baseName = templates.find(t => t.id === ct.baseTemplateId)?.name || 'Classic';
                 const isActive = resumeData.selectedTemplate === ct.id;
@@ -1023,10 +1031,75 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--main-bg)' }}>
+    <div className="min-h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--main-bg)' }}>
+      {/* ━━ Mobile Header ━━ */}
+      <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b-2 flex-shrink-0 z-40 sticky top-0 shadow-sm"
+        style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
+        <button onClick={() => setSidebarOpen(v => !v)} className="p-1 rounded transition-colors active:scale-95"
+          style={{ color: 'var(--sidebar-text)' }}>
+          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+        <span className="text-sm font-black tracking-tighter uppercase italic" style={{ color: 'var(--sidebar-text)' }}>Resume Builder</span>
+        <div className="w-10"></div> {/* Spacer for symmetry */}
+      </div>
+
+      {/* ━━ Mobile Bottom Navigation ━━ */}
+      <div className="lg:hidden fixed bottom-4 left-4 right-4 h-14 bg-white border-2 z-50 flex items-center justify-around px-2 rounded-2xl shadow-2xl backdrop-blur-md"
+        style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
+        <button
+          onClick={() => setMobileView('form')}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-1 rounded-xl ${mobileView === 'form' ? 'bg-white/10' : 'opacity-40 hover:opacity-100'}`}
+          style={{ color: 'var(--sidebar-text)' }}
+        >
+          <Pencil size={18} />
+          <span className="text-[9px] font-extrabold uppercase tracking-widest">Edit</span>
+        </button>
+        <button
+          onClick={() => setMobileView('preview')}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-1 rounded-xl ${mobileView === 'preview' ? 'bg-white/10' : 'opacity-40 hover:opacity-100'}`}
+          style={{ color: 'var(--sidebar-text)' }}
+        >
+          <Eye size={18} />
+          <span className="text-[9px] font-extrabold uppercase tracking-widest">Preview</span>
+        </button>
+        <button
+          onClick={() => {
+            setMobileView('form');
+            handleSidebarClick('templates');
+            setSidebarOpen(false);
+          }}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-1 rounded-xl opacity-40 hover:opacity-100`}
+          style={{ color: 'var(--sidebar-text)' }}
+        >
+          <LayoutTemplate size={18} />
+          <span className="text-[9px] font-extrabold uppercase tracking-widest">Layout</span>
+        </button>
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-1 rounded-xl opacity-40 hover:opacity-100`}
+          style={{ color: 'var(--sidebar-text)' }}
+        >
+          <Plus size={18} />
+          <span className="text-[9px] font-extrabold uppercase tracking-widest">More</span>
+        </button>
+      </div>
+
+      {/* ━━ Mobile Sidebar Overlay ━━ */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-30 bg-black/40" onClick={() => setSidebarOpen(false)} />
+      )}
+
       <div className="flex-1 flex w-full">
-        <aside className="w-56 flex-shrink-0 border-r-2" style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)', borderColor: 'var(--sidebar-border)' }}>
-          <div className="sticky top-0 h-screen flex flex-col">
+        {/* ━━ Sidebar ━━
+            Desktop: always visible, w-56
+            Mobile: slide-out drawer (fixed, overlays content) */}
+        <aside className={`
+          w-56 flex-shrink-0 border-r-2 z-40
+          fixed lg:relative top-0 left-0 h-full
+          transform transition-transform duration-200
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `} style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)', borderColor: 'var(--sidebar-border)' }}>
+          <div className="sticky top-0 h-screen flex flex-col overflow-y-auto">
             {/* Document Type Toggles */}
             <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
               <div className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-2">Document Type</div>
@@ -1281,7 +1354,11 @@ function App() {
           </div>
         </aside>
 
-        <main className="flex-1 p-6 overflow-y-auto" style={{ backgroundColor: 'var(--main-bg)', color: 'var(--main-text)' }}>
+        {/* ━━ Main Content ━━
+            Mobile: full-width, hidden when preview is active
+            Desktop: flex-1 */}
+        <main className={`flex-1 px-2 py-3 sm:p-4 lg:p-6 overflow-y-auto pb-24 lg:pb-6 ${mobileView !== 'form' ? 'hidden lg:block' : ''}`}
+          style={{ backgroundColor: 'var(--main-bg)', color: 'var(--main-text)' }}>
           <div className="w-full max-w-5xl mx-auto">
             {continuousMode ? (
               renderContinuousMode()
@@ -1310,55 +1387,55 @@ function App() {
                   <div className="space-y-6">
                     <h3 className="text-lg font-bold" style={{ color: 'var(--main-text)' }}>Choose Template</h3>
                     {templateFilterBar}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {paginatedTemplates.map((template) => {
                         const isSelected = resumeData.selectedTemplate === template.id;
                         return (
-                        <button
-                          key={template.id}
-                          onClick={() => setTemplate(template.id)}
-                          className="group relative flex flex-col overflow-hidden border-2 transition-all"
-                          style={{
-                            borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
-                            backgroundColor: 'var(--card-bg)',
-                          }}
-                        >
-                          <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
-                            <TemplateThumbnail templateId={template.id} />
-                            {isSelected && (
-                              <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
-                            )}
-                            {template.isLatex && (
-                              <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
-                                pdfTeX
-                              </div>
-                            )}
-                          </div>
-
-                          <div
-                            className="p-3 text-left transition-colors relative"
+                          <button
+                            key={template.id}
+                            onClick={() => setTemplate(template.id)}
+                            className="group relative flex flex-col overflow-hidden border-2 transition-all"
                             style={{
-                              backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
-                              borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
+                              borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
+                              backgroundColor: 'var(--card-bg)',
                             }}
                           >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
-                                  {template.name}
-                                </div>
-                                <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
-                                  {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
-                                </div>
-                              </div>
+                            <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
+                              <TemplateThumbnail templateId={template.id} />
                               {isSelected && (
-                                <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
-                                  <Check size={14} strokeWidth={3} />
+                                <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
+                              )}
+                              {template.isLatex && (
+                                <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
+                                  pdfTeX
                                 </div>
                               )}
                             </div>
-                          </div>
-                        </button>
+
+                            <div
+                              className="p-3 text-left transition-colors relative"
+                              style={{
+                                backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
+                                borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
+                                    {template.name}
+                                  </div>
+                                  <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
+                                    {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
+                                  </div>
+                                </div>
+                                {isSelected && (
+                                  <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
+                                    <Check size={14} strokeWidth={3} />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -1445,7 +1522,7 @@ function App() {
                           <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           {customTemplates.map((ct) => {
                             const baseName = templates.find(t => t.id === ct.baseTemplateId)?.name || 'Classic';
                             const isActive = resumeData.selectedTemplate === ct.id;
@@ -1570,8 +1647,17 @@ function App() {
           </div>
         </main>
 
-        <aside className="w-[900px] flex-shrink-0" style={{ backgroundColor: 'var(--card-bg)' }}>
-          <div className="sticky top-0 h-screen">
+        {/* ━━ PDF Preview Panel ━━
+            Mobile: full-width, shown only when mobileView='preview'
+            Tablet: w-[450px]
+            Desktop: w-[900px] */}
+        <aside className={`
+          flex-shrink-0
+          w-full lg:w-[900px] md:w-[450px]
+          pb-20 lg:pb-0
+          ${mobileView !== 'preview' ? 'hidden lg:block md:block' : ''}
+        `} style={{ backgroundColor: 'var(--card-bg)' }}>
+          <div className="sticky top-0 h-[calc(100vh-48px)] lg:h-screen">
             <PDFPreview templateId={resumeData.selectedTemplate} documentType={documentType} />
           </div>
         </aside>
