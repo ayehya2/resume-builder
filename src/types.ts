@@ -85,7 +85,7 @@ export interface Award {
 
 // Template Types
 export type TemplateId = number;
-export type PreloadedTemplateId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+export type PreloadedTemplateId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 11 | 12 | 13 | 14;
 export type SectionKey = 'profile' | 'education' | 'work' | 'skills' | 'projects' | 'awards' | string;
 
 export interface CustomTemplate {
@@ -181,6 +181,19 @@ export type BodyTextWeight = 'light' | 'normal' | 'medium';
 export type ItalicStyle = 'normal' | 'italic';
 export type DateSeparator = '—' | '–' | 'to' | '-';
 export type AccentColorPosition = 'headers-only' | 'headers-and-links' | 'all-accents';
+
+// LaTeX-specific Formatting
+export interface LaTeXFormattingOptions {
+    fontSize: '9pt' | '10pt' | '11pt' | '12pt';
+    margins: string;          // e.g. '0.75in', '0.5in'
+    lineSpacing: string;      // e.g. '1.0', '1.15', '1.2'
+    sectionSpaceBefore: string; // e.g. '12pt', '8pt', '4pt'
+    sectionSpaceAfter: string;  // e.g. '6pt', '4pt', '2pt'
+    itemSep: string;            // between entries e.g. '6pt', '3pt'
+    bulletItemSep: string;      // between bullet items e.g. '0pt', '-1pt'
+    headerSize: 'Huge' | 'LARGE' | 'Large' | 'large';
+    sectionTitleSize: 'Large' | 'large' | 'normalsize';
+}
 
 // API Types
 export interface GeneratePDFRequest {

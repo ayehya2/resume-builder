@@ -2,8 +2,10 @@ import { useState, useEffect, useRef, memo } from 'react';
 import { useResumeStore } from '../../store';
 import { useCustomTemplateStore } from '../../lib/customTemplateStore';
 import { getEffectiveResumeData } from '../../lib/templateResolver';
-import { getPDFTemplateComponent } from '../../lib/pdfTemplateMap';
-import { pdfToImage } from '../../lib/pdfToImage';
+import { getPDFTemplateComponent, isLatexTemplate } from '../../lib/pdfTemplateMap';
+import { pdfToImage, blobToImage } from '../../lib/pdfToImage';
+import { generateLaTeXFromData } from '../../lib/latexGenerator';
+import { compileLatexViaApi } from '../../lib/latexApiCompiler';
 import type { TemplateId } from '../../types';
 
 interface PDFThumbnailProps {
@@ -12,53 +14,93 @@ interface PDFThumbnailProps {
 
 /**
  * PDFThumbnail generates a high-fidelity thumbnail image from the actual PDF
- * template. It debounces re-renders to avoid generating a new image on every
- * keystroke (~600ms delay).
+ * template. For LaTeX templates, it compiles via the real pdfTeX API.
+ * Debounces re-renders (~600ms for non-LaTeX, ~1200ms for LaTeX due to API latency).
  */
 export const PDFThumbnail = memo(function PDFThumbnail({ templateId }: PDFThumbnailProps) {
-    const { resumeData } = useResumeStore();
+    const { resumeData, customLatexSource, latexFormatting } = useResumeStore();
     const { customTemplates } = useCustomTemplateStore();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
     const generationId = useRef(0);
 
-    // Build effective data, but override selectedTemplate with the thumbnail's own templateId
     const baseEffectiveData = getEffectiveResumeData(resumeData, customTemplates);
     const effectiveData = { ...baseEffectiveData, selectedTemplate: templateId };
 
-    // Fingerprint includes templateId + key formatting + data fields for reactivity
     const formattingFingerprint = JSON.stringify(effectiveData.formatting);
-    const fingerprint = `${templateId}-${formattingFingerprint}-${effectiveData.basics.name}-${effectiveData.sections.join(',')}-${effectiveData.work.length}-${effectiveData.education.length}-${effectiveData.skills.length}`;
+    const fingerprint = `${templateId}-${formattingFingerprint}-${effectiveData.basics.name}-${effectiveData.sections.join(',')}-${effectiveData.work.length}-${effectiveData.education.length}-${effectiveData.skills.length}-${customLatexSource ? 'custom' : 'auto'}`;
 
     useEffect(() => {
         const currentId = ++generationId.current;
+        const isLatex = isLatexTemplate(templateId);
 
-        // Debounce: wait 600ms before generating thumbnail
+        // Longer debounce for LaTeX to avoid hammering the API
+        const debounceMs = isLatex ? 1200 : 600;
+
         const timer = setTimeout(async () => {
-            if (currentId !== generationId.current) return; // stale
+            if (currentId !== generationId.current) return;
 
             setIsLoading(true);
+            setHasError(false);
 
-            const component = getPDFTemplateComponent(effectiveData, 'resume');
-            const url = await pdfToImage(component, 1.5); // 1.5× scale for thumbnails
+            try {
+                let url: string | null = null;
 
-            if (currentId !== generationId.current) return; // stale
+                if (isLatex) {
+                    // Real LaTeX compilation via API
+                    const texSource = customLatexSource || generateLaTeXFromData(effectiveData, templateId, latexFormatting);
+                    const blob = await compileLatexViaApi(texSource);
+                    if (currentId !== generationId.current) return;
+                    url = await blobToImage(blob, 1.5);
+                } else {
+                    const component = getPDFTemplateComponent(effectiveData, 'resume');
+                    url = await pdfToImage(component, 1.5);
+                }
 
-            setImageUrl(url);
-            setIsLoading(false);
-        }, 600);
+                if (currentId !== generationId.current) return;
+
+                if (url) {
+                    setImageUrl(url);
+                    setHasError(false);
+                } else {
+                    setHasError(true);
+                }
+            } catch (err) {
+                if (currentId !== generationId.current) return;
+                console.error('[PDFThumbnail] Generation failed:', err);
+                setHasError(true);
+            } finally {
+                if (currentId === generationId.current) {
+                    setIsLoading(false);
+                }
+            }
+        }, debounceMs);
 
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fingerprint]);
 
     if (isLoading && !imageUrl) {
-        // First load — show skeleton
         return (
             <div className="w-full h-full flex items-center justify-center bg-slate-50">
                 <div className="flex flex-col items-center gap-2">
                     <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
-                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Generating...</span>
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                        {isLatexTemplate(templateId) ? 'Compiling...' : 'Generating...'}
+                    </span>
+                </div>
+            </div>
+        );
+    }
+
+    if (hasError && !imageUrl) {
+        return (
+            <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center gap-2 px-4 text-center">
+                    <span className="text-[10px] text-red-500 font-semibold uppercase tracking-wider">
+                        {isLatexTemplate(templateId) ? 'LaTeX compilation failed' : 'Preview unavailable'}
+                    </span>
                 </div>
             </div>
         );

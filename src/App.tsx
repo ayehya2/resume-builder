@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { useResumeStore } from './store'
 import { BasicsForm } from './components/forms/BasicsForm'
 import { WorkForm } from './components/forms/WorkForm'
@@ -10,6 +10,7 @@ import { CustomSectionForm } from './components/forms/CustomSectionForm'
 import { CoverLetterForm } from './components/forms/CoverLetterForm'
 import { AITab } from './components/forms/AITab'
 import { FormattingForm } from './components/forms/FormattingForm'
+import { LaTeXFormattingForm } from './components/forms/LaTeXFormattingForm'
 import { TemplateThumbnail } from './components/preview/TemplateThumbnail'
 import { PDFPreview } from './components/preview/PDFPreview'
 import type { TemplateId, SectionKey, DocumentType, PreloadedTemplateId } from './types'
@@ -28,7 +29,9 @@ import {
 import { loadPrefillData } from './lib/loadFromUrl'
 import { parseResumeFile } from './lib/resumeParser'
 import { pdf } from '@react-pdf/renderer'
-import { getPDFTemplateComponent } from './lib/pdfTemplateMap'
+import { getPDFTemplateComponent, isLatexTemplate } from './lib/pdfTemplateMap'
+import { compileLatexViaApi } from './lib/latexApiCompiler'
+import { generateLaTeXFromData } from './lib/latexGenerator'
 import { useCoverLetterStore } from './lib/coverLetterStore'
 import { useCustomTemplateStore } from './lib/customTemplateStore'
 import { getEffectiveResumeData } from './lib/templateResolver'
@@ -61,9 +64,16 @@ import {
   Mail,
   Pencil,
   Trash2,
-  Copy
+  Copy,
+  Code2,
+  Search,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import './styles/index.css'
+
+// Lazy-load the LaTeX editor (only needed when LaTeX template is selected)
+const LaTeXEditor = lazy(() => import('./components/latex/LaTeXEditor').then(m => ({ default: m.LaTeXEditor })))
 
 // Tab system types
 type TabKey = 'basics' | 'work' | 'education' | 'skills' | 'projects' | 'awards' | 'custom-sections' | 'cover-letter' | 'templates' | 'formatting' | 'ai' | string;
@@ -76,7 +86,7 @@ interface TabItem {
   sectionKey?: SectionKey;
 }
 
-const templates: Array<{ id: TemplateId; name: string }> = [
+const templates: Array<{ id: TemplateId; name: string; isLatex?: boolean; description?: string }> = [
   { id: 1, name: 'Classic' },
   { id: 2, name: 'Modern' },
   { id: 3, name: 'Minimal' },
@@ -86,7 +96,10 @@ const templates: Array<{ id: TemplateId; name: string }> = [
   { id: 7, name: 'Elegant' },
   { id: 8, name: 'Compact' },
   { id: 9, name: 'Academic' },
-  { id: 10, name: 'LaTeX' },
+  { id: 11, name: 'Professional LaTeX', isLatex: true, description: 'Standard pdfTeX resume' },
+  { id: 12, name: 'Compact LaTeX', isLatex: true, description: '10pt, tight spacing' },
+  { id: 13, name: 'Ultra Compact LaTeX', isLatex: true, description: '9pt, max density' },
+  { id: 14, name: 'Academic LaTeX', isLatex: true, description: 'Academic CV style' },
 ];
 
 function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boolean; onClick: () => void }) {
@@ -144,6 +157,11 @@ function App() {
   const [isPrinting, setIsPrinting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [templateFilter, setTemplateFilter] = useState<'all' | 'standard' | 'latex'>('all');
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [templateSort, setTemplateSort] = useState<'default' | 'latex-first' | 'standard-first'>('default');
+  const [templatePage, setTemplatePage] = useState(1);
+  const [templatesPerPage, setTemplatesPerPage] = useState(10);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
 
   // New state for sidebar controls
@@ -293,6 +311,22 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  // Export .tex source
+  const handleDownloadTex = () => {
+    const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
+    const { customLatexSource } = useResumeStore.getState();
+    const { latexFormatting } = useResumeStore.getState();
+    const texSource = customLatexSource || generateLaTeXFromData(effectiveData, resumeData.selectedTemplate, latexFormatting);
+    const blob = new Blob([texSource], { type: 'application/x-latex' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const name = resumeData.basics.name || 'resume';
+    a.download = `${name.replace(/[^a-z0-9._-]/gi, '_')}.tex`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Import — supports JSON, PDF, DOCX, LaTeX, TXT
   const handleImport = () => {
     const input = document.createElement('input');
@@ -380,12 +414,162 @@ function App() {
   }).filter(Boolean);
 
   // Flat tab list
+  const isLatexSelected = isLatexTemplate(resumeData.selectedTemplate);
+
+  // Filtered, searched, sorted templates
+  const filteredTemplates = (() => {
+    let result = templateFilter === 'all'
+      ? [...templates]
+      : templateFilter === 'latex'
+        ? templates.filter(t => t.isLatex)
+        : templates.filter(t => !t.isLatex);
+
+    // Search filter
+    if (templateSearch.trim()) {
+      const q = templateSearch.trim().toLowerCase();
+      result = result.filter(t =>
+        t.name.toLowerCase().includes(q) ||
+        (t.description && t.description.toLowerCase().includes(q)) ||
+        (t.isLatex && 'latex pdftex'.includes(q)) ||
+        (!t.isLatex && 'standard react pdf'.includes(q))
+      );
+    }
+
+    // Sort
+    if (templateSort === 'latex-first') {
+      result.sort((a, b) => (a.isLatex === b.isLatex ? 0 : a.isLatex ? -1 : 1));
+    } else if (templateSort === 'standard-first') {
+      result.sort((a, b) => (a.isLatex === b.isLatex ? 0 : a.isLatex ? 1 : -1));
+    }
+
+    return result;
+  })();
+
+  // Pagination
+  const totalTemplatePages = Math.ceil(filteredTemplates.length / templatesPerPage);
+  const paginatedTemplates = filteredTemplates.length > 10
+    ? filteredTemplates.slice((templatePage - 1) * templatesPerPage, templatePage * templatesPerPage)
+    : filteredTemplates;
+
+  // Reset page when filter/search/sort/perPage changes
+  useEffect(() => {
+    setTemplatePage(1);
+  }, [templateFilter, templateSearch, templateSort, templatesPerPage]);
+
+  // Per-page options: always show 10, show 20 if total >= 20, show 50 if total >= 50
+  const perPageOptions = [10, ...(filteredTemplates.length >= 20 ? [20] : []), ...(filteredTemplates.length >= 50 ? [50] : [])];
+
+  // Template filter bar JSX (reused in both modes)
+  const templateFilterBar = (
+    <div className="space-y-3 mb-4">
+      {/* Search bar */}
+      <div className="relative">
+        <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+        <input
+          type="text"
+          value={templateSearch}
+          onChange={(e) => setTemplateSearch(e.target.value)}
+          placeholder="Search templates..."
+          className={`w-full pl-9 pr-3 py-2 text-sm border-2 transition-colors ${darkMode
+            ? 'bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-slate-400'
+            : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-slate-500'
+          } outline-none`}
+        />
+      </div>
+      {/* Filter + Sort row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {(['all', 'latex', 'standard'] as const).map(filter => (
+          <button
+            key={filter}
+            onClick={() => setTemplateFilter(filter)}
+            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors border-2 ${templateFilter === filter
+              ? (darkMode ? 'bg-white text-slate-900 border-white' : 'bg-slate-800 text-white border-slate-800')
+              : (darkMode ? 'bg-transparent text-slate-400 border-slate-600 hover:text-white hover:border-slate-500' : 'bg-transparent text-slate-500 border-slate-300 hover:text-slate-800 hover:border-slate-400')
+              }`}
+          >
+            {filter === 'all' ? 'All' : filter === 'latex' ? 'LaTeX' : 'Standard'}
+          </button>
+        ))}
+        <div className="flex-1" />
+        {/* Sort dropdown */}
+        <select
+          value={templateSort}
+          onChange={(e) => setTemplateSort(e.target.value as typeof templateSort)}
+          className={`px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider border-2 outline-none cursor-pointer transition-colors ${darkMode
+            ? 'bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-500'
+            : 'bg-white border-slate-300 text-slate-600 hover:border-slate-400'
+          }`}
+        >
+          <option value="default">Default Order</option>
+          <option value="latex-first">LaTeX First</option>
+          <option value="standard-first">Standard First</option>
+        </select>
+      </div>
+      {/* Count */}
+      <div className="flex items-center justify-between">
+        <span className={`text-[10px] font-semibold uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+          {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
+          {templateSearch.trim() && ' found'}
+        </span>
+      </div>
+    </div>
+  );
+
+  // Pagination controls JSX (reused in both modes)
+  const templatePaginationControls = filteredTemplates.length > 10 ? (
+    <div className={`flex items-center justify-between mt-4 pt-4 border-t-2 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+      <div className="flex items-center gap-2">
+        <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+          Per page:
+        </span>
+        {perPageOptions.map(n => (
+          <button
+            key={n}
+            onClick={() => setTemplatesPerPage(n)}
+            className={`px-2 py-1 text-[10px] font-bold border-2 transition-colors ${templatesPerPage === n
+              ? (darkMode ? 'bg-white text-slate-900 border-white' : 'bg-slate-800 text-white border-slate-800')
+              : (darkMode ? 'bg-transparent text-slate-400 border-slate-600 hover:text-white' : 'bg-transparent text-slate-500 border-slate-300 hover:text-slate-800')
+            }`}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setTemplatePage(p => Math.max(1, p - 1))}
+          disabled={templatePage <= 1}
+          className={`p-1 border-2 transition-colors ${templatePage <= 1
+            ? (darkMode ? 'border-slate-700 text-slate-700 cursor-not-allowed' : 'border-slate-200 text-slate-300 cursor-not-allowed')
+            : (darkMode ? 'border-slate-600 text-slate-300 hover:text-white hover:border-slate-500' : 'border-slate-300 text-slate-500 hover:text-slate-800 hover:border-slate-400')
+          }`}
+        >
+          <ChevronLeft size={14} />
+        </button>
+        <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          {templatePage} / {totalTemplatePages}
+        </span>
+        <button
+          onClick={() => setTemplatePage(p => Math.min(totalTemplatePages, p + 1))}
+          disabled={templatePage >= totalTemplatePages}
+          className={`p-1 border-2 transition-colors ${templatePage >= totalTemplatePages
+            ? (darkMode ? 'border-slate-700 text-slate-700 cursor-not-allowed' : 'border-slate-200 text-slate-300 cursor-not-allowed')
+            : (darkMode ? 'border-slate-600 text-slate-300 hover:text-white hover:border-slate-500' : 'border-slate-300 text-slate-500 hover:text-slate-800 hover:border-slate-400')
+          }`}
+        >
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  ) : null;
+
   const primarySettings: TabItem[] = [
     { key: 'templates', label: 'Template', icon: <LayoutTemplate size={18} />, draggable: false },
-    { key: 'formatting', label: 'Formatting', icon: <Palette size={18} />, draggable: false },
+    { key: 'formatting', label: isLatexSelected ? 'LaTeX Formatting' : 'Formatting', icon: <Palette size={18} />, draggable: false },
   ];
 
   const secondarySettings: TabItem[] = [
+    ...(isLatexTemplate(resumeData.selectedTemplate) ? [{ key: 'latex-editor' as TabKey, label: 'LaTeX Editor', icon: <Code2 size={18} />, draggable: false }] : []),
     ...(showCoverLetter ? [{ key: 'cover-letter' as TabKey, label: 'Cover Letter', icon: <File size={18} />, draggable: false }] : []),
     { key: 'ai', label: 'AI Assistant', icon: <Sparkles size={18} />, draggable: false },
   ];
@@ -419,12 +603,22 @@ function App() {
     setIsGeneratingPDF(true);
     try {
       const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
-      const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData);
       const fileName = documentType === 'coverletter'
         ? `cover_letter_${coverLetterData.company || 'document'}`.replace(/[^a-z0-9._-]/gi, '_')
         : `${resumeData.basics.name || 'resume'}`.replace(/[^a-z0-9._-]/gi, '_');
 
-      const blob = await pdf(templateComponent as any).toBlob();
+      let blob: Blob;
+
+      if (isLatexTemplate(resumeData.selectedTemplate) && documentType !== 'coverletter') {
+        // Real LaTeX compilation only
+        const { customLatexSource, latexFormatting: lf } = useResumeStore.getState();
+        const texSource = customLatexSource || generateLaTeXFromData(effectiveData, resumeData.selectedTemplate, lf);
+        blob = await compileLatexViaApi(texSource);
+      } else {
+        const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData);
+        blob = await pdf(templateComponent as any).toBlob();
+      }
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -433,7 +627,9 @@ function App() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('PDF generation error:', error);
-      alert('PDF generation failed. Please try again.');
+      alert(isLatexTemplate(resumeData.selectedTemplate)
+        ? 'LaTeX compilation failed. Check your LaTeX source or try again.'
+        : 'PDF generation failed. Please try again.');
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -443,14 +639,25 @@ function App() {
     setIsPrinting(true);
     try {
       const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
-      const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData);
 
-      const blob = await pdf(templateComponent as any).toBlob();
+      let blob: Blob;
+
+      if (isLatexTemplate(resumeData.selectedTemplate) && documentType !== 'coverletter') {
+        const { customLatexSource, latexFormatting: lf } = useResumeStore.getState();
+        const texSource = customLatexSource || generateLaTeXFromData(effectiveData, resumeData.selectedTemplate, lf);
+        blob = await compileLatexViaApi(texSource);
+      } else {
+        const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData);
+        blob = await pdf(templateComponent as any).toBlob();
+      }
+
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
     } catch (error) {
       console.error('Print generation error:', error);
-      alert('Print generation failed. Please try again.');
+      alert(isLatexTemplate(resumeData.selectedTemplate)
+        ? 'LaTeX compilation failed. Check your LaTeX source or try again.'
+        : 'Print generation failed. Please try again.');
     } finally {
       setIsPrinting(false);
     }
@@ -465,8 +672,9 @@ function App() {
     sections.push(
       <div key="templates" id="continuous-section-templates" className={dividerClass}>
         <h3 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-900'}`}>Choose Template</h3>
+        {templateFilterBar}
         <div className="grid grid-cols-2 gap-4">
-          {templates.map((template) => (
+          {paginatedTemplates.map((template) => (
             <button
               key={template.id}
               onClick={() => setTemplate(template.id)}
@@ -480,14 +688,19 @@ function App() {
                 }
               `}
             >
-              <div className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800">
+              <div className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800 relative">
                 <TemplateThumbnail templateId={template.id} />
                 {resumeData.selectedTemplate === template.id && (
                   <div className="absolute inset-0 border-4 border-slate-900/40 pointer-events-none"></div>
                 )}
+                {template.isLatex && (
+                  <div className="absolute top-2 right-2 bg-slate-800 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10">
+                    pdfTeX
+                  </div>
+                )}
               </div>
               <div className={`
-                p-4 text-left transition-colors relative
+                p-3 text-left transition-colors relative
                 ${resumeData.selectedTemplate === template.id
                   ? (darkMode ? 'bg-slate-900 border-t border-slate-700' : 'bg-white border-t border-slate-100')
                   : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
@@ -495,17 +708,17 @@ function App() {
               `}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className={`font-bold text-lg leading-tight ${resumeData.selectedTemplate === template.id
+                    <div className={`font-bold text-sm leading-tight ${resumeData.selectedTemplate === template.id
                       ? (darkMode ? 'text-white' : 'text-slate-900')
                       : (darkMode ? 'text-slate-400' : 'text-slate-500')
                       }`}>
                       {template.name}
                     </div>
-                    <div className={`text-xs font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id
+                    <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id
                       ? (darkMode ? 'text-blue-400' : 'text-blue-600')
                       : (darkMode ? 'text-slate-500' : 'text-slate-400')
                       }`}>
-                      TEMPLATE 0{template.id}
+                      {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
                     </div>
                   </div>
                   {resumeData.selectedTemplate === template.id && (
@@ -518,6 +731,7 @@ function App() {
             </button>
           ))}
         </div>
+        {templatePaginationControls}
 
         {/* ── My Templates (Continuous Mode) ── */}
         <div className={`border-t-2 pt-6 mt-6 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
@@ -535,7 +749,7 @@ function App() {
 
           {/* Create template form */}
           {showCreateTemplate && (
-            <div className={`mb-4 p-4 rounded-lg border-2 ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-slate-50 border-slate-300'}`}>
+            <div className={`mb-4 p-4 border-2 ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-slate-50 border-slate-300'}`}>
               <div className="space-y-3">
                 <div>
                   <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -564,7 +778,7 @@ function App() {
                       : 'bg-white border-slate-300 text-slate-900'
                       }`}
                   >
-                    {templates.map((t) => (
+                    {templates.filter(t => !t.isLatex).map((t) => (
                       <option key={t.id} value={t.id}>{t.name}</option>
                     ))}
                   </select>
@@ -600,7 +814,7 @@ function App() {
 
           {/* Custom templates grid */}
           {customTemplates.length === 0 && !showCreateTemplate ? (
-            <div className={`text-center py-8 rounded-lg border-2 border-dashed ${darkMode ? 'border-slate-700 text-slate-500' : 'border-slate-300 text-slate-400'}`}>
+            <div className={`text-center py-8 border-2 border-dashed ${darkMode ? 'border-slate-700 text-slate-500' : 'border-slate-300 text-slate-400'}`}>
               <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
               <p className="text-sm font-semibold">No custom templates yet</p>
               <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
@@ -734,7 +948,7 @@ function App() {
     // Formatting options
     sections.push(
       <div key="formatting" id="continuous-section-formatting" className={dividerClass}>
-        <FormattingForm />
+        {isLatexSelected ? <LaTeXFormattingForm /> : <FormattingForm />}
       </div>
     );
 
@@ -773,6 +987,21 @@ function App() {
       sections.push(
         <div key="cover-letter" id="continuous-section-cover-letter" className={dividerClass}>
           <CoverLetterForm />
+        </div>
+      );
+    }
+
+    // LaTeX Editor (if LaTeX template is selected)
+    if (isLatexTemplate(resumeData.selectedTemplate)) {
+      sections.push(
+        <div key="latex-editor" id="continuous-section-latex-editor" className={dividerClass}>
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-16">
+              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+            </div>
+          }>
+            <LaTeXEditor />
+          </Suspense>
         </div>
       );
     }
@@ -921,8 +1150,61 @@ function App() {
               </DndContext>
             </div>
 
-            {/* Bottom Controls: Import, Sample, Theme, Reset */}
+            {/* Bottom Controls: Export, Import, Sample, Theme, Reset */}
             <div className={`border-t ${darkMode ? 'border-slate-700' : 'border-slate-500'} p-3 space-y-2`}>
+              {/* Export button */}
+              <div ref={exportDropdownRef} className="relative">
+                <button
+                  onClick={() => setExportDropdownOpen(prev => !prev)}
+                  disabled={isGeneratingPDF || isPrinting}
+                  className={`w-full flex items-center justify-center gap-2 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded bg-teal-700 hover:bg-teal-600 text-white ${(isGeneratingPDF || isPrinting) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <FileDown size={14} />
+                  <span>{isGeneratingPDF ? 'Generating...' : isPrinting ? 'Preparing...' : 'Export'}</span>
+                  <ChevronDown size={10} className={`transition-transform ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {exportDropdownOpen && (
+                  <div className="absolute left-0 bottom-full mb-1 w-full shadow-xl border-2 z-50 overflow-hidden bg-slate-700 border-slate-600">
+                    <button
+                      onClick={() => { setExportDropdownOpen(false); handleDownloadPDF(); }}
+                      disabled={isGeneratingPDF}
+                      className={`w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors text-white hover:bg-slate-600 ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <FileDown size={12} className="text-teal-400" />
+                      Download PDF
+                    </button>
+                    <button
+                      onClick={() => { setExportDropdownOpen(false); handlePrint(); }}
+                      disabled={isPrinting}
+                      className={`w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors text-white hover:bg-slate-600 ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <Printer size={12} className="text-blue-400" />
+                      Print / Preview
+                    </button>
+                    {isLatexSelected && (
+                      <>
+                        <div className="border-t border-slate-600" />
+                        <button
+                          onClick={() => { setExportDropdownOpen(false); handleDownloadTex(); }}
+                          className="w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors text-white hover:bg-slate-600"
+                        >
+                          <Code2 size={12} className="text-emerald-400" />
+                          Download .tex
+                        </button>
+                      </>
+                    )}
+                    <div className="border-t border-slate-600" />
+                    <button
+                      onClick={() => { setExportDropdownOpen(false); handleExport(); }}
+                      className="w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors text-white hover:bg-slate-600"
+                    >
+                      <Download size={12} className="text-amber-400" />
+                      Export JSON
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={handleImport}
@@ -977,13 +1259,23 @@ function App() {
                 {activeTab === 'awards' && showResume && <AwardsForm />}
                 {activeTab.startsWith('custom-') && showResume && <CustomSectionForm sectionId={activeTab} />}
                 {activeTab === 'cover-letter' && showCoverLetter && <CoverLetterForm />}
+                {activeTab === 'latex-editor' && isLatexTemplate(resumeData.selectedTemplate) && (
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center py-16">
+                      <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+                    </div>
+                  }>
+                    <LaTeXEditor />
+                  </Suspense>
+                )}
                 {activeTab === 'ai' && <AITab documentType={documentType} />}
-                {activeTab === 'formatting' && <FormattingForm />}
+                {activeTab === 'formatting' && (isLatexSelected ? <LaTeXFormattingForm /> : <FormattingForm />)}
                 {activeTab === 'templates' && (
                   <div className="space-y-6">
                     <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Choose Template</h3>
+                    {templateFilterBar}
                     <div className="grid grid-cols-2 gap-4">
-                      {templates.map((template) => (
+                      {paginatedTemplates.map((template) => (
                         <button
                           key={template.id}
                           onClick={() => setTemplate(template.id)}
@@ -997,15 +1289,20 @@ function App() {
                             }
                           `}
                         >
-                          <div className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800">
+                          <div className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800 relative">
                             <TemplateThumbnail templateId={template.id} />
                             {resumeData.selectedTemplate === template.id && (
                               <div className="absolute inset-0 border-4 border-slate-900/40 pointer-events-none"></div>
                             )}
+                            {template.isLatex && (
+                              <div className="absolute top-2 right-2 bg-slate-800 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10">
+                                pdfTeX
+                              </div>
+                            )}
                           </div>
 
                           <div className={`
-                            p-4 text-left transition-colors relative
+                            p-3 text-left transition-colors relative
                             ${resumeData.selectedTemplate === template.id
                               ? (darkMode ? 'bg-slate-900 border-t border-slate-700' : 'bg-white border-t border-slate-100')
                               : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
@@ -1013,17 +1310,17 @@ function App() {
                           `}>
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className={`font-bold text-lg leading-tight ${resumeData.selectedTemplate === template.id
+                                <div className={`font-bold text-sm leading-tight ${resumeData.selectedTemplate === template.id
                                   ? (darkMode ? 'text-white' : 'text-slate-900')
                                   : (darkMode ? 'text-slate-400' : 'text-slate-500')
                                   }`}>
                                   {template.name}
                                 </div>
-                                <div className={`text-xs font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id
+                                <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id
                                   ? (darkMode ? 'text-blue-400' : 'text-blue-600')
                                   : (darkMode ? 'text-slate-500' : 'text-slate-400')
                                   }`}>
-                                  TEMPLATE 0{template.id}
+                                  {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
                                 </div>
                               </div>
                               {resumeData.selectedTemplate === template.id && (
@@ -1036,6 +1333,7 @@ function App() {
                         </button>
                       ))}
                     </div>
+                    {templatePaginationControls}
 
                     {/* ── My Templates ── */}
                     <div className={`border-t-2 pt-6 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
@@ -1053,7 +1351,7 @@ function App() {
 
                       {/* Create template form */}
                       {showCreateTemplate && (
-                        <div className={`mb-4 p-4 rounded-lg border-2 ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-slate-50 border-slate-300'}`}>
+                        <div className={`mb-4 p-4 border-2 ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-slate-50 border-slate-300'}`}>
                           <div className="space-y-3">
                             <div>
                               <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -1082,7 +1380,7 @@ function App() {
                                   : 'bg-white border-slate-300 text-slate-900'
                                   }`}
                               >
-                                {templates.map((t) => (
+                                {templates.filter(t => !t.isLatex).map((t) => (
                                   <option key={t.id} value={t.id}>{t.name}</option>
                                 ))}
                               </select>
@@ -1118,7 +1416,7 @@ function App() {
 
                       {/* Custom templates grid */}
                       {customTemplates.length === 0 && !showCreateTemplate ? (
-                        <div className={`text-center py-8 rounded-lg border-2 border-dashed ${darkMode ? 'border-slate-700 text-slate-500' : 'border-slate-300 text-slate-400'}`}>
+                        <div className={`text-center py-8 border-2 border-dashed ${darkMode ? 'border-slate-700 text-slate-500' : 'border-slate-300 text-slate-400'}`}>
                           <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
                           <p className="text-sm font-semibold">No custom templates yet</p>
                           <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
@@ -1262,57 +1560,9 @@ function App() {
           </div>
         </main>
 
-        <aside className={`w-[900px] border-l-2 flex-shrink-0 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-200 border-slate-300'}`}>
-          <div className="sticky top-0 h-screen flex flex-col">
-            <div className={`p-3 border-b-2 flex justify-between items-center ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-300'}`}>
-              <div className={`text-sm font-bold uppercase tracking-widest ${darkMode ? 'text-white' : 'text-slate-900'}`}>Live PDF Preview</div>
-              <div className="flex gap-2">
-                {/* Export Dropdown */}
-                <div ref={exportDropdownRef} className="relative">
-                  <button
-                    onClick={() => setExportDropdownOpen(prev => !prev)}
-                    disabled={isGeneratingPDF || isPrinting}
-                    className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 border-2 bg-teal-700 hover:bg-teal-800 text-white ${(isGeneratingPDF || isPrinting) ? 'opacity-50 cursor-not-allowed' : ''} ${darkMode ? 'border-transparent' : 'border-slate-300'}`}
-                  >
-                    <FileDown size={14} />
-                    <span>{isGeneratingPDF ? 'Generating...' : isPrinting ? 'Preparing...' : 'Export'}</span>
-                    <ChevronDown size={12} className={`transition-transform ${exportDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {exportDropdownOpen && (
-                    <div className={`absolute right-0 top-full mt-1 w-52 rounded shadow-xl border-2 z-50 overflow-hidden ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-300'}`}>
-                      <button
-                        onClick={() => { setExportDropdownOpen(false); handleDownloadPDF(); }}
-                        disabled={isGeneratingPDF}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''} ${darkMode ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-100'}`}
-                      >
-                        <FileDown size={14} className="text-teal-500" />
-                        Download PDF
-                      </button>
-                      <button
-                        onClick={() => { setExportDropdownOpen(false); handlePrint(); }}
-                        disabled={isPrinting}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''} ${darkMode ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-100'}`}
-                      >
-                        <Printer size={14} className="text-blue-500" />
-                        Print / Preview
-                      </button>
-                      <div className={`border-t ${darkMode ? 'border-slate-600' : 'border-slate-200'}`} />
-                      <button
-                        onClick={() => { setExportDropdownOpen(false); handleExport(); }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${darkMode ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-100'}`}
-                      >
-                        <Download size={14} className="text-amber-500" />
-                        Export JSON
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className={`flex-1 overflow-hidden ${darkMode ? 'bg-slate-900' : 'bg-slate-200'}`}>
-              <PDFPreview templateId={resumeData.selectedTemplate} documentType={documentType} />
-            </div>
+        <aside className="w-[900px] border-l-2 flex-shrink-0 border-slate-700 bg-slate-800">
+          <div className="sticky top-0 h-screen">
+            <PDFPreview templateId={resumeData.selectedTemplate} documentType={documentType} />
           </div>
         </aside>
       </div >

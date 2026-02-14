@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ResumeData, TemplateId, Basics, WorkExperience, Education, Skill, Project, Award, SectionKey } from './types';
+import type { ResumeData, TemplateId, Basics, WorkExperience, Education, Skill, Project, Award, SectionKey, LaTeXFormattingOptions } from './types';
 
 // Default/empty resume data
 const getDefaultResumeData = (): ResumeData => ({
@@ -78,6 +78,12 @@ const getDefaultResumeData = (): ResumeData => ({
 interface ResumeStore {
     resumeData: ResumeData;
 
+    // LaTeX Advanced Mode: stores custom-edited LaTeX source (null = generate from form data)
+    customLatexSource: string | null;
+
+    // LaTeX-specific formatting overrides (null = use template defaults)
+    latexFormatting: LaTeXFormattingOptions | null;
+
     // Basics
     updateBasics: (basics: Partial<Basics>) => void;
 
@@ -124,6 +130,12 @@ interface ResumeStore {
     updateFormatting: (formatting: Partial<import('./types').FormattingOptions>) => void;
     resetFormatting: () => void;
 
+    // LaTeX
+    setCustomLatex: (source: string) => void;
+    clearCustomLatex: () => void;
+    updateLatexFormatting: (formatting: Partial<LaTeXFormattingOptions>) => void;
+    resetLatexFormatting: () => void;
+
     // Utility
     loadSampleData: () => void;
     reset: () => void;
@@ -133,6 +145,8 @@ export const useResumeStore = create<ResumeStore>()(
     persist(
         (set) => ({
             resumeData: getDefaultResumeData(),
+            customLatexSource: null,
+            latexFormatting: null,
 
             // Basics
             updateBasics: (basics) =>
@@ -462,6 +476,35 @@ export const useResumeStore = create<ResumeStore>()(
                         formatting: getDefaultResumeData().formatting,
                     },
                 })),
+
+            // LaTeX
+            setCustomLatex: (source) =>
+                set({ customLatexSource: source }),
+
+            clearCustomLatex: () =>
+                set({ customLatexSource: null }),
+
+            updateLatexFormatting: (formatting) =>
+                set((state) => ({
+                    latexFormatting: {
+                        ...(state.latexFormatting || {
+                            fontSize: '11pt',
+                            margins: '0.75in',
+                            lineSpacing: '1.15',
+                            sectionSpaceBefore: '12pt',
+                            sectionSpaceAfter: '6pt',
+                            itemSep: '6pt',
+                            bulletItemSep: '0pt',
+                            headerSize: 'Huge',
+                            sectionTitleSize: 'large',
+                        }),
+                        ...formatting,
+                    } as LaTeXFormattingOptions,
+                    customLatexSource: null, // Reset custom source when formatting changes
+                })),
+
+            resetLatexFormatting: () =>
+                set({ latexFormatting: null, customLatexSource: null }),
 
             loadSampleData: () => {
                 set({

@@ -8,7 +8,7 @@ export function isCustomTemplate(templateId: TemplateId): boolean {
 }
 
 /**
- * Resolve a template ID to its base preloaded template ID (1-10).
+ * Resolve a template ID to its base preloaded template ID (1-9, 11-14).
  * For preloaded templates, returns the ID unchanged.
  * For custom templates, looks up the baseTemplateId.
  */

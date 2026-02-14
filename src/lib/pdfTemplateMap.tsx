@@ -10,12 +10,25 @@ import { TechnicalPDFTemplate } from '../templates/TechnicalPDFTemplate';
 import { ElegantPDFTemplate } from '../templates/ElegantPDFTemplate';
 import { CompactPDFTemplate } from '../templates/CompactPDFTemplate';
 import { AcademicPDFTemplate } from '../templates/AcademicPDFTemplate';
-import { LaTeXPDFTemplate } from '../templates/LaTeXPDFTemplate';
 import { CoverLetterPDFTemplate } from '../templates/CoverLetterPDFTemplate';
 
 /**
+ * All LaTeX template IDs.
+ * 11 = Professional, 12 = Compact, 13 = Ultra Compact, 14 = Academic
+ */
+export const LATEX_TEMPLATE_IDS = [11, 12, 13, 14] as const;
+
+/**
+ * Check if a template ID corresponds to a real LaTeX template.
+ */
+export function isLatexTemplate(templateId: number): boolean {
+    return (LATEX_TEMPLATE_IDS as readonly number[]).includes(templateId);
+}
+
+/**
  * Single source of truth for mapping a template ID to its PDF component.
- * Used by: PDFPreview (live viewer), handleDownloadPDF, and handlePrint.
+ * NOTE: Do NOT call this with LaTeX template IDs — LaTeX templates use
+ * the LaTeX API compiler instead of React PDF components.
  */
 export function getPDFTemplateComponent(
     effectiveData: ResumeData,
@@ -36,7 +49,6 @@ export function getPDFTemplateComponent(
         case 7: return <ElegantPDFTemplate data={effectiveData} />;
         case 8: return <CompactPDFTemplate data={effectiveData} />;
         case 9: return <AcademicPDFTemplate data={effectiveData} />;
-        case 10: return <LaTeXPDFTemplate data={effectiveData} />;
         default: return <ClassicPDFTemplate data={effectiveData} />;
     }
 }
