@@ -248,8 +248,20 @@ function App() {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+    // Listen for theme messages from parent window
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SET_THEME' && event.data.themeId) {
+        setTheme(event.data.themeId);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [setTheme]);
 
   // Load non-store persisted data on mount; resume store is auto-persisted via Zustand middleware
   useEffect(() => {
@@ -263,9 +275,16 @@ function App() {
       setDocumentType(savedType);
     }
 
+    // Check for theme in URL for instant sync when iframed
+    const params = new URLSearchParams(window.location.search);
+    const urlTheme = params.get('theme');
+    if (urlTheme && THEME_MAP[urlTheme]) {
+      setTheme(urlTheme);
+    }
+
     // Prefill data overrides localStorage — must run AFTER the above
     loadPrefillData();
-  }, []);
+  }, [setTheme]);
 
   // Save active tab on change
   useEffect(() => {
@@ -1309,40 +1328,43 @@ function App() {
                   <span>Sample</span>
                 </button>
               </div>
-              {/* Theme dropdown — single source of truth for all styling */}
-              <div ref={themeDropdownRef} className="relative">
-                <button
-                  onClick={() => setThemeDropdownOpen(prev => !prev)}
-                  className="w-full flex items-center justify-center gap-2 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded"
-                  style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
-                >
-                  <Palette size={14} />
-                  <span>{THEME_MAP[themeId]?.name || 'Theme'}</span>
-                  <ChevronDown size={10} className={`transition-transform ${themeDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {themeDropdownOpen && (
-                  <div className="absolute left-0 bottom-full mb-1 w-full shadow-xl border-2 z-50 overflow-hidden max-h-72 overflow-y-auto" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
-                    {THEMES.map(theme => (
-                      <button
-                        key={theme.id}
-                        onClick={() => { setTheme(theme.id); setThemeDropdownOpen(false); }}
-                        className={`w-full text-left px-3 py-2 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2.5 transition-colors ${themeId === theme.id ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}
-                        style={{
-                          color: 'var(--sidebar-text)',
-                          backgroundColor: themeId === theme.id ? 'var(--sidebar-hover)' : 'transparent',
-                        }}
-                      >
-                        <div className="w-4 h-4 rounded-full flex-shrink-0 border border-white/20" style={{ backgroundColor: theme.swatch }} />
-                        <span className="flex-1">{theme.name}</span>
-                        <span className="text-[8px] opacity-50">{theme.isDark ? 'dark' : 'light'}</span>
-                        {themeId === theme.id && (
-                          <Check size={11} className="ml-1" strokeWidth={3} />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+
+              {/* Theme dropdown — hidden if iframed to defer to parent header picker */}
+              {window.self === window.top && (
+                <div ref={themeDropdownRef} className="relative">
+                  <button
+                    onClick={() => setThemeDropdownOpen(prev => !prev)}
+                    className="w-full flex items-center justify-center gap-2 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded"
+                    style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
+                  >
+                    <Palette size={14} />
+                    <span>{THEME_MAP[themeId]?.name || 'Theme'}</span>
+                    <ChevronDown size={10} className={`transition-transform ${themeDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {themeDropdownOpen && (
+                    <div className="absolute left-0 bottom-full mb-1 w-full shadow-xl border-2 z-50 overflow-hidden max-h-72 overflow-y-auto" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
+                      {THEMES.map(theme => (
+                        <button
+                          key={theme.id}
+                          onClick={() => { setTheme(theme.id); setThemeDropdownOpen(false); }}
+                          className={`w-full text-left px-3 py-2 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2.5 transition-colors ${themeId === theme.id ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}
+                          style={{
+                            color: 'var(--sidebar-text)',
+                            backgroundColor: themeId === theme.id ? 'var(--sidebar-hover)' : 'transparent',
+                          }}
+                        >
+                          <div className="w-4 h-4 rounded-full flex-shrink-0 border border-white/20" style={{ backgroundColor: theme.swatch }} />
+                          <span className="flex-1">{theme.name}</span>
+                          <span className="text-[8px] opacity-50">{theme.isDark ? 'dark' : 'light'}</span>
+                          {themeId === theme.id && (
+                            <Check size={11} className="ml-1" strokeWidth={3} />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <button
                 onClick={reset}
                 className="w-full flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded bg-red-700 hover:bg-red-800 text-white"

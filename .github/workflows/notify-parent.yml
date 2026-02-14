@@ -1,0 +1,21 @@
+name: Notify Job-Builder
+
+# Fires whenever resume-builder pushes to main.
+# Sends a repository_dispatch event to job-builder which triggers
+# its sync-subrepo.yml workflow to pull the latest submodule,
+# build, and auto-commit the updated pointer.
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch to job-builder
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PARENT_REPO_TOKEN }}
+          repository: ayehya2/job-builder
+          event-type: resume-builder-updated
