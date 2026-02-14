@@ -39,60 +39,62 @@ export function CoverLetterForm() {
                 />
             </div>
 
-            {/* Recipient Information */}
-            <div className="space-y-4 p-5 border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                <h4 className="font-semibold text-slate-900 dark:text-white uppercase tracking-tight text-sm pb-2 border-b border-slate-200 dark:border-slate-800">Recipient Information</h4>
+            {/* Recipient Information — 2×2 grid */}
+            <div className="p-5 border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                <h4 className="font-semibold text-slate-900 dark:text-white uppercase tracking-tight text-sm pb-2 mb-4 border-b border-slate-200 dark:border-slate-800">Recipient Information</h4>
 
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Recipient Name
-                    </label>
-                    <input
-                        type="text"
-                        value={coverLetterData.recipientName}
-                        onChange={(e) => updateRecipient({ recipientName: e.target.value })}
-                        className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
-                        placeholder="Jane Smith"
-                    />
-                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                            Recipient Name
+                        </label>
+                        <input
+                            type="text"
+                            value={coverLetterData.recipientName}
+                            onChange={(e) => updateRecipient({ recipientName: e.target.value })}
+                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            placeholder="Jane Smith"
+                        />
+                    </div>
 
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Recipient Title
-                    </label>
-                    <input
-                        type="text"
-                        value={coverLetterData.recipientTitle}
-                        onChange={(e) => updateRecipient({ recipientTitle: e.target.value })}
-                        className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
-                        placeholder="Hiring Manager"
-                    />
-                </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                            Recipient Title
+                        </label>
+                        <input
+                            type="text"
+                            value={coverLetterData.recipientTitle}
+                            onChange={(e) => updateRecipient({ recipientTitle: e.target.value })}
+                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            placeholder="Hiring Manager"
+                        />
+                    </div>
 
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Company Name
-                    </label>
-                    <input
-                        type="text"
-                        value={coverLetterData.company}
-                        onChange={(e) => updateRecipient({ company: e.target.value })}
-                        className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
-                        placeholder="Acme Corporation"
-                    />
-                </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                            Company Name
+                        </label>
+                        <input
+                            type="text"
+                            value={coverLetterData.company}
+                            onChange={(e) => updateRecipient({ company: e.target.value })}
+                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            placeholder="Acme Corporation"
+                        />
+                    </div>
 
-                <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Company Address
-                    </label>
-                    <input
-                        type="text"
-                        value={coverLetterData.companyAddress}
-                        onChange={(e) => updateRecipient({ companyAddress: e.target.value })}
-                        className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
-                        placeholder="123 Business St, City, State 12345"
-                    />
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                            Company Address
+                        </label>
+                        <input
+                            type="text"
+                            value={coverLetterData.companyAddress}
+                            onChange={(e) => updateRecipient({ companyAddress: e.target.value })}
+                            className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                            placeholder="123 Business St, City, State 12345"
+                        />
+                    </div>
                 </div>
             </div>
 
