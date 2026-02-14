@@ -10,7 +10,10 @@ import { generateLaTeXFromData } from '../../lib/latexGenerator';
 import { compileLatexViaApi } from '../../lib/latexApiCompiler';
 import type { TemplateId, DocumentType } from '../../types';
 import { generateDocumentTitle, generateDocumentFileName } from '../../lib/documentNaming';
-import { Download, Printer, ZoomIn, ZoomOut, Maximize, RotateCw } from 'lucide-react';
+import {
+    Download, Printer, ZoomIn, ZoomOut, Maximize,
+    RotateCw, Search, X, ChevronUp, ChevronDown
+} from 'lucide-react';
 
 interface PDFPreviewProps {
     templateId: TemplateId;
@@ -36,6 +39,7 @@ async function getPdfjsLib(): Promise<any> {
 
 const ZOOM_LEVELS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0];
 const btnBase = "p-1.5 bg-slate-700 text-white hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+const btnActive = "p-1.5 bg-blue-600 text-white hover:bg-blue-500 transition-colors";
 
 export const PDFPreview = memo(function PDFPreview({ templateId, documentType }: PDFPreviewProps) {
     const { resumeData, customLatexSource, latexFormatting } = useResumeStore();
@@ -50,12 +54,19 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     const [scale, setScale] = useState(1.0);
     const [rotation, setRotation] = useState(0);
 
+    // Search state
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchMatches, setSearchMatches] = useState<{ page: number; el: HTMLElement }[]>([]);
+    const [activeMatchIdx, setActiveMatchIdx] = useState(-1);
+
     const pagesContainerRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const previousDataRef = useRef<unknown>(null);
     const generationRef = useRef(0);
     const pdfDocRef = useRef<any>(null);
     const pageNaturalWidthRef = useRef<number>(0);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     const downloadFileName = generateDocumentFileName({
         userName: resumeData.basics.name || '',
@@ -139,6 +150,9 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 pdfDocRef.current = pdfDoc;
                 setNumPages(pdfDoc.numPages);
 
+                // Clear search state since pages are being re-rendered
+                clearHighlights();
+
                 const container = pagesContainerRef.current;
                 if (!container) return;
                 container.innerHTML = '';
@@ -155,25 +169,37 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                         pageNaturalWidthRef.current = nv.width;
                     }
 
-                    const viewport = page.getViewport({ scale: scale * dpr, rotation });
+                    const renderViewport = page.getViewport({ scale: scale * dpr, rotation });
+                    const cssW = renderViewport.width / dpr;
+                    const cssH = renderViewport.height / dpr;
 
+                    // Page wrapper with position relative for search highlights
+                    const wrapper = document.createElement('div');
+                    wrapper.style.position = 'relative';
+                    wrapper.style.width = `${cssW}px`;
+                    wrapper.style.height = `${cssH}px`;
+                    wrapper.style.marginBottom = '16px';
+                    wrapper.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
+                    wrapper.dataset.pageNum = String(i);
+
+                    // PDF canvas
                     const canvas = document.createElement('canvas');
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    canvas.style.width = `${viewport.width / dpr}px`;
-                    canvas.style.height = `${viewport.height / dpr}px`;
+                    canvas.width = renderViewport.width;
+                    canvas.height = renderViewport.height;
+                    canvas.style.width = '100%';
+                    canvas.style.height = '100%';
                     canvas.style.display = 'block';
                     canvas.style.backgroundColor = 'white';
-                    canvas.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
-                    canvas.style.marginBottom = '16px';
 
                     const ctx = canvas.getContext('2d');
                     if (ctx) {
-                        await page.render({ canvasContext: ctx, viewport }).promise;
+                        await page.render({ canvasContext: ctx, viewport: renderViewport }).promise;
                     }
 
+                    wrapper.appendChild(canvas);
+
                     if (cancelled) return;
-                    container.appendChild(canvas);
+                    container.appendChild(wrapper);
                     page.cleanup();
                 }
             } catch (err) {
@@ -183,6 +209,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
 
         renderAllPages();
         return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pdfBlob, scale, rotation]);
 
     // Cleanup
@@ -194,6 +221,125 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
             }
         };
     }, []);
+
+    // ── Search logic ──
+    const clearHighlights = useCallback(() => {
+        const container = pagesContainerRef.current;
+        if (container) {
+            container.querySelectorAll('.search-hl').forEach(el => el.remove());
+        }
+        setSearchMatches([]);
+        setActiveMatchIdx(-1);
+    }, []);
+
+    const runSearch = useCallback(async () => {
+        clearHighlights();
+
+        const query = searchQuery.trim().toLowerCase();
+        if (!query || !pdfDocRef.current) return;
+
+        const container = pagesContainerRef.current;
+        if (!container) return;
+
+        const matches: { page: number; el: HTMLElement }[] = [];
+
+        for (let pageNum = 1; pageNum <= pdfDocRef.current.numPages; pageNum++) {
+            const page = await pdfDocRef.current.getPage(pageNum);
+            const textContent = await page.getTextContent();
+
+            // CSS viewport (matches wrapper dimensions)
+            const cssViewport = page.getViewport({ scale, rotation });
+
+            const wrapper = container.querySelector(`[data-page-num="${pageNum}"]`) as HTMLElement;
+            if (!wrapper) { page.cleanup(); continue; }
+
+            for (const item of textContent.items as any[]) {
+                if (!item.str) continue;
+                const text = item.str as string;
+                const textLower = text.toLowerCase();
+                if (!textLower.includes(query)) continue;
+
+                const tx = item.transform[4];
+                const ty = item.transform[5];
+
+                // Convert PDF origin point to CSS viewport coords
+                const [vx, vy] = cssViewport.convertToViewportPoint(tx, ty);
+
+                // Full item dimensions in CSS pixels
+                const itemHeight = (item.height || Math.abs(item.transform[3])) * scale;
+                const itemWidth = (item.width || text.length * Math.abs(item.transform[3]) * 0.6) * scale;
+
+                // Find ALL occurrences of query within this text item
+                let searchStart = 0;
+                while (true) {
+                    const idx = textLower.indexOf(query, searchStart);
+                    if (idx === -1) break;
+
+                    // Calculate proportional offset and width for just the matched substring
+                    const charRatio = text.length > 0 ? 1 / text.length : 0;
+                    const matchLeft = vx + (idx * charRatio * itemWidth);
+                    const matchWidth = query.length * charRatio * itemWidth;
+
+                    const hl = document.createElement('div');
+                    hl.className = 'search-hl';
+                    hl.style.position = 'absolute';
+                    hl.style.left = `${Math.max(0, matchLeft)}px`;
+                    hl.style.top = `${Math.max(0, vy - itemHeight)}px`;
+                    hl.style.width = `${matchWidth}px`;
+                    hl.style.height = `${itemHeight + 2}px`;
+                    hl.style.backgroundColor = 'rgba(255, 230, 0, 0.4)';
+                    hl.style.border = '2px solid rgba(255, 160, 0, 0.8)';
+                    hl.style.pointerEvents = 'none';
+                    hl.style.zIndex = '5';
+                    hl.style.mixBlendMode = 'multiply';
+
+                    wrapper.appendChild(hl);
+                    matches.push({ page: pageNum, el: hl });
+
+                    searchStart = idx + 1; // continue searching for more occurrences
+                }
+            }
+
+            page.cleanup();
+        }
+
+        setSearchMatches(matches);
+
+        if (matches.length > 0) {
+            setActiveMatchIdx(0);
+            scrollToMatch(matches[0]);
+        }
+    }, [searchQuery, scale, rotation, clearHighlights]);
+
+    const scrollToMatch = useCallback((match: { page: number; el: HTMLElement }) => {
+        match.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Flash the active match
+        searchMatches.forEach(m => {
+            m.el.style.backgroundColor = 'rgba(255, 230, 0, 0.4)';
+            m.el.style.border = '2px solid rgba(255, 160, 0, 0.8)';
+        });
+        match.el.style.backgroundColor = 'rgba(255, 130, 0, 0.5)';
+        match.el.style.border = '2px solid rgba(255, 80, 0, 1)';
+    }, [searchMatches]);
+
+    const handleSearchNav = useCallback((dir: 1 | -1) => {
+        if (searchMatches.length === 0) return;
+        const next = (activeMatchIdx + dir + searchMatches.length) % searchMatches.length;
+        setActiveMatchIdx(next);
+        scrollToMatch(searchMatches[next]);
+    }, [searchMatches, activeMatchIdx, scrollToMatch]);
+
+    const toggleSearch = useCallback(() => {
+        if (searchOpen) {
+            setSearchOpen(false);
+            setSearchQuery('');
+            clearHighlights();
+        } else {
+            setSearchOpen(true);
+            setTimeout(() => searchInputRef.current?.focus(), 100);
+        }
+    }, [searchOpen, clearHighlights]);
 
     // ── Actions ──
     const handleDownload = useCallback(() => {
@@ -290,7 +436,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                     )}
                 </div>
 
-                {/* Zoom + Rotate */}
+                {/* Zoom + Rotate + Search */}
                 <div className="flex items-center gap-0.5">
                     <button onClick={handleZoomOut} disabled={scale <= ZOOM_LEVELS[0]} className={btnBase} title="Zoom out">
                         <ZoomOut size={16} />
@@ -306,6 +452,9 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                     </button>
                     <button onClick={handleRotate} className={btnBase} title="Rotate 90°">
                         <RotateCw size={16} />
+                    </button>
+                    <button onClick={toggleSearch} className={searchOpen ? btnActive : btnBase} title="Search (Ctrl+F)">
+                        <Search size={16} />
                     </button>
                 </div>
 
@@ -325,6 +474,54 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                     </button>
                 </div>
             </div>
+
+            {/* Search bar */}
+            {searchOpen && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 border-b border-slate-700 flex-shrink-0">
+                    <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (searchMatches.length > 0) {
+                                    handleSearchNav(e.shiftKey ? -1 : 1);
+                                } else {
+                                    runSearch();
+                                }
+                            } else if (e.key === 'Escape') {
+                                toggleSearch();
+                            }
+                        }}
+                        placeholder="Search in document..."
+                        className="flex-1 px-2 py-1 bg-slate-800 text-white text-xs border border-slate-600 outline-none focus:border-blue-500"
+                    />
+                    <button onClick={runSearch} className={`${btnBase} px-2 text-xs font-bold`}>
+                        Search
+                    </button>
+                    {searchMatches.length > 0 && (
+                        <>
+                            <span className="text-xs text-white font-semibold whitespace-nowrap tabular-nums">
+                                {activeMatchIdx + 1} / {searchMatches.length}
+                            </span>
+                            <button onClick={() => handleSearchNav(-1)} className={btnBase} title="Previous match">
+                                <ChevronUp size={14} />
+                            </button>
+                            <button onClick={() => handleSearchNav(1)} className={btnBase} title="Next match">
+                                <ChevronDown size={14} />
+                            </button>
+                        </>
+                    )}
+                    {searchMatches.length === 0 && searchQuery.trim() !== '' && (
+                        <span className="text-xs text-red-400 font-semibold">No results</span>
+                    )}
+                    <button onClick={toggleSearch} className={btnBase} title="Close search">
+                        <X size={14} />
+                    </button>
+                </div>
+            )}
 
             {/* Generating overlay */}
             {isGenerating && (
