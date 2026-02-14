@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo, useCallback } from 'react';
+import { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
 import { pdf } from '@react-pdf/renderer';
 import equal from 'fast-deep-equal';
 import { useResumeStore } from '../../store';
@@ -10,24 +10,13 @@ import { generateLaTeXFromData } from '../../lib/latexGenerator';
 import { compileLatexViaApi } from '../../lib/latexApiCompiler';
 import type { TemplateId, DocumentType } from '../../types';
 import { generateDocumentTitle, generateDocumentFileName } from '../../lib/documentNaming';
-import { Download, Printer, Info, X } from 'lucide-react';
+import {
+    Download, Printer, ZoomIn, ZoomOut, Maximize,
+    ChevronLeft, ChevronRight, Info, PanelLeft, X
+} from 'lucide-react';
 
 /* ──────────────────────────────────────
-   Native PDF Preview
-
-   Uses browser's built-in PDF renderer via <iframe>.
-   The native viewer provides:
-     • Perfect text selection
-     • Crisp vector rendering
-     • Smooth zoom (Ctrl+scroll, pinch, buttons)
-     • Page navigation
-     • Search (Ctrl+F)
-     • Clickable links
-
-   We do NOT hide the native toolbar — it gives the user
-   the exact same experience as opening a PDF in their browser.
-
-   Our themed bar adds: filename, download, print, doc properties.
+   Helpers
    ────────────────────────────────────── */
 
 interface PDFPreviewProps {
@@ -35,11 +24,42 @@ interface PDFPreviewProps {
     documentType: DocumentType;
 }
 
+async function getPdfjsLib() {
+    const pdfjsLib = await import('pdfjs-dist');
+    try {
+        const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url);
+        pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl.href;
+    } catch {
+        try {
+            const ver = pdfjsLib.version || '5.4.624';
+            pdfjsLib.GlobalWorkerOptions.workerSrc =
+                `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${ver}/pdf.worker.min.mjs`;
+        } catch {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+        }
+    }
+    return pdfjsLib;
+}
+
+/* ──────────────────────────────────────
+   Native PDF Preview — Custom Themed Toolbar
+   
+   Uses browser's built-in PDF renderer via <iframe> for:
+     • Perfect text selection
+     • Crisp vector rendering at any zoom
+     • Clickable links
+     • Ctrl+scroll zoom (handled natively inside iframe)
+   
+   Native toolbar hidden with #toolbar=0.
+   Our zoom buttons reload the iframe with #zoom=X.
+   ────────────────────────────────────── */
+
 export const PDFPreview = memo(function PDFPreview({ templateId, documentType }: PDFPreviewProps) {
     const { resumeData, customLatexSource, latexFormatting } = useResumeStore();
     const { coverLetterData } = useCoverLetterStore();
     const { customTemplates } = useCustomTemplateStore();
 
+    // PDF generation
     const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -47,9 +67,18 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     const previousDataRef = useRef<unknown>(null);
     const generationRef = useRef(0);
 
-    // Document properties
+    // Viewer state — zoom=0 means "fit to width"
+    const [zoom, setZoom] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+
+    // UI panels
+    const [showThumbnails, setShowThumbnails] = useState(false);
     const [showProperties, setShowProperties] = useState(false);
     const [pdfMetadata, setPdfMetadata] = useState<Record<string, string>>({});
+    const [thumbnails, setThumbnails] = useState<string[]>([]);
+
+    const iframeRef = useRef<HTMLIFrameElement>(null);
 
     const downloadFileName = generateDocumentFileName({
         userName: resumeData.basics.name || '',
@@ -102,46 +131,103 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
         return () => URL.revokeObjectURL(url);
     }, [pdfBlob]);
 
-    /* ── Extract metadata (lightweight, for properties dialog) ── */
+    /* ── Metadata + thumbnails ── */
     useEffect(() => {
         if (!pdfBlob) return;
         let cancelled = false;
         (async () => {
             try {
-                const pdfjsLib = await import('pdfjs-dist');
-                try {
-                    const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url);
-                    pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl.href;
-                } catch {
-                    try {
-                        const ver = pdfjsLib.version || '5.4.624';
-                        pdfjsLib.GlobalWorkerOptions.workerSrc =
-                            `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${ver}/pdf.worker.min.mjs`;
-                    } catch {
-                        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-                    }
-                }
+                const pdfjsLib = await getPdfjsLib();
                 const ab = await pdfBlob.arrayBuffer();
                 const doc = await pdfjsLib.getDocument({ data: ab }).promise;
                 if (cancelled) { doc.destroy(); return; }
+                setTotalPages(doc.numPages);
+                setCurrentPage(1);
 
-                const meta = await doc.getMetadata();
-                const info: any = meta?.info || {};
-                const md: Record<string, string> = {};
-                if (info.Title) md['Title'] = info.Title;
-                if (info.Author) md['Author'] = info.Author;
-                if (info.Creator) md['Creator'] = info.Creator;
-                if (info.Producer) md['Producer'] = info.Producer;
-                md['Pages'] = String(doc.numPages);
-                const p1 = await doc.getPage(1);
-                const vp = p1.getViewport({ scale: 1 });
-                md['Page Size'] = `${(vp.width / 72).toFixed(2)}" × ${(vp.height / 72).toFixed(2)}"`;
-                if (!cancelled) setPdfMetadata(md);
+                // Metadata
+                try {
+                    const meta = await doc.getMetadata();
+                    const info: any = meta?.info || {};
+                    const md: Record<string, string> = {};
+                    if (info.Title) md['Title'] = info.Title;
+                    if (info.Author) md['Author'] = info.Author;
+                    if (info.Creator) md['Creator'] = info.Creator;
+                    if (info.Producer) md['Producer'] = info.Producer;
+                    md['Pages'] = String(doc.numPages);
+                    const p1 = await doc.getPage(1);
+                    const vp = p1.getViewport({ scale: 1 });
+                    md['Page Size'] = `${(vp.width / 72).toFixed(2)}" × ${(vp.height / 72).toFixed(2)}"`;
+                    if (!cancelled) setPdfMetadata(md);
+                } catch { /* */ }
+
+                // Thumbnails
+                const thumbs: string[] = [];
+                for (let i = 1; i <= doc.numPages; i++) {
+                    if (cancelled) break;
+                    try {
+                        const page = await doc.getPage(i);
+                        const vp = page.getViewport({ scale: 0.25 });
+                        const c = document.createElement('canvas');
+                        c.width = vp.width; c.height = vp.height;
+                        const ctx = c.getContext('2d');
+                        if (ctx) {
+                            await page.render({ canvasContext: ctx, canvas: c, viewport: vp } as any).promise;
+                            thumbs.push(c.toDataURL('image/png'));
+                        }
+                    } catch { /* */ }
+                }
+                if (!cancelled) setThumbnails(thumbs);
                 doc.destroy();
             } catch { /* */ }
         })();
         return () => { cancelled = true; };
     }, [pdfBlob]);
+
+    /* ── Iframe src ──
+       The iframe only remounts when pdfUrl changes (new PDF content).
+       Zoom and page changes navigate imperatively via location.replace
+       to avoid destroying/recreating the iframe (which causes flicker). */
+    const initialSrc = useMemo(() => {
+        if (!pdfUrl) return '';
+        return `${pdfUrl}#toolbar=0&navpanes=0&view=FitH`;
+    }, [pdfUrl]);
+
+    /* Navigate imperatively on zoom/page changes (no iframe remount) */
+    useEffect(() => {
+        const iframe = iframeRef.current;
+        if (!iframe || !pdfUrl) return;
+        const parts = ['toolbar=0', 'navpanes=0'];
+        if (zoom === 0) parts.push('view=FitH');
+        else parts.push(`zoom=${zoom}`);
+        if (currentPage > 1) parts.push(`page=${currentPage}`);
+        const newSrc = `${pdfUrl}#${parts.join('&')}`;
+        try {
+            iframe.contentWindow?.location.replace(newSrc);
+        } catch {
+            iframe.src = newSrc;
+        }
+    }, [pdfUrl, zoom, currentPage]);
+
+    /* ── Zoom controls ── */
+    const handleZoomIn = useCallback(() => {
+        setZoom(z => {
+            const cur = z === 0 ? 100 : z;
+            return Math.min(cur + 25, 500);
+        });
+    }, []);
+    const handleZoomOut = useCallback(() => {
+        setZoom(z => {
+            const cur = z === 0 ? 100 : z;
+            return Math.max(cur - 25, 25);
+        });
+    }, []);
+    const handleFitToWidth = useCallback(() => setZoom(0), []);
+
+    /* ── Page nav ── */
+    const goToPage = useCallback((p: number) => {
+        if (p < 1 || p > totalPages) return;
+        setCurrentPage(p);
+    }, [totalPages]);
 
     /* ── Download ── */
     const handleDownload = useCallback(() => {
@@ -171,8 +257,11 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     const txt: React.CSSProperties = { color: 'var(--main-text)' };
     const txtM: React.CSSProperties = { color: 'var(--main-text-secondary)' };
     const btn: React.CSSProperties = { backgroundColor: 'var(--input-bg)', color: 'var(--main-text)', borderColor: 'var(--input-border)' };
+    const btnOn: React.CSSProperties = { ...btn, outline: '2px solid var(--accent)', outlineOffset: '-2px' };
 
-    /* ── Error (no PDF at all) ── */
+    const zoomLabel = zoom === 0 ? 'Fit' : `${zoom}%`;
+
+    /* ── Error ── */
     if (error && !pdfBlob) {
         return (
             <div className="w-full h-full flex items-center justify-center p-8" style={{ backgroundColor: 'var(--card-bg)' }}>
@@ -205,11 +294,11 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
 
     return (
         <div className="w-full h-full flex flex-col" style={{ backgroundColor: 'var(--main-bg)' }}>
-            {/* ━━ Themed header bar ━━ */}
-            <div className="flex items-center justify-between px-3 py-1.5 border-b-2 flex-shrink-0" style={toolbarBg}>
-                {/* Left: filename + status */}
-                <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-xs font-semibold truncate max-w-[200px]" style={txt}
+            {/* ━━ Toolbar ━━ */}
+            <div className="flex items-center justify-between px-2 py-1.5 border-b-2 flex-shrink-0 gap-1" style={toolbarBg}>
+                {/* Left: filename + page nav */}
+                <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-xs font-semibold truncate max-w-[120px]" style={txt}
                         title={`${downloadFileName}.pdf`}>
                         {downloadFileName}.pdf
                     </span>
@@ -217,27 +306,62 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                         <div className="animate-spin h-3.5 w-3.5 border-2 border-t-transparent rounded-full flex-shrink-0"
                             style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
                     )}
+                    {totalPages > 0 && (
+                        <div className="flex items-center gap-0.5 flex-shrink-0">
+                            <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage <= 1}
+                                className="p-1 border transition-colors disabled:opacity-30" style={btn}>
+                                <ChevronLeft size={12} />
+                            </button>
+                            <span className="text-[11px] font-semibold px-1 tabular-nums" style={txt}>
+                                {currentPage}/{totalPages}
+                            </span>
+                            <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage >= totalPages}
+                                className="p-1 border transition-colors disabled:opacity-30" style={btn}>
+                                <ChevronRight size={12} />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
-                {/* Right: properties, print, download */}
-                <div className="flex items-center gap-1.5">
-                    <button onClick={() => setShowProperties(v => !v)}
-                        className="p-1.5 border transition-colors" style={btn} title="Document Properties">
-                        <Info size={14} />
+                {/* Center: zoom + fit */}
+                <div className="flex items-center gap-1">
+                    <button onClick={handleZoomOut} className="p-1.5 border transition-colors" style={btn} title="Zoom Out">
+                        <ZoomOut size={13} />
                     </button>
+                    <span className="text-[11px] font-bold min-w-[36px] text-center select-none tabular-nums" style={txt}>
+                        {zoomLabel}
+                    </span>
+                    <button onClick={handleZoomIn} className="p-1.5 border transition-colors" style={btn} title="Zoom In">
+                        <ZoomIn size={13} />
+                    </button>
+                    <button onClick={handleFitToWidth} className="p-1.5 border transition-colors"
+                        style={zoom === 0 ? btnOn : btn} title="Fit to Width">
+                        <Maximize size={13} />
+                    </button>
+                </div>
+
+                {/* Right: thumbnails, properties, print, download */}
+                <div className="flex items-center gap-1">
+                    <button onClick={() => setShowThumbnails(v => !v)} className="p-1.5 border transition-colors"
+                        style={showThumbnails ? btnOn : btn} title="Thumbnails">
+                        <PanelLeft size={13} />
+                    </button>
+                    <button onClick={() => setShowProperties(v => !v)} className="p-1.5 border transition-colors"
+                        style={showProperties ? btnOn : btn} title="Document Properties">
+                        <Info size={13} />
+                    </button>
+                    <div className="w-px h-5 mx-0.5" style={{ backgroundColor: 'var(--card-border)' }} />
                     <button onClick={handlePrint} className="p-1.5 border transition-colors" style={btn} title="Print">
-                        <Printer size={14} />
+                        <Printer size={13} />
                     </button>
-                    <button onClick={handleDownload}
-                        className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
+                    <button onClick={handleDownload} className="btn-accent flex items-center gap-1 px-2 py-1.5 text-xs font-bold"
                         title="Download PDF">
-                        <Download size={14} />
-                        <span>Download</span>
+                        <Download size={13} />
                     </button>
                 </div>
             </div>
 
-            {/* ━━ Error banner (stale PDF still shown) ━━ */}
+            {/* ━━ Error banner (stale) ━━ */}
             {error && (
                 <div className="bg-red-900/80 border-b-2 border-red-800 p-2 text-xs text-red-200 text-center flex-shrink-0">
                     <strong>Error:</strong> {error}
@@ -246,16 +370,38 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 </div>
             )}
 
-            {/* ━━ PDF iframe — browser's native viewer handles everything ━━ */}
-            <div className="flex-1 overflow-hidden">
-                {pdfUrl && (
-                    <iframe
-                        key={pdfUrl}
-                        src={pdfUrl}
-                        className="w-full h-full border-0"
-                        title="PDF Preview"
-                    />
+            {/* ━━ Body: thumbnails + PDF ━━ */}
+            <div className="flex-1 flex overflow-hidden">
+                {/* Thumbnail sidebar */}
+                {showThumbnails && (
+                    <div className="w-36 flex-shrink-0 border-r overflow-y-auto p-2 space-y-2"
+                        style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
+                        {thumbnails.map((src, i) => (
+                            <button key={i} onClick={() => goToPage(i + 1)}
+                                className="block w-full border-2 transition-all"
+                                style={{ borderColor: currentPage === i + 1 ? 'var(--accent)' : 'var(--card-border)' }}>
+                                <img src={src} alt={`Page ${i + 1}`} className="w-full" />
+                                <div className="text-[9px] font-bold text-center py-0.5" style={txtM}>{i + 1}</div>
+                            </button>
+                        ))}
+                        {thumbnails.length === 0 && totalPages > 0 && (
+                            <div className="text-[10px] text-center py-4" style={txtM}>Loading...</div>
+                        )}
+                    </div>
                 )}
+
+                {/* Native PDF iframe — full size, no CSS transforms */}
+                <div className="flex-1 overflow-hidden">
+                    {pdfUrl && (
+                        <iframe
+                            key={pdfUrl}
+                            ref={iframeRef}
+                            src={initialSrc}
+                            className="w-full h-full border-0"
+                            title="PDF Preview"
+                        />
+                    )}
+                </div>
             </div>
 
             {/* ━━ Properties modal ━━ */}
