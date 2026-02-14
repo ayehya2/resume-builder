@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
+// useRef still used for previousDataRef + generationRef
 import { pdf } from '@react-pdf/renderer';
 import equal from 'fast-deep-equal';
 import { useResumeStore } from '../../store';
@@ -78,7 +79,8 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     const [pdfMetadata, setPdfMetadata] = useState<Record<string, string>>({});
     const [thumbnails, setThumbnails] = useState<string[]>([]);
 
-    const iframeRef = useRef<HTMLIFrameElement>(null);
+    // No iframeRef needed — we don't manipulate the iframe imperatively.
+    // Zoom/page changes trigger a single clean remount via key.
 
     const downloadFileName = generateDocumentFileName({
         userName: resumeData.basics.name || '',
@@ -142,7 +144,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 const doc = await pdfjsLib.getDocument({ data: ab }).promise;
                 if (cancelled) { doc.destroy(); return; }
                 setTotalPages(doc.numPages);
-                setCurrentPage(1);
+                setCurrentPage(p => p > doc.numPages ? 1 : p);
 
                 // Metadata
                 try {
@@ -184,29 +186,19 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     }, [pdfBlob]);
 
     /* ── Iframe src ──
-       The iframe only remounts when pdfUrl changes (new PDF content).
-       Zoom and page changes navigate imperatively via location.replace
-       to avoid destroying/recreating the iframe (which causes flicker). */
-    const initialSrc = useMemo(() => {
+       Computed from pdfUrl + zoom + currentPage.
+       The iframe key includes zoom + page so React remounts it
+       exactly ONCE per change. No imperative navigation needed. */
+    const iframeSrc = useMemo(() => {
         if (!pdfUrl) return '';
-        return `${pdfUrl}#toolbar=0&navpanes=0&view=FitH`;
-    }, [pdfUrl]);
-
-    /* Navigate imperatively on zoom/page changes (no iframe remount) */
-    useEffect(() => {
-        const iframe = iframeRef.current;
-        if (!iframe || !pdfUrl) return;
         const parts = ['toolbar=0', 'navpanes=0'];
         if (zoom === 0) parts.push('view=FitH');
         else parts.push(`zoom=${zoom}`);
         if (currentPage > 1) parts.push(`page=${currentPage}`);
-        const newSrc = `${pdfUrl}#${parts.join('&')}`;
-        try {
-            iframe.contentWindow?.location.replace(newSrc);
-        } catch {
-            iframe.src = newSrc;
-        }
+        return `${pdfUrl}#${parts.join('&')}`;
     }, [pdfUrl, zoom, currentPage]);
+
+    const iframeKey = `${pdfUrl}|${zoom}|${currentPage}`;
 
     /* ── Zoom controls ── */
     const handleZoomIn = useCallback(() => {
@@ -394,9 +386,8 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 <div className="flex-1 overflow-hidden">
                     {pdfUrl && (
                         <iframe
-                            key={pdfUrl}
-                            ref={iframeRef}
-                            src={initialSrc}
+                            key={iframeKey}
+                            src={iframeSrc}
                             className="w-full h-full border-0"
                             title="PDF Preview"
                         />
