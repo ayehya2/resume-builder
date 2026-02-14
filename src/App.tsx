@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+"use client";
+// v2.0.1 - Professional Polish
+import React, { useState, useEffect, useRef, Suspense, useCallback, lazy } from 'react';
 import { useResumeStore } from './store'
 import { BasicsForm } from './components/forms/BasicsForm'
 import { WorkForm } from './components/forms/WorkForm'
