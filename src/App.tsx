@@ -21,7 +21,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import {
   exportToJSON, importFromJSON,
-  saveDarkMode, loadDarkMode, saveActiveTab, loadActiveTab,
+  saveActiveTab, loadActiveTab,
   saveCoverLetterData, loadCoverLetterData, saveDocumentType, loadDocumentType,
   saveContinuousMode, loadContinuousMode, saveShowResume, loadShowResume,
   saveShowCoverLetter, loadShowCoverLetter
@@ -33,7 +33,7 @@ import { getPDFTemplateComponent, isLatexTemplate } from './lib/pdfTemplateMap'
 import { compileLatexViaApi } from './lib/latexApiCompiler'
 import { generateLaTeXFromData } from './lib/latexGenerator'
 import { useCoverLetterStore } from './lib/coverLetterStore'
-import { useThemeStore, applyTheme, THEMES, THEME_MAP } from './lib/themeStore'
+import { useThemeStore, applyTheme, COLOR_THEMES } from './lib/themeStore'
 import { useCustomTemplateStore } from './lib/customTemplateStore'
 import { getEffectiveResumeData } from './lib/templateResolver'
 import { generateDocumentFileName, generateDocumentTitle } from './lib/documentNaming'
@@ -153,7 +153,7 @@ function App() {
   const { coverLetterData } = useCoverLetterStore()
   const { customTemplates, addCustomTemplate, updateCustomTemplate, deleteCustomTemplate } = useCustomTemplateStore()
   const [activeTab, setActiveTab] = useState<TabKey>(() => loadActiveTab() as TabKey)
-  const [darkMode, setDarkMode] = useState(() => loadDarkMode())
+  const { colorThemeId, isDark: darkMode, setColorTheme, toggleDark } = useThemeStore()
   const [documentType, setDocumentType] = useState<DocumentType>('resume')
 
   const [isPrinting, setIsPrinting] = useState(false);
@@ -229,26 +229,10 @@ function App() {
     saveActiveTab(activeTab);
   }, [activeTab]);
 
-  // Persist dark mode
+  // Apply theme + dark mode CSS custom properties whenever either changes
   useEffect(() => {
-    saveDarkMode(darkMode);
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  // Apply theme CSS custom properties + sync dark mode from theme
-  const { themeId, setTheme } = useThemeStore();
-  useEffect(() => {
-    const { isDark } = applyTheme(themeId);
-    if (isDark !== darkMode) {
-      setDarkMode(isDark);
-      saveDarkMode(isDark);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [themeId]);
+    applyTheme(colorThemeId, darkMode);
+  }, [colorThemeId, darkMode]);
 
   // Persist new settings
   useEffect(() => { saveContinuousMode(continuousMode); }, [continuousMode]);
@@ -293,14 +277,9 @@ function App() {
     }
   }, [showResume, showCoverLetter]);
 
-  // Toggle dark mode (switches between light/dark base themes)
+  // Toggle dark mode — independent of color theme
   const toggleDarkMode = () => {
-    const currentTheme = THEME_MAP[themeId];
-    if (currentTheme?.isDark) {
-      setTheme('light');
-    } else {
-      setTheme('dark');
-    }
+    toggleDark();
   };
 
   // Handle resume/cover letter toggle with "at least one" constraint
@@ -1265,29 +1244,22 @@ function App() {
                   <span>Reset</span>
                 </button>
               </div>
-              {/* Theme Picker */}
+              {/* Color Theme Picker */}
               <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--sidebar-border)' }}>
                 <span className="block text-[9px] font-bold uppercase tracking-widest mb-2 opacity-50">
-                  Theme
+                  Color Theme
                 </span>
-                <div className="grid grid-cols-5 gap-1">
-                  {THEMES.map(theme => (
+                <div className="grid grid-cols-10 gap-1">
+                  {COLOR_THEMES.map(theme => (
                     <button
                       key={theme.id}
-                      onClick={() => setTheme(theme.id)}
+                      onClick={() => setColorTheme(theme.id)}
                       title={theme.name}
-                      className={`relative flex flex-col items-center gap-0.5 px-0.5 py-1 transition-all hover:scale-105 ${themeId === theme.id ? 'ring-2 ring-white ring-offset-1 ring-offset-transparent' : ''}`}
-                      style={{ backgroundColor: theme.colors.sidebar, borderRadius: 3 }}
+                      className={`relative w-full aspect-square transition-transform hover:scale-110 ${colorThemeId === theme.id ? 'ring-2 ring-white ring-offset-1 ring-offset-transparent' : ''}`}
+                      style={{ backgroundColor: theme.swatch, borderRadius: 3 }}
                     >
-                      <div
-                        className="w-4 h-4 rounded-full border border-white/20"
-                        style={{ backgroundColor: theme.colors.accent }}
-                      />
-                      <span className="text-[7px] font-semibold leading-tight truncate w-full text-center" style={{ color: theme.colors.sidebarText }}>
-                        {theme.name}
-                      </span>
-                      {themeId === theme.id && (
-                        <Check size={8} className="absolute top-0.5 right-0.5 text-white drop-shadow-md" strokeWidth={3} />
+                      {colorThemeId === theme.id && (
+                        <Check size={9} className="absolute inset-0 m-auto text-white drop-shadow-md" strokeWidth={3} />
                       )}
                     </button>
                   ))}

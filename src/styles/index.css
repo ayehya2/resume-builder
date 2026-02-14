@@ -314,6 +314,57 @@ input::placeholder {
 .bg-accent { background-color: var(--accent) !important; }
 .border-accent { border-color: var(--accent) !important; }
 
+/* ==========================================
+   PDF TEXT LAYER — transparent text overlay for selection
+   Must override any global color rules
+   ========================================== */
+
+.pdf-text-layer {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  pointer-events: auto !important;
+  z-index: 2 !important;
+}
+
+.pdf-text-layer span,
+.pdf-text-layer br {
+  color: transparent !important;
+  cursor: text !important;
+  pointer-events: all !important;
+}
+
+.pdf-text-layer span::selection {
+  background: rgba(0, 100, 200, 0.35) !important;
+  color: transparent !important;
+}
+
+.pdf-text-layer span::-moz-selection {
+  background: rgba(0, 100, 200, 0.35) !important;
+  color: transparent !important;
+}
+
+/* PDF Link overlay — clickable annotations */
+
+.pdf-link-layer {
+  z-index: 3 !important;
+  pointer-events: auto !important;
+}
+
+.pdf-link-layer a {
+  display: block !important;
+  color: transparent !important;
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: pointer !important;
+  pointer-events: all !important;
+}
+
+.pdf-link-layer a:hover {
+  opacity: 1;
+  background: rgba(0, 100, 200, 0.12) !important;
+  outline: 2px solid var(--accent) !important;
+}
+
 @media print {
   @page {
     size: letter;
