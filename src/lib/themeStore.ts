@@ -32,12 +32,12 @@ export interface AppTheme {
 export const THEMES: AppTheme[] = [
     // ── BASE ──
     {
-        id: 'light', name: 'Light', isDark: false, swatch: '#f8fafc',
+        id: 'light', name: 'Light', isDark: false, swatch: '#edf4fb',
         colors: {
-            accent: '#2563eb', accentHover: '#3b82f6', accentLight: '#dbeafe',
-            sidebar: '#0f172a', sidebarText: '#f8fafc', sidebarBorder: '#1e293b', sidebarHover: '#1e293b',
-            mainBg: '#f8fafc', mainText: '#0f172a', mainTextSecondary: '#64748b',
-            cardBg: '#f1f5f9', cardBorder: '#e2e8f0', inputBg: '#ffffff', inputBorder: '#cbd5e1',
+            accent: '#2563eb', accentHover: '#3b82f6', accentLight: '#c7dbf5',
+            sidebar: '#3b5278', sidebarText: '#f8fafc', sidebarBorder: '#4d6893', sidebarHover: '#2e4563',
+            mainBg: '#edf4fb', mainText: '#0f172a', mainTextSecondary: '#64748b',
+            cardBg: '#dce8f3', cardBorder: '#e2e8f0', inputBg: '#f5f9fe', inputBorder: '#cbd5e1',
         },
     },
     {

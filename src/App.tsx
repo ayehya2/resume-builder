@@ -1065,23 +1065,23 @@ function App() {
       </div>
 
       {/* ━━ Mobile Bottom Navigation ━━ */}
-      <div className="lg:hidden fixed bottom-4 left-4 right-4 h-14 bg-white border-2 z-50 flex items-center justify-around px-2 rounded-2xl shadow-2xl backdrop-blur-md"
+      <div className="lg:hidden fixed bottom-6 left-4 right-4 h-16 border-2 z-[60] flex items-center justify-around px-2 rounded-2xl shadow-2xl backdrop-blur-lg"
         style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
         <button
           onClick={() => setMobileView('form')}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-1 rounded-xl ${mobileView === 'form' ? 'bg-white/10' : 'opacity-40 hover:opacity-100'}`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${mobileView === 'form' ? 'bg-white/10' : 'opacity-40 hover:opacity-100'}`}
           style={{ color: 'var(--sidebar-text)' }}
         >
-          <Pencil size={18} />
-          <span className="text-[9px] font-extrabold uppercase tracking-widest">Edit</span>
+          <Pencil size={20} />
+          <span className="text-[10px] font-extrabold uppercase tracking-widest">Edit</span>
         </button>
         <button
           onClick={() => setMobileView('preview')}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-1 rounded-xl ${mobileView === 'preview' ? 'bg-white/10' : 'opacity-40 hover:opacity-100'}`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${mobileView === 'preview' ? 'bg-white/10' : 'opacity-40 hover:opacity-100'}`}
           style={{ color: 'var(--sidebar-text)' }}
         >
-          <Eye size={18} />
-          <span className="text-[9px] font-extrabold uppercase tracking-widest">Preview</span>
+          <Eye size={20} />
+          <span className="text-[10px] font-extrabold uppercase tracking-widest">Preview</span>
         </button>
         <button
           onClick={() => {
@@ -1089,25 +1089,25 @@ function App() {
             handleSidebarClick('templates');
             setSidebarOpen(false);
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-1 rounded-xl opacity-40 hover:opacity-100`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl opacity-40 hover:opacity-100`}
           style={{ color: 'var(--sidebar-text)' }}
         >
-          <LayoutTemplate size={18} />
-          <span className="text-[9px] font-extrabold uppercase tracking-widest">Layout</span>
+          <LayoutTemplate size={20} />
+          <span className="text-[10px] font-extrabold uppercase tracking-widest">Layout</span>
         </button>
         <button
           onClick={() => setSidebarOpen(true)}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-1 rounded-xl opacity-40 hover:opacity-100`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl opacity-40 hover:opacity-100`}
           style={{ color: 'var(--sidebar-text)' }}
         >
-          <Plus size={18} />
-          <span className="text-[9px] font-extrabold uppercase tracking-widest">More</span>
+          <Plus size={20} />
+          <span className="text-[10px] font-extrabold uppercase tracking-widest">More</span>
         </button>
       </div>
 
       {/* ━━ Mobile Sidebar Overlay ━━ */}
       {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-30 bg-black/40" onClick={() => setSidebarOpen(false)} />
+        <div className="lg:hidden fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
       )}
 
       <div className="flex-1 flex w-full">
@@ -1115,9 +1115,9 @@ function App() {
             Desktop: always visible, w-56
             Mobile: slide-out drawer (fixed, overlays content) */}
         <aside className={`
-          w-56 flex-shrink-0 border-r-2 z-40
+          w-64 flex-shrink-0 border-r-2 z-[80]
           fixed lg:relative top-0 left-0 h-full
-          transform transition-transform duration-200
+          transform transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `} style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)', borderColor: 'var(--sidebar-border)' }}>
           <div className="sticky top-0 h-screen flex flex-col overflow-y-auto">
@@ -1381,7 +1381,7 @@ function App() {
         {/* ━━ Main Content ━━
             Mobile: full-width, hidden when preview is active
             Desktop: flex-1 */}
-        <main className={`flex-1 px-2 py-3 sm:p-4 lg:p-6 overflow-y-auto pb-24 lg:pb-6 ${mobileView !== 'form' ? 'hidden lg:block' : ''}`}
+        <main className={`flex-1 px-2 py-3 sm:p-4 lg:p-6 overflow-y-auto pb-32 lg:pb-6 ${mobileView !== 'form' ? 'hidden lg:block' : ''}`}
           style={{ backgroundColor: 'var(--main-bg)', color: 'var(--main-text)' }}>
           <div className="w-full max-w-5xl mx-auto">
             {continuousMode ? (
