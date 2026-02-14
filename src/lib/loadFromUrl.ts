@@ -49,9 +49,10 @@ export interface ExternalResumeData {
         companyAddress?: string;
         position?: string;
         date?: string;
-        greeting?: string;
-        opening?: string;
-        body?: string[];
+        content?: string;
+        greeting?: string; // legacy
+        opening?: string; // legacy
+        body?: string[]; // legacy
         closing?: string;
         signature?: string;
     };
@@ -210,9 +211,20 @@ function applyExternalData(data: ExternalResumeData): void {
         }
         if (cl.position) coverLetterStore.updatePosition(cl.position);
         if (cl.date) coverLetterStore.updateDate(cl.date);
-        if (cl.greeting) coverLetterStore.updateGreeting(cl.greeting);
-        if (cl.opening) coverLetterStore.updateOpening(cl.opening);
-        if (cl.body) coverLetterStore.updateBody(cl.body);
+
+        // Handle content (or legacy fields)
+        if (typeof cl.content === 'string') {
+            coverLetterStore.updateContent(cl.content);
+        } else if (cl.greeting || cl.opening || cl.body) {
+            // Combine legacy fields
+            const combined = [
+                cl.greeting,
+                cl.opening,
+                Array.isArray(cl.body) ? cl.body.join('\n\n') : cl.body
+            ].filter(Boolean).join('\n\n');
+            coverLetterStore.updateContent(combined);
+        }
+
         if (cl.closing) coverLetterStore.updateClosing(cl.closing);
         if (cl.signature) coverLetterStore.updateSignature(cl.signature);
     }
@@ -223,26 +235,19 @@ function applyExternalData(data: ExternalResumeData): void {
         coverLetterStore.updateRecipient({ company: j.company! });
         if (j.companyAddress) coverLetterStore.updateRecipient({ companyAddress: j.companyAddress });
         coverLetterStore.updatePosition(j.title!);
-        coverLetterStore.updateGreeting('Dear Hiring Manager,');
-        coverLetterStore.updateOpening(
-            `I am writing to express my strong interest in the ${j.title} position at ${j.company}.`
-        );
 
-        const body: string[] = [];
+        let generatedContent = `Dear Hiring Manager,\n\nI am writing to express my strong interest in the ${j.title} position at ${j.company}.`;
+
         if (j.description) {
-            body.push(
-                `After reviewing the job description, I am excited about the opportunity to contribute to ${j.company}. My background and skills align well with your requirements.`
-            );
+            generatedContent += `\n\nAfter reviewing the job description, I am excited about the opportunity to contribute to ${j.company}. My background and skills align well with your requirements.`;
         }
         if (j.skills && j.skills.length > 0) {
-            body.push(
-                `I have extensive experience with ${j.skills.slice(0, 5).join(', ')}, which makes me a strong candidate for this role.`
-            );
+            generatedContent += `\n\nI have extensive experience with ${j.skills.slice(0, 5).join(', ')}, which makes me a strong candidate for this role.`;
         }
-        body.push(
-            `I am enthusiastic about the opportunity to bring my expertise to ${j.company} and contribute to your team's success.`
-        );
-        coverLetterStore.updateBody(body);
+        generatedContent += `\n\nI am enthusiastic about the opportunity to bring my expertise to ${j.company} and contribute to your team's success.`;
+
+        coverLetterStore.updateContent(generatedContent);
+
         coverLetterStore.updateClosing(
             'Thank you for considering my application. I look forward to discussing this position further.'
         );

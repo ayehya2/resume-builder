@@ -27,7 +27,8 @@ const createStyles = (formatting: FormattingOptions) => {
     const baseFontSize = getPDFFontSize(formatting.baseFontSize);
 
     return StyleSheet.create({
-        page: { padding: getPDFPagePadding(formatting),
+        page: {
+            padding: getPDFPagePadding(formatting),
             fontFamily: getPDFFontFamily(formatting.fontFamily),
             fontSize: baseFontSize,
             backgroundColor: '#ffffff',
@@ -119,16 +120,17 @@ const createStyles = (formatting: FormattingOptions) => {
 
 interface MinimalPDFTemplateProps {
     data: ResumeData;
+    documentTitle?: string;
 }
 
-export function MinimalPDFTemplate({ data }: MinimalPDFTemplateProps) {
+export function MinimalPDFTemplate({ data, documentTitle }: MinimalPDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
     const styles = createStyles(formatting);
     const baseFontSize = getPDFFontSize(formatting.baseFontSize);
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
 
     return (
-        <Document>
+        <Document title={documentTitle}>
             <Page size="LETTER" style={styles.page}>
                 {/* Header */}
                 <View style={styles.header}>

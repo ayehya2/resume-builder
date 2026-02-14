@@ -33,22 +33,23 @@ export function isLatexTemplate(templateId: number): boolean {
 export function getPDFTemplateComponent(
     effectiveData: ResumeData,
     documentType: DocumentType,
-    coverLetterData?: CoverLetterData
+    coverLetterData?: CoverLetterData,
+    documentTitle?: string
 ): ReactElement {
     if (documentType === 'coverletter' && coverLetterData) {
-        return <CoverLetterPDFTemplate data={coverLetterData} />;
+        return <CoverLetterPDFTemplate data={coverLetterData} documentTitle={documentTitle} />;
     }
 
     switch (effectiveData.selectedTemplate) {
-        case 1: return <ClassicPDFTemplate data={effectiveData} />;
-        case 2: return <ModernPDFTemplate data={effectiveData} />;
-        case 3: return <MinimalPDFTemplate data={effectiveData} />;
-        case 4: return <ExecutivePDFTemplate data={effectiveData} />;
-        case 5: return <CreativePDFTemplate data={effectiveData} />;
-        case 6: return <TechnicalPDFTemplate data={effectiveData} />;
-        case 7: return <ElegantPDFTemplate data={effectiveData} />;
-        case 8: return <CompactPDFTemplate data={effectiveData} />;
-        case 9: return <AcademicPDFTemplate data={effectiveData} />;
-        default: return <ClassicPDFTemplate data={effectiveData} />;
+        case 1: return <ClassicPDFTemplate data={effectiveData} documentTitle={documentTitle} />;
+        case 2: return <ModernPDFTemplate data={effectiveData} documentTitle={documentTitle} />;
+        case 3: return <MinimalPDFTemplate data={effectiveData} documentTitle={documentTitle} />;
+        case 4: return <ExecutivePDFTemplate data={effectiveData} documentTitle={documentTitle} />;
+        case 5: return <CreativePDFTemplate data={effectiveData} documentTitle={documentTitle} />;
+        case 6: return <TechnicalPDFTemplate data={effectiveData} documentTitle={documentTitle} />;
+        case 7: return <ElegantPDFTemplate data={effectiveData} documentTitle={documentTitle} />;
+        case 8: return <CompactPDFTemplate data={effectiveData} documentTitle={documentTitle} />;
+        case 9: return <AcademicPDFTemplate data={effectiveData} documentTitle={documentTitle} />;
+        default: return <ClassicPDFTemplate data={effectiveData} documentTitle={documentTitle} />;
     }
 }

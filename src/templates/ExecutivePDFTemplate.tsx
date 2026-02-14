@@ -125,15 +125,16 @@ const createStyles = (formatting: FormattingOptions) => {
 
 interface ExecutivePDFTemplateProps {
     data: ResumeData;
+    documentTitle?: string;
 }
 
-export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
+export function ExecutivePDFTemplate({ data, documentTitle }: ExecutivePDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
     const styles = createStyles(formatting);
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
 
     return (
-        <Document>
+        <Document title={documentTitle}>
             <Page size="LETTER" style={styles.page}>
                 {/* Dark Banner Header */}
                 <View style={styles.headerBanner}>

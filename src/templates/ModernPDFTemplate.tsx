@@ -141,9 +141,10 @@ const createStyles = (formatting: FormattingOptions) => {
 
 interface ModernPDFTemplateProps {
     data: ResumeData;
+    documentTitle?: string;
 }
 
-export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
+export function ModernPDFTemplate({ data, documentTitle }: ModernPDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
 
     // Create dynamic styles based on formatting options
@@ -151,7 +152,7 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
 
     return (
-        <Document>
+        <Document title={documentTitle}>
             <Page size="LETTER" style={styles.page}>
                 {/* Header */}
                 <View style={styles.header}>

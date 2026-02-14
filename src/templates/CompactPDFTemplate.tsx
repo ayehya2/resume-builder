@@ -120,9 +120,10 @@ const createStyles = (formatting: FormattingOptions) => {
 
 interface CompactPDFTemplateProps {
     data: ResumeData;
+    documentTitle?: string;
 }
 
-export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
+export function CompactPDFTemplate({ data, documentTitle }: CompactPDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
     const styles = createStyles(formatting);
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
@@ -144,7 +145,7 @@ export function CompactPDFTemplate({ data }: CompactPDFTemplateProps) {
     };
 
     return (
-        <Document>
+        <Document title={documentTitle}>
             <Page size="LETTER" style={styles.page}>
                 {/* Header */}
                 <View style={styles.header}>

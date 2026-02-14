@@ -132,16 +132,17 @@ const createStyles = (formatting: FormattingOptions) => {
 
 interface ElegantPDFTemplateProps {
     data: ResumeData;
+    documentTitle?: string;
 }
 
-export function ElegantPDFTemplate({ data }: ElegantPDFTemplateProps) {
+export function ElegantPDFTemplate({ data, documentTitle }: ElegantPDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
 
     const styles = createStyles(formatting);
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
 
     return (
-        <Document>
+        <Document title={documentTitle}>
             <Page size="LETTER" style={styles.page}>
                 {/* Left Accent Stripe */}
                 <View style={styles.accentStripe} fixed />

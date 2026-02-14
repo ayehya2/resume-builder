@@ -8,9 +8,7 @@ const getDefaultCoverLetterData = (): CoverLetterData => ({
     companyAddress: '',
     position: '',
     date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-    greeting: 'Dear Hiring Manager,',
-    opening: '',
-    body: [''],
+    content: 'Dear Hiring Manager,',
     closing: 'Sincerely,',
     signature: '',
 });
@@ -21,9 +19,7 @@ interface CoverLetterStore {
     updateRecipient: (data: Partial<Pick<CoverLetterData, 'recipientName' | 'recipientTitle' | 'company' | 'companyAddress'>>) => void;
     updatePosition: (position: string) => void;
     updateDate: (date: string) => void;
-    updateGreeting: (greeting: string) => void;
-    updateOpening: (opening: string) => void;
-    updateBody: (body: string[]) => void;
+    updateContent: (content: string) => void;
     updateClosing: (closing: string) => void;
     updateSignature: (signature: string) => void;
 
@@ -49,19 +45,9 @@ export const useCoverLetterStore = create<CoverLetterStore>((set) => ({
             coverLetterData: { ...state.coverLetterData, date },
         })),
 
-    updateGreeting: (greeting) =>
+    updateContent: (content) =>
         set((state) => ({
-            coverLetterData: { ...state.coverLetterData, greeting },
-        })),
-
-    updateOpening: (opening) =>
-        set((state) => ({
-            coverLetterData: { ...state.coverLetterData, opening },
-        })),
-
-    updateBody: (body) =>
-        set((state) => ({
-            coverLetterData: { ...state.coverLetterData, body },
+            coverLetterData: { ...state.coverLetterData, content },
         })),
 
     updateClosing: (closing) =>

@@ -125,15 +125,16 @@ const createStyles = (formatting: FormattingOptions) => {
 
 interface AcademicPDFTemplateProps {
     data: ResumeData;
+    documentTitle?: string;
 }
 
-export function AcademicPDFTemplate({ data }: AcademicPDFTemplateProps) {
+export function AcademicPDFTemplate({ data, documentTitle }: AcademicPDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
     const styles = createStyles(formatting);
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
 
     return (
-        <Document>
+        <Document title={documentTitle}>
             <Page size="LETTER" style={styles.page}>
                 {/* Header */}
                 <View style={styles.header}>

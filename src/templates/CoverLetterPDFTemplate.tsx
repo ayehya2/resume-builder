@@ -54,13 +54,14 @@ const styles = StyleSheet.create({
 
 interface CoverLetterPDFProps {
     data: CoverLetterData;
+    documentTitle?: string;
 }
 
-export function CoverLetterPDFTemplate({ data }: CoverLetterPDFProps) {
-    const { recipientName, recipientTitle, company, companyAddress, date, greeting, opening, body, closing, signature, userBasics } = data;
+export function CoverLetterPDFTemplate({ data, documentTitle }: CoverLetterPDFProps) {
+    const { recipientName, recipientTitle, company, companyAddress, date, content, closing, signature, userBasics } = data;
 
     return (
-        <Document>
+        <Document title={documentTitle}>
             <Page size="LETTER" style={styles.page}>
                 {/* User's contact information header */}
                 {userBasics && (
@@ -85,20 +86,13 @@ export function CoverLetterPDFTemplate({ data }: CoverLetterPDFProps) {
                     {companyAddress && <Text style={styles.recipientLine}>{companyAddress}</Text>}
                 </View>
 
-                {/* Greeting */}
-                {greeting && <Text style={styles.greeting}>{greeting}</Text>}
-
-                {/* Opening paragraph */}
-                {opening && opening.trim() && (
-                    <Text style={styles.paragraph}>{opening}</Text>
-                )}
-
-                {/* Body paragraphs */}
-                {body && body.length > 0 && body.map((paragraph, idx) => (
-                    paragraph.trim() && (
-                        <Text key={idx} style={styles.paragraph}>
-                            {paragraph}
-                        </Text>
+                {/* Content */}
+                {content && content.split('\n').map((line, idx) => (
+                    // Simple newline handing: if line is empty, it's a break.
+                    line.trim() === '' ? (
+                        <Text key={idx} style={{ height: 10 }}> </Text>
+                    ) : (
+                        <Text key={idx} style={styles.paragraph}>{line}</Text>
                     )
                 ))}
 

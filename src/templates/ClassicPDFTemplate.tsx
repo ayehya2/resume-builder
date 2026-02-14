@@ -123,9 +123,10 @@ const createStyles = (formatting: FormattingOptions) => {
 
 interface ClassicPDFTemplateProps {
     data: ResumeData;
+    documentTitle?: string;
 }
 
-export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
+export function ClassicPDFTemplate({ data, documentTitle }: ClassicPDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
 
     // Create dynamic styles based on formatting options
@@ -133,7 +134,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
 
     return (
-        <Document>
+        <Document title={documentTitle}>
             <Page size="LETTER" style={styles.page}>
                 {/* Header */}
                 <View style={styles.header}>

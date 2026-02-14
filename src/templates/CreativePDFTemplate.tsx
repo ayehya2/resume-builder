@@ -146,16 +146,17 @@ const createStyles = (formatting: FormattingOptions) => {
 
 interface CreativePDFTemplateProps {
     data: ResumeData;
+    documentTitle?: string;
 }
 
-export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
+export function CreativePDFTemplate({ data, documentTitle }: CreativePDFTemplateProps) {
     const { basics, work, education, skills, projects, awards, sections, formatting } = data;
     const styles = createStyles(formatting);
     const accentColor = getPDFColorValue(formatting.colorTheme, formatting.customColor);
     const bulletSymbol = getPDFBulletSymbol(formatting.bulletStyle);
 
     return (
-        <Document>
+        <Document title={documentTitle}>
             <Page size="LETTER" style={styles.page}>
                 {/* Left Sidebar */}
                 <View style={styles.sidebar}>

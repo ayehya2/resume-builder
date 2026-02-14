@@ -137,7 +137,23 @@ export function saveCoverLetterData(data: CoverLetterData): void {
 export function loadCoverLetterData(): CoverLetterData | null {
     try {
         const saved = localStorage.getItem(COVER_LETTER_KEY);
-        return saved ? JSON.parse(saved) : null;
+        if (!saved) return null;
+
+        const data = JSON.parse(saved);
+
+        // Migration: greeting/opening/body -> content
+        if (data.greeting || data.opening || data.body) {
+            data.content = [
+                data.greeting,
+                data.opening,
+                Array.isArray(data.body) ? data.body.join('\n\n') : data.body
+            ].filter(Boolean).join('\n\n');
+            delete data.greeting;
+            delete data.opening;
+            delete data.body;
+        }
+
+        return data as CoverLetterData;
     } catch {
         return null;
     }

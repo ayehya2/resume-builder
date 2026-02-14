@@ -35,6 +35,7 @@ import { generateLaTeXFromData } from './lib/latexGenerator'
 import { useCoverLetterStore } from './lib/coverLetterStore'
 import { useCustomTemplateStore } from './lib/customTemplateStore'
 import { getEffectiveResumeData } from './lib/templateResolver'
+import { generateDocumentFileName, generateDocumentTitle } from './lib/documentNaming'
 import {
   Plus,
   LayoutTemplate,
@@ -473,7 +474,7 @@ function App() {
           className={`w-full pl-9 pr-3 py-2 text-sm border-2 transition-colors ${darkMode
             ? 'bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-slate-400'
             : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-slate-500'
-          } outline-none`}
+            } outline-none`}
         />
       </div>
       {/* Filter + Sort row */}
@@ -498,7 +499,7 @@ function App() {
           className={`px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider border-2 outline-none cursor-pointer transition-colors ${darkMode
             ? 'bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-500'
             : 'bg-white border-slate-300 text-slate-600 hover:border-slate-400'
-          }`}
+            }`}
         >
           <option value="default">Default Order</option>
           <option value="latex-first">LaTeX First</option>
@@ -529,7 +530,7 @@ function App() {
             className={`px-2 py-1 text-[10px] font-bold border-2 transition-colors ${templatesPerPage === n
               ? (darkMode ? 'bg-white text-slate-900 border-white' : 'bg-slate-800 text-white border-slate-800')
               : (darkMode ? 'bg-transparent text-slate-400 border-slate-600 hover:text-white' : 'bg-transparent text-slate-500 border-slate-300 hover:text-slate-800')
-            }`}
+              }`}
           >
             {n}
           </button>
@@ -542,7 +543,7 @@ function App() {
           className={`p-1 border-2 transition-colors ${templatePage <= 1
             ? (darkMode ? 'border-slate-700 text-slate-700 cursor-not-allowed' : 'border-slate-200 text-slate-300 cursor-not-allowed')
             : (darkMode ? 'border-slate-600 text-slate-300 hover:text-white hover:border-slate-500' : 'border-slate-300 text-slate-500 hover:text-slate-800 hover:border-slate-400')
-          }`}
+            }`}
         >
           <ChevronLeft size={14} />
         </button>
@@ -555,7 +556,7 @@ function App() {
           className={`p-1 border-2 transition-colors ${templatePage >= totalTemplatePages
             ? (darkMode ? 'border-slate-700 text-slate-700 cursor-not-allowed' : 'border-slate-200 text-slate-300 cursor-not-allowed')
             : (darkMode ? 'border-slate-600 text-slate-300 hover:text-white hover:border-slate-500' : 'border-slate-300 text-slate-500 hover:text-slate-800 hover:border-slate-400')
-          }`}
+            }`}
         >
           <ChevronRight size={14} />
         </button>
@@ -603,9 +604,13 @@ function App() {
     setIsGeneratingPDF(true);
     try {
       const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
-      const fileName = documentType === 'coverletter'
-        ? `cover_letter_${coverLetterData.company || 'document'}`.replace(/[^a-z0-9._-]/gi, '_')
-        : `${resumeData.basics.name || 'resume'}`.replace(/[^a-z0-9._-]/gi, '_');
+      const namingInput = {
+        userName: resumeData.basics.name || '',
+        documentType,
+        jobTitle: documentType === 'coverletter' ? coverLetterData.position : undefined,
+      };
+      const fileName = generateDocumentFileName(namingInput);
+      const docTitle = generateDocumentTitle(namingInput);
 
       let blob: Blob;
 
@@ -615,7 +620,7 @@ function App() {
         const texSource = customLatexSource || generateLaTeXFromData(effectiveData, resumeData.selectedTemplate, lf);
         blob = await compileLatexViaApi(texSource);
       } else {
-        const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData);
+        const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData, docTitle);
         blob = await pdf(templateComponent as any).toBlob();
       }
 
@@ -639,6 +644,11 @@ function App() {
     setIsPrinting(true);
     try {
       const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
+      const docTitle = generateDocumentTitle({
+        userName: resumeData.basics.name || '',
+        documentType,
+        jobTitle: documentType === 'coverletter' ? coverLetterData.position : undefined,
+      });
 
       let blob: Blob;
 
@@ -647,7 +657,7 @@ function App() {
         const texSource = customLatexSource || generateLaTeXFromData(effectiveData, resumeData.selectedTemplate, lf);
         blob = await compileLatexViaApi(texSource);
       } else {
-        const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData);
+        const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData, docTitle);
         blob = await pdf(templateComponent as any).toBlob();
       }
 

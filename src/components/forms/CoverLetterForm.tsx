@@ -4,16 +4,12 @@ import { Download, Sparkles } from 'lucide-react';
 import { BulletList } from './BulletList';
 
 export function CoverLetterForm() {
-    const { coverLetterData, updateRecipient, updatePosition, updateDate, updateGreeting, updateOpening, updateBody, updateClosing, updateSignature, autoPopulateFromResume } = useCoverLetterStore();
+    const { coverLetterData, updateRecipient, updatePosition, updateDate, updateContent, updateClosing, updateSignature, autoPopulateFromResume } = useCoverLetterStore();
     const { resumeData } = useResumeStore();
 
     const handleImportFromResume = () => {
         autoPopulateFromResume(resumeData.basics);
         alert('Contact information imported from resume!');
-    };
-
-    const handleBodyChange = (bullets: string[]) => {
-        updateBody(bullets);
     };
 
     return (
@@ -115,46 +111,17 @@ export function CoverLetterForm() {
                 />
             </div>
 
-            {/* Greeting */}
+            {/* Letter Body (Content) */}
             <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Greeting
-                </label>
-                <input
-                    type="text"
-                    value={coverLetterData.greeting}
-                    onChange={(e) => updateGreeting(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
-                    placeholder="Dear Hiring Manager,"
-                />
-            </div>
-
-            {/* Opening Paragraph */}
-            <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Opening Paragraph
+                    Letter Body (Greeting & Paragraphs)
                 </label>
                 <textarea
-                    value={coverLetterData.opening}
-                    onChange={(e) => updateOpening(e.target.value)}
-                    rows={4}
+                    value={coverLetterData.content}
+                    onChange={(e) => updateContent(e.target.value)}
+                    rows={12}
                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all resize-vertical"
-                    placeholder="Introduce yourself and express your interest in the position..."
-                />
-            </div>
-
-            {/* Body Paragraphs */}
-            <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 font-bold uppercase tracking-wider text-xs px-1">
-                    Body Paragraphs
-                    <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400 ml-2 lowercase italic">
-                        (Each paragraph is a separate entry)
-                    </span>
-                </label>
-                <BulletList
-                    bullets={coverLetterData.body}
-                    onChange={handleBodyChange}
-                    placeholder="Write a paragraph highlighting your relevant experience and skills..."
+                    placeholder={`Dear Hiring Manager,\n\nI am writing to express my strong interest in the [Position] role at [Company].\n\n[Body Paragraph 1]\n\n[Body Paragraph 2]`}
                 />
             </div>
 

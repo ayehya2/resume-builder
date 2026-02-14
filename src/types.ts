@@ -214,9 +214,7 @@ export interface CoverLetterData {
     companyAddress: string;
     position: string;
     date: string;
-    greeting: string;
-    opening: string;
-    body: string[];
+    content: string;
     closing: string;
     signature: string;
     // Reference to resume basics for auto-population
