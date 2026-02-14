@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/latex",
+      "destination": "https://latex.ytotech.com/builds/sync"
+    }
+  ]
+}
