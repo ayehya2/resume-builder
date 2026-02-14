@@ -1,6 +1,6 @@
 "use client";
-// v2.0.1 - Professional Polish
-import React, { useState, useEffect, useRef, Suspense, useCallback, lazy } from 'react';
+// v2.0.2 - Clean professional build
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { useResumeStore } from './store'
 import { BasicsForm } from './components/forms/BasicsForm'
 import { WorkForm } from './components/forms/WorkForm'
