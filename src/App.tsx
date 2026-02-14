@@ -192,10 +192,42 @@ function App() {
   const handleSidebarClick = (tabKey: TabKey) => {
     if (continuousMode) {
       scrollToContinuousSection(tabKey);
+      setActiveTab(tabKey);
     } else {
       setActiveTab(tabKey);
     }
   };
+
+  // Track which section is visible when scrolling in continuous mode
+  useEffect(() => {
+    if (!continuousMode) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the most visible section (highest intersection ratio)
+        let bestEntry: IntersectionObserverEntry | null = null;
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            if (!bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio) {
+              bestEntry = entry;
+            }
+          }
+        }
+        if (bestEntry) {
+          const id = bestEntry.target.id; // "continuous-section-{tabKey}"
+          const tabKey = id.replace('continuous-section-', '');
+          setActiveTab(tabKey as TabKey);
+        }
+      },
+      { threshold: [0.1, 0.3, 0.5, 0.7], rootMargin: '-10% 0px -60% 0px' }
+    );
+
+    // Observe all continuous sections
+    const sections = document.querySelectorAll('[id^="continuous-section-"]');
+    sections.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [continuousMode]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -1078,7 +1110,7 @@ function App() {
                       <SidebarItem
                         key={tab.key}
                         tab={tab}
-                        isActive={activeTab === tab.key && !continuousMode}
+                        isActive={activeTab === tab.key}
                         onClick={() => handleSidebarClick(tab.key)}
                       />
                     ))}
@@ -1088,7 +1120,7 @@ function App() {
                       <SidebarItem
                         key={tab.key}
                         tab={tab}
-                        isActive={activeTab === tab.key && !continuousMode}
+                        isActive={activeTab === tab.key}
                         onClick={() => handleSidebarClick(tab.key)}
                       />
                     ))}
@@ -1117,7 +1149,7 @@ function App() {
                       <SidebarItem
                         key={tab.key}
                         tab={tab}
-                        isActive={activeTab === tab.key && !continuousMode}
+                        isActive={activeTab === tab.key}
                         onClick={() => handleSidebarClick(tab.key)}
                       />
                     ))}
@@ -1133,7 +1165,7 @@ function App() {
                 <button
                   onClick={() => setExportDropdownOpen(prev => !prev)}
                   disabled={isGeneratingPDF || isPrinting}
-                  className={`w-full flex items-center justify-center gap-2 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded bg-teal-700 hover:bg-teal-600 text-white ${(isGeneratingPDF || isPrinting) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full flex items-center justify-center gap-2 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded btn-accent ${(isGeneratingPDF || isPrinting) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <FileDown size={14} />
                   <span>{isGeneratingPDF ? 'Generating...' : isPrinting ? 'Preparing...' : 'Export'}</span>

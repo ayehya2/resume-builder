@@ -194,11 +194,12 @@ export function LaTeXEditor() {
             {mode === 'form' ? (
                 <div className="space-y-5">
                     {/* Info box */}
-                    <div className="flex items-start gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-800">
-                        <p className="text-sm text-blue-800 dark:text-blue-300">
+                    <div className="flex items-start gap-3 px-4 py-3 border-2"
+                        style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 10%, var(--card-bg))', borderColor: 'color-mix(in srgb, var(--accent) 40%, var(--card-border))' }}>
+                        <p className="text-sm" style={{ color: 'var(--main-text)' }}>
                             <strong>Form Mode:</strong> Your resume data is auto-compiled to a real pdfTeX PDF.
-                            Tip: Use <code className="bg-blue-100 dark:bg-blue-800/50 px-1">**bold**</code> for emphasis
-                            and <code className="bg-blue-100 dark:bg-blue-800/50 px-1">*italic*</code> for titles in any text field.
+                            Tip: Use <code className="px-1" style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, var(--card-bg))' }}>**bold**</code> for emphasis
+                            and <code className="px-1" style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, var(--card-bg))' }}>*italic*</code> for titles in any text field.
                         </p>
                     </div>
 
@@ -254,10 +255,11 @@ export function LaTeXEditor() {
                 </div>
             ) : (
                 <div className="space-y-0">
-                    <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-2 border-b-0 border-amber-200 dark:border-amber-800">
-                        <p className="text-xs text-amber-800 dark:text-amber-300">
+                    <div className="px-4 py-3 border-2 border-b-0"
+                        style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 10%, var(--card-bg))', borderColor: 'color-mix(in srgb, var(--accent) 40%, var(--card-border))' }}>
+                        <p className="text-xs" style={{ color: 'var(--main-text)' }}>
                             <strong>Advanced Mode:</strong> Editing raw LaTeX source. Changes here won't sync back to form fields.
-                            Download the <code className="bg-amber-100 dark:bg-amber-800/50 px-1">.tex</code> to compile locally.
+                            Download the <code className="px-1" style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, var(--card-bg))' }}>.tex</code> to compile locally.
                         </p>
                     </div>
                     <div className="border-2 border-slate-200 dark:border-slate-700" style={{ height: '600px' }}>

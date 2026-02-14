@@ -204,8 +204,9 @@ export function LaTeXFormattingForm() {
             </div>
 
             {/* Info */}
-            <div className="flex items-start gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-800">
-                <p className="text-sm text-blue-800 dark:text-blue-300">
+            <div className="flex items-start gap-3 px-4 py-3 border-2"
+                style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 10%, var(--card-bg))', borderColor: 'color-mix(in srgb, var(--accent) 40%, var(--card-border))' }}>
+                <p className="text-sm" style={{ color: 'var(--main-text)' }}>
                     These settings modify the pdfTeX preamble. Changes automatically regenerate the LaTeX source and recompile the preview.
                     Use <strong>**bold**</strong> and <strong>*italic*</strong> in any text field for formatting.
                 </p>
