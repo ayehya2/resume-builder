@@ -316,6 +316,29 @@ input::placeholder {
   color: transparent;
 }
 
+/* PDF Link/Annotation layer */
+.pdf-link-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: 3;
+}
+
+.pdf-link-layer a {
+  display: block;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.pdf-link-layer a:hover {
+  opacity: 1;
+  background: rgba(0, 100, 200, 0.08);
+  outline: 2px solid rgba(0, 100, 200, 0.4);
+}
+
 /* pdfjs built-in TextLayer class name (if used) */
 .textLayer {
   position: absolute;
