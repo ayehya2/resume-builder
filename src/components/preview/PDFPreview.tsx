@@ -157,7 +157,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 if (!container) return;
                 container.innerHTML = '';
 
-                const dpr = window.devicePixelRatio;
+                const renderScale = 3; // always render at 3x for crisp text
 
                 for (let i = 1; i <= pdfDoc.numPages; i++) {
                     if (cancelled) return;
@@ -169,11 +169,14 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                         pageNaturalWidthRef.current = nv.width;
                     }
 
-                    const renderViewport = page.getViewport({ scale: scale * dpr, rotation });
-                    const cssW = renderViewport.width / dpr;
-                    const cssH = renderViewport.height / dpr;
+                    // High-res render viewport (fixed 3x)
+                    const renderViewport = page.getViewport({ scale: renderScale, rotation });
+                    // CSS viewport at current zoom
+                    const cssViewport = page.getViewport({ scale, rotation });
+                    const cssW = Math.round(cssViewport.width);
+                    const cssH = Math.round(cssViewport.height);
 
-                    // Page wrapper with position relative for search highlights
+                    // Page wrapper
                     const wrapper = document.createElement('div');
                     wrapper.style.position = 'relative';
                     wrapper.style.width = `${cssW}px`;
@@ -182,10 +185,10 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                     wrapper.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
                     wrapper.dataset.pageNum = String(i);
 
-                    // PDF canvas
+                    // PDF canvas — rendered at high res, displayed at CSS zoom size
                     const canvas = document.createElement('canvas');
-                    canvas.width = renderViewport.width;
-                    canvas.height = renderViewport.height;
+                    canvas.width = Math.round(renderViewport.width);
+                    canvas.height = Math.round(renderViewport.height);
                     canvas.style.width = '100%';
                     canvas.style.height = '100%';
                     canvas.style.display = 'block';
@@ -219,6 +222,57 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 pdfDocRef.current.destroy();
                 pdfDocRef.current = null;
             }
+        };
+    }, []);
+
+    // ── Intercept Ctrl+Zoom on preview ──
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const isInsidePreview = () => {
+            const root = rootRef.current;
+            if (!root) return false;
+            // Check if mouse is currently over the preview
+            return root.matches(':hover');
+        };
+
+        // Ctrl+Scroll → zoom PDF instead of browser
+        const onWheel = (e: WheelEvent) => {
+            if (!e.ctrlKey) return;
+            const root = rootRef.current;
+            if (!root || !root.contains(e.target as Node)) return;
+
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                setScale(s => Math.min(s + 0.1, 3.0));
+            } else {
+                setScale(s => Math.max(s - 0.1, 0.25));
+            }
+        };
+
+        // Ctrl+Plus / Ctrl+Minus / Ctrl+0 → zoom PDF
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (!e.ctrlKey) return;
+            if (!isInsidePreview()) return;
+
+            if (e.key === '=' || e.key === '+') {
+                e.preventDefault();
+                setScale(s => Math.min(s + 0.1, 3.0));
+            } else if (e.key === '-') {
+                e.preventDefault();
+                setScale(s => Math.max(s - 0.1, 0.25));
+            } else if (e.key === '0') {
+                e.preventDefault();
+                setScale(1.0);
+            }
+        };
+
+        document.addEventListener('wheel', onWheel, { passive: false });
+        document.addEventListener('keydown', onKeyDown);
+
+        return () => {
+            document.removeEventListener('wheel', onWheel);
+            document.removeEventListener('keydown', onKeyDown);
         };
     }, []);
 
@@ -421,7 +475,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     }
 
     return (
-        <div className="w-full h-full bg-slate-800 flex flex-col">
+        <div ref={rootRef} className="w-full h-full bg-slate-800 flex flex-col">
             {/* Toolbar */}
             <div className="flex items-center justify-between px-2 py-1.5 bg-slate-950 border-b-2 border-slate-600 flex-shrink-0 gap-1">
                 {/* Document name + pages */}
