@@ -17,7 +17,7 @@ export function CoverLetterForm() {
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Cover Letter</h3>
                 <button
                     onClick={handleImportFromResume}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 font-semibold transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 btn-accent font-semibold transition-colors shadow-sm"
                     title="Import your name and contact info from resume"
                 >
                     <Download size={16} />

@@ -10,7 +10,6 @@ interface ValidatedInputProps {
     label?: string;
     placeholder?: string;
     required?: boolean;
-    darkMode?: boolean;
     className?: string;
     maxLength?: number;
     min?: number;
@@ -27,7 +26,6 @@ export function ValidatedInput({
     label,
     placeholder,
     required = false,
-    darkMode = false,
     className = '',
     maxLength,
     min,
@@ -78,18 +76,16 @@ export function ValidatedInput({
         }
     };
 
-    const baseInputClasses = `w-full px-3 py-2 border-2 focus:outline-none focus:ring-2 focus:ring-slate-400/20 font-medium transition-colors ${className}`;
+    const baseInputClasses = `w-full px-3 py-2 border-2 focus:outline-none focus:ring-2 font-medium transition-colors ${className}`;
 
     const stateClasses = error && touched
         ? 'border-red-500 focus:border-red-500'
-        : darkMode
-            ? 'bg-slate-950 border-slate-600 text-white focus:border-slate-500'
-            : 'bg-white border-slate-400 text-slate-900 focus:border-slate-500';
+        : '';
 
     return (
         <div className="w-full">
             {label && (
-                <label className={`block text-sm font-semibold mb-1 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--main-text)' }}>
                     {label}
                     {required && <span className="text-red-500 ml-1">*</span>}
                 </label>

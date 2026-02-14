@@ -218,10 +218,10 @@ ${bulletList}`;
 `
         : '';
 
-    // Education section — two-line format:
-    //   Line 1: Institution (bold)                            Location
-    //   Line 2: Degree, Field (italic)                        Date
-    //   Optional: GPA, Description as bullets
+    // Education section — compact two-line format matching standard LaTeX resumes:
+    //   Line 1: **University Name**                              Location
+    //   Line 2: _Degree, Field_                                  Date
+    //   Line 3: (compact) GPA + description as tight bullets
     const educationSection = data.education && data.education.length > 0
         ? `\\section*{Education}
 ${data.education.map(edu => {
@@ -230,35 +230,33 @@ ${data.education.map(edu => {
             const location = edu.location || '';
             const date = edu.graduationDate || '';
 
-            const lines: string[] = [];
-
-            // Line 1: Institution \hfill Location
+            // Build the header block: line1 \\ line2 (tight, no paragraph break)
+            let header = '';
             if (institution) {
-                lines.push(`\\noindent \\textbf{${escapeLatex(institution)}} \\hfill ${escapeLatex(location)}`);
+                header = `\\noindent \\textbf{${escapeLatex(institution)}} \\hfill ${escapeLatex(location)}`;
+                if (degreeField) {
+                    header += `\n\\\\ \\textit{${escapeLatex(degreeField)}} \\hfill ${escapeLatex(date)}`;
+                }
+            } else if (degreeField) {
+                header = `\\noindent \\textit{${escapeLatex(degreeField)}} \\hfill ${escapeLatex(date)}`;
             }
 
-            // Line 2: Degree, Field (italic) \hfill Date
-            if (degreeField) {
-                lines.push(`\\textit{${escapeLatex(degreeField)}} \\hfill ${escapeLatex(date)}`);
-            } else if (date) {
-                lines.push(`\\hfill ${escapeLatex(date)}`);
-            }
+            // Compact details: GPA inline, description as tight bullets
+            const detailParts: string[] = [];
+            if (edu.gpa) detailParts.push(`GPA: ${escapeLatex(edu.gpa)}`);
 
-            // Optional details as bullet list
             const bullets: string[] = [];
-            if (edu.gpa) bullets.push(`GPA: ${escapeLatex(edu.gpa)}`);
-            if (edu.description) {
-                // Split description by periods/sentences if short, else one bullet
-                bullets.push(formatLatexText(edu.description));
-            }
+            if (detailParts.length > 0) bullets.push(detailParts.join(' \\textbar{} '));
+            if (edu.description) bullets.push(formatLatexText(edu.description));
 
+            let details = '';
             if (bullets.length > 0) {
-                lines.push(`\\begin{itemize}[leftmargin=*,itemsep=${cfg.bulletItemSep},topsep=${cfg.bulletTopSep}]`);
-                bullets.forEach(b => lines.push(`  \\item ${b}`));
-                lines.push(`\\end{itemize}`);
+                details = `\n\\begin{itemize}[leftmargin=*,itemsep=${cfg.bulletItemSep},topsep=1pt,parsep=0pt]
+${bullets.map(b => `  \\item ${b}`).join('\n')}
+\\end{itemize}`;
             }
 
-            return lines.join('\n');
+            return header + details;
         }).join(`\n\\vspace{${cfg.itemSep}}\n`)}
 `
         : '';

@@ -33,7 +33,7 @@ import { getPDFTemplateComponent, isLatexTemplate } from './lib/pdfTemplateMap'
 import { compileLatexViaApi } from './lib/latexApiCompiler'
 import { generateLaTeXFromData } from './lib/latexGenerator'
 import { useCoverLetterStore } from './lib/coverLetterStore'
-import { useThemeStore, applyTheme, COLOR_THEMES } from './lib/themeStore'
+import { useThemeStore, applyTheme, THEMES, THEME_MAP } from './lib/themeStore'
 import { useCustomTemplateStore } from './lib/customTemplateStore'
 import { getEffectiveResumeData } from './lib/templateResolver'
 import { generateDocumentFileName, generateDocumentTitle } from './lib/documentNaming'
@@ -52,8 +52,6 @@ import {
   Sparkles,
   Download,
   Printer,
-  Moon,
-  Sun,
   Check,
   Upload,
   FileText,
@@ -153,18 +151,20 @@ function App() {
   const { coverLetterData } = useCoverLetterStore()
   const { customTemplates, addCustomTemplate, updateCustomTemplate, deleteCustomTemplate } = useCustomTemplateStore()
   const [activeTab, setActiveTab] = useState<TabKey>(() => loadActiveTab() as TabKey)
-  const { colorThemeId, isDark: darkMode, setColorTheme, toggleDark } = useThemeStore()
+  const { themeId, setTheme } = useThemeStore()
   const [documentType, setDocumentType] = useState<DocumentType>('resume')
 
   const [isPrinting, setIsPrinting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [templateFilter, setTemplateFilter] = useState<'all' | 'standard' | 'latex'>('all');
   const [templateSearch, setTemplateSearch] = useState('');
   const [templateSort, setTemplateSort] = useState<'default' | 'latex-first' | 'standard-first'>('default');
   const [templatePage, setTemplatePage] = useState(1);
   const [templatesPerPage, setTemplatesPerPage] = useState(10);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
+  const themeDropdownRef = useRef<HTMLDivElement>(null);
 
   // New state for sidebar controls
   const [continuousMode, setContinuousMode] = useState(() => loadContinuousMode());
@@ -197,11 +197,14 @@ function App() {
     }
   };
 
-  // Close export dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (exportDropdownRef.current && !exportDropdownRef.current.contains(e.target as Node)) {
         setExportDropdownOpen(false);
+      }
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(e.target as Node)) {
+        setThemeDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -229,10 +232,10 @@ function App() {
     saveActiveTab(activeTab);
   }, [activeTab]);
 
-  // Apply theme + dark mode CSS custom properties whenever either changes
+  // Apply theme CSS custom properties + dark class whenever theme changes
   useEffect(() => {
-    applyTheme(colorThemeId, darkMode);
-  }, [colorThemeId, darkMode]);
+    applyTheme(themeId);
+  }, [themeId]);
 
   // Persist new settings
   useEffect(() => { saveContinuousMode(continuousMode); }, [continuousMode]);
@@ -277,10 +280,7 @@ function App() {
     }
   }, [showResume, showCoverLetter]);
 
-  // Toggle dark mode — independent of color theme
-  const toggleDarkMode = () => {
-    toggleDark();
-  };
+  // (Dark mode is controlled by theme selection — no separate toggle)
 
   // Handle resume/cover letter toggle with "at least one" constraint
   const handleToggleResume = () => {
@@ -458,16 +458,14 @@ function App() {
     <div className="space-y-3 mb-4">
       {/* Search bar */}
       <div className="relative">
-        <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--main-text-secondary)' }} />
         <input
           type="text"
           value={templateSearch}
           onChange={(e) => setTemplateSearch(e.target.value)}
           placeholder="Search templates..."
-          className={`w-full pl-9 pr-3 py-2 text-sm border-2 transition-colors ${darkMode
-            ? 'bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-slate-400'
-            : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-slate-500'
-            } outline-none`}
+          className="w-full pl-9 pr-3 py-2 text-sm border-2 transition-colors outline-none"
+          style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--main-text)' }}
         />
       </div>
       {/* Filter + Sort row */}
@@ -476,10 +474,8 @@ function App() {
           <button
             key={filter}
             onClick={() => setTemplateFilter(filter)}
-            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors border-2 ${templateFilter === filter
-              ? (darkMode ? 'bg-white text-slate-900 border-white' : 'bg-slate-800 text-white border-slate-800')
-              : (darkMode ? 'bg-transparent text-slate-400 border-slate-600 hover:text-white hover:border-slate-500' : 'bg-transparent text-slate-500 border-slate-300 hover:text-slate-800 hover:border-slate-400')
-              }`}
+            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors border-2 ${templateFilter === filter ? 'btn-accent' : ''}`}
+            style={templateFilter !== filter ? { backgroundColor: 'transparent', borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' } : {}}
           >
             {filter === 'all' ? 'All' : filter === 'latex' ? 'LaTeX' : 'Standard'}
           </button>
@@ -489,10 +485,8 @@ function App() {
         <select
           value={templateSort}
           onChange={(e) => setTemplateSort(e.target.value as typeof templateSort)}
-          className={`px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider border-2 outline-none cursor-pointer transition-colors ${darkMode
-            ? 'bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-500'
-            : 'bg-white border-slate-300 text-slate-600 hover:border-slate-400'
-            }`}
+          className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider border-2 outline-none cursor-pointer transition-colors"
+          style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--main-text-secondary)' }}
         >
           <option value="default">Default Order</option>
           <option value="latex-first">LaTeX First</option>
@@ -501,7 +495,7 @@ function App() {
       </div>
       {/* Count */}
       <div className="flex items-center justify-between">
-        <span className={`text-[10px] font-semibold uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>
           {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
           {templateSearch.trim() && ' found'}
         </span>
@@ -511,19 +505,17 @@ function App() {
 
   // Pagination controls JSX (reused in both modes)
   const templatePaginationControls = filteredTemplates.length > 10 ? (
-    <div className={`flex items-center justify-between mt-4 pt-4 border-t-2 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+    <div className="flex items-center justify-between mt-4 pt-4 border-t-2" style={{ borderColor: 'var(--card-border)' }}>
       <div className="flex items-center gap-2">
-        <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>
           Per page:
         </span>
         {perPageOptions.map(n => (
           <button
             key={n}
             onClick={() => setTemplatesPerPage(n)}
-            className={`px-2 py-1 text-[10px] font-bold border-2 transition-colors ${templatesPerPage === n
-              ? (darkMode ? 'bg-white text-slate-900 border-white' : 'bg-slate-800 text-white border-slate-800')
-              : (darkMode ? 'bg-transparent text-slate-400 border-slate-600 hover:text-white' : 'bg-transparent text-slate-500 border-slate-300 hover:text-slate-800')
-              }`}
+            className={`px-2 py-1 text-[10px] font-bold border-2 transition-colors ${templatesPerPage === n ? 'btn-accent' : ''}`}
+            style={templatesPerPage !== n ? { backgroundColor: 'transparent', borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' } : {}}
           >
             {n}
           </button>
@@ -533,23 +525,19 @@ function App() {
         <button
           onClick={() => setTemplatePage(p => Math.max(1, p - 1))}
           disabled={templatePage <= 1}
-          className={`p-1 border-2 transition-colors ${templatePage <= 1
-            ? (darkMode ? 'border-slate-700 text-slate-700 cursor-not-allowed' : 'border-slate-200 text-slate-300 cursor-not-allowed')
-            : (darkMode ? 'border-slate-600 text-slate-300 hover:text-white hover:border-slate-500' : 'border-slate-300 text-slate-500 hover:text-slate-800 hover:border-slate-400')
-            }`}
+          className="p-1 border-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}
         >
           <ChevronLeft size={14} />
         </button>
-        <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>
           {templatePage} / {totalTemplatePages}
         </span>
         <button
           onClick={() => setTemplatePage(p => Math.min(totalTemplatePages, p + 1))}
           disabled={templatePage >= totalTemplatePages}
-          className={`p-1 border-2 transition-colors ${templatePage >= totalTemplatePages
-            ? (darkMode ? 'border-slate-700 text-slate-700 cursor-not-allowed' : 'border-slate-200 text-slate-300 cursor-not-allowed')
-            : (darkMode ? 'border-slate-600 text-slate-300 hover:text-white hover:border-slate-500' : 'border-slate-300 text-slate-500 hover:text-slate-800 hover:border-slate-400')
-            }`}
+          className="p-1 border-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}
         >
           <ChevronRight size={14} />
         </button>
@@ -669,62 +657,54 @@ function App() {
   // Render all forms stacked (continuous mode)
   const renderContinuousMode = () => {
     const sections: React.ReactNode[] = [];
-    const dividerClass = `pb-8 mb-8 border-b-2 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`;
+    const dividerClass = 'pb-8 mb-8 border-b-2' as const;
 
     // Template selector
     sections.push(
       <div key="templates" id="continuous-section-templates" className={dividerClass}>
-        <h3 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-slate-900'}`}>Choose Template</h3>
+        <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--main-text)' }}>Choose Template</h3>
         {templateFilterBar}
         <div className="grid grid-cols-2 gap-4">
-          {paginatedTemplates.map((template) => (
+          {paginatedTemplates.map((template) => {
+            const isSelected = resumeData.selectedTemplate === template.id;
+            return (
             <button
               key={template.id}
               onClick={() => setTemplate(template.id)}
-              className={`
-                group relative flex flex-col overflow-hidden border-2 transition-all
-                ${resumeData.selectedTemplate === template.id
-                  ? 'border-slate-800 ring-2 ring-slate-600/20'
-                  : darkMode
-                    ? 'border-slate-700 bg-slate-800 hover:border-slate-500'
-                    : 'border-slate-300 bg-slate-100 hover:border-slate-400'
-                }
-              `}
+              className="group relative flex flex-col overflow-hidden border-2 transition-all"
+              style={{
+                borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
+                backgroundColor: 'var(--card-bg)',
+              }}
             >
-              <div className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800 relative">
+              <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
                 <TemplateThumbnail templateId={template.id} />
-                {resumeData.selectedTemplate === template.id && (
-                  <div className="absolute inset-0 border-4 border-slate-900/40 pointer-events-none"></div>
+                {isSelected && (
+                  <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
                 )}
                 {template.isLatex && (
-                  <div className="absolute top-2 right-2 bg-slate-800 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10">
+                  <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
                     pdfTeX
                   </div>
                 )}
               </div>
-              <div className={`
-                p-3 text-left transition-colors relative
-                ${resumeData.selectedTemplate === template.id
-                  ? (darkMode ? 'bg-slate-900 border-t border-slate-700' : 'bg-white border-t border-slate-100')
-                  : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
-                }
-              `}>
+              <div
+                className="p-3 text-left transition-colors relative"
+                style={{
+                  backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
+                  borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
+                }}
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className={`font-bold text-sm leading-tight ${resumeData.selectedTemplate === template.id
-                      ? (darkMode ? 'text-white' : 'text-slate-900')
-                      : (darkMode ? 'text-slate-400' : 'text-slate-500')
-                      }`}>
+                    <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
                       {template.name}
                     </div>
-                    <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id
-                      ? (darkMode ? 'text-accent-light' : 'text-accent')
-                      : (darkMode ? 'text-slate-500' : 'text-slate-400')
-                      }`}>
+                    <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
                       {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
                     </div>
                   </div>
-                  {resumeData.selectedTemplate === template.id && (
+                  {isSelected && (
                     <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
                       <Check size={14} strokeWidth={3} />
                     </div>
@@ -732,14 +712,15 @@ function App() {
                 </div>
               </div>
             </button>
-          ))}
+            );
+          })}
         </div>
         {templatePaginationControls}
 
         {/* ── My Templates (Continuous Mode) ── */}
-        <div className={`border-t-2 pt-6 mt-6 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+        <div className="border-t-2 pt-6 mt-6" style={{ borderColor: 'var(--card-border)' }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>My Templates</h3>
+            <h3 className="text-lg font-bold" style={{ color: 'var(--main-text)' }}>My Templates</h3>
             <button
               onClick={() => setShowCreateTemplate(!showCreateTemplate)}
               className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded"
@@ -751,10 +732,10 @@ function App() {
 
           {/* Create template form */}
           {showCreateTemplate && (
-            <div className={`mb-4 p-4 border-2 ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-slate-50 border-slate-300'}`}>
+            <div className="mb-4 p-4 border-2" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
               <div className="space-y-3">
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
                     Template Name
                   </label>
                   <input
@@ -762,23 +743,17 @@ function App() {
                     value={newTemplateName}
                     onChange={(e) => setNewTemplateName(e.target.value)}
                     placeholder="e.g. Software Engineer v1"
-                    className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
-                      ? 'bg-slate-700 border-slate-600 text-white placeholder:text-slate-500'
-                      : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
-                      }`}
+                    className="w-full px-3 py-2 text-sm rounded border-2"
                   />
                 </div>
                 <div>
-                  <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
                     Base Template
                   </label>
                   <select
                     value={newTemplateBase}
                     onChange={(e) => setNewTemplateBase(Number(e.target.value) as PreloadedTemplateId)}
-                    className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
-                      ? 'bg-slate-700 border-slate-600 text-white'
-                      : 'bg-white border-slate-300 text-slate-900'
-                      }`}
+                    className="w-full px-3 py-2 text-sm rounded border-2"
                   >
                     {templates.filter(t => !t.isLatex).map((t) => (
                       <option key={t.id} value={t.id}>{t.name}</option>
@@ -796,16 +771,17 @@ function App() {
                     }}
                     disabled={!newTemplateName.trim()}
                     className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${!newTemplateName.trim()
-                      ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
+                      ? 'cursor-not-allowed'
                       : 'bg-green-600 hover:bg-green-500 text-white'
                       }`}
+                    style={!newTemplateName.trim() ? { backgroundColor: 'var(--input-border)', color: 'var(--main-text-secondary)' } : {}}
                   >
                     Create
                   </button>
                   <button
                     onClick={() => { setShowCreateTemplate(false); setNewTemplateName(''); }}
-                    className={`px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
-                      }`}
+                    className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors"
+                    style={{ backgroundColor: 'var(--card-bg)', color: 'var(--main-text)', border: '1px solid var(--card-border)' }}
                   >
                     Cancel
                   </button>
@@ -816,7 +792,7 @@ function App() {
 
           {/* Custom templates grid */}
           {customTemplates.length === 0 && !showCreateTemplate ? (
-            <div className={`text-center py-8 border-2 border-dashed ${darkMode ? 'border-slate-700 text-slate-500' : 'border-slate-300 text-slate-400'}`}>
+            <div className="text-center py-8 border-2 border-dashed" style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}>
               <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
               <p className="text-sm font-semibold">No custom templates yet</p>
               <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
@@ -831,33 +807,33 @@ function App() {
                 return (
                   <div
                     key={ct.id}
-                    className={`
-                      group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer
-                      ${isActive
-                        ? 'border-blue-500 ring-2 ring-blue-400/20'
-                        : darkMode
-                          ? 'border-slate-700 bg-slate-800 hover:border-slate-500'
-                          : 'border-slate-300 bg-slate-100 hover:border-slate-400'
-                      }
-                    `}
+                    className="group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer"
+                    style={{
+                      borderColor: isActive ? 'var(--accent)' : 'var(--card-border)',
+                      backgroundColor: 'var(--card-bg)',
+                    }}
                   >
                     <button
                       onClick={() => {
                         setTemplate(ct.id);
                         updateFormatting(ct.formatting);
                       }}
-                      className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800 w-full"
+                      className="overflow-hidden bg-white pdf-paper w-full"
+                      style={{ borderBottom: '2px solid var(--card-border)' }}
                     >
                       <TemplateThumbnail templateId={ct.baseTemplateId} />
                       {isActive && (
-                        <div className="absolute inset-0 border-4 border-blue-500/30 pointer-events-none"></div>
+                        <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.3 }}></div>
                       )}
                     </button>
 
-                    <div className={`p-3 text-left transition-colors relative ${isActive
-                      ? (darkMode ? 'bg-slate-900 border-t border-blue-800' : 'bg-blue-50 border-t border-blue-100')
-                      : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
-                      }`}>
+                    <div
+                      className="p-3 text-left transition-colors relative"
+                      style={{
+                        backgroundColor: isActive ? 'var(--main-bg)' : 'var(--card-bg)',
+                        borderTop: isActive ? '1px solid var(--accent)' : 'none',
+                      }}
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           {isEditing ? (
@@ -879,17 +855,14 @@ function App() {
                                 setEditingTemplateId(null);
                               }}
                               autoFocus
-                              className={`w-full px-1.5 py-0.5 text-sm font-bold rounded border ${darkMode ? 'bg-slate-700 border-slate-500 text-white' : 'bg-white border-slate-300 text-slate-900'
-                                }`}
+                              className="w-full px-1.5 py-0.5 text-sm font-bold rounded border"
                             />
                           ) : (
-                            <div className={`font-bold text-sm leading-tight truncate ${isActive ? (darkMode ? 'text-white' : 'text-slate-900') : (darkMode ? 'text-slate-300' : 'text-slate-600')
-                              }`}>
+                            <div className="font-bold text-sm leading-tight truncate" style={{ color: isActive ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
                               {ct.name}
                             </div>
                           )}
-                          <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${isActive ? (darkMode ? 'text-accent-light' : 'text-accent') : (darkMode ? 'text-slate-500' : 'text-slate-400')
-                            }`}>
+                          <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isActive ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
                             Based on {baseName}
                           </div>
                         </div>
@@ -903,8 +876,8 @@ function App() {
                           <button
                             onClick={(e) => { e.stopPropagation(); setEditingTemplateId(ct.id); setEditingTemplateName(ct.name); }}
                             title="Rename"
-                            className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'
-                              }`}
+                            className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
+                            style={{ color: 'var(--main-text-secondary)' }}
                           >
                             <Pencil size={12} />
                           </button>
@@ -916,8 +889,8 @@ function App() {
                               updateFormatting(ct.formatting);
                             }}
                             title="Duplicate"
-                            className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'
-                              }`}
+                            className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
+                            style={{ color: 'var(--main-text-secondary)' }}
                           >
                             <Copy size={12} />
                           </button>
@@ -930,8 +903,7 @@ function App() {
                               }
                             }}
                             title="Delete"
-                            className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-red-900/50 text-red-400' : 'hover:bg-red-100 text-red-500'
-                              }`}
+                            className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500"
                           >
                             <Trash2 size={12} />
                           </button>
@@ -1019,7 +991,7 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen flex ${darkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
+    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--main-bg)' }}>
       <div className="flex-1 flex w-full">
         <aside className="w-56 flex-shrink-0 border-r-2" style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)', borderColor: 'var(--sidebar-border)' }}>
           <div className="sticky top-0 h-screen flex flex-col">
@@ -1078,8 +1050,8 @@ function App() {
                     onChange={() => setContinuousMode(!continuousMode)}
                     className="sr-only"
                   />
-                  <div className={`w-9 h-5 rounded-full transition-all ${!continuousMode ? 'bg-slate-500 group-hover:bg-slate-400' : ''}`}
-                    style={continuousMode ? { backgroundColor: 'var(--accent)' } : undefined}
+                  <div className="w-9 h-5 rounded-full transition-all"
+                    style={{ backgroundColor: continuousMode ? 'var(--accent)' : 'var(--input-border)' }}
                   >
                     <div className={`w-3.5 h-3.5 bg-white rounded-full shadow-sm transition-transform absolute top-[3px] ${continuousMode ? 'translate-x-[18px]' : 'translate-x-[3px]'
                       }`} />
@@ -1132,7 +1104,8 @@ function App() {
                           // In continuous mode, the new section appears automatically
                           // via the reactive resumeData.sections loop
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 !text-white hover:bg-slate-900/40 transition-colors border-l-4 border-transparent"
+                        className="w-full flex items-center gap-3 px-4 py-3 transition-colors border-l-4 border-transparent"
+                        style={{ color: 'var(--sidebar-text)' }}
                       >
                         <Plus size={16} />
                         <span className="text-sm font-semibold !text-white">Add Custom Section</span>
@@ -1167,11 +1140,12 @@ function App() {
                   <ChevronDown size={10} className={`transition-transform ${exportDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {exportDropdownOpen && (
-                  <div className="absolute left-0 bottom-full mb-1 w-full shadow-xl border-2 z-50 overflow-hidden bg-slate-700 border-slate-600">
+                  <div className="absolute left-0 bottom-full mb-1 w-full shadow-xl border-2 z-50 overflow-hidden" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
                     <button
                       onClick={() => { setExportDropdownOpen(false); handleDownloadPDF(); }}
                       disabled={isGeneratingPDF}
-                      className={`w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors text-white hover:bg-slate-600 ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      style={{ color: 'var(--sidebar-text)' }}
                     >
                       <FileDown size={12} className="text-teal-400" />
                       Download PDF
@@ -1179,27 +1153,30 @@ function App() {
                     <button
                       onClick={() => { setExportDropdownOpen(false); handlePrint(); }}
                       disabled={isPrinting}
-                      className={`w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors text-white hover:bg-slate-600 ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      style={{ color: 'var(--sidebar-text)' }}
                     >
                       <Printer size={12} className="text-blue-400" />
                       Print / Preview
                     </button>
                     {isLatexSelected && (
                       <>
-                        <div className="border-t border-slate-600" />
+                        <div style={{ borderTop: '1px solid var(--sidebar-border)' }} />
                         <button
                           onClick={() => { setExportDropdownOpen(false); handleDownloadTex(); }}
-                          className="w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors text-white hover:bg-slate-600"
+                          className="w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors"
+                          style={{ color: 'var(--sidebar-text)' }}
                         >
                           <Code2 size={12} className="text-emerald-400" />
                           Download .tex
                         </button>
                       </>
                     )}
-                    <div className="border-t border-slate-600" />
+                    <div style={{ borderTop: '1px solid var(--sidebar-border)' }} />
                     <button
                       onClick={() => { setExportDropdownOpen(false); handleExport(); }}
-                      className="w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors text-white hover:bg-slate-600"
+                      className="w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors"
+                      style={{ color: 'var(--sidebar-text)' }}
                     >
                       <Download size={12} className="text-amber-400" />
                       Export JSON
@@ -1212,64 +1189,67 @@ function App() {
                 <button
                   onClick={handleImport}
                   disabled={isImporting}
-                  className={`flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded ${isImporting ? 'opacity-50 cursor-not-allowed' : ''
-                    } ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-500 hover:bg-slate-400 text-white'}`}
+                  className={`flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  style={{ backgroundColor: 'var(--sidebar-hover)', color: 'var(--sidebar-text)' }}
                 >
                   <Upload size={12} />
                   <span>{isImporting ? 'Importing...' : 'Import'}</span>
                 </button>
                 <button
                   onClick={loadSampleData}
-                  className={`flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-500 hover:bg-slate-400 text-white'
-                    }`}
+                  className="flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded"
+                  style={{ backgroundColor: 'var(--sidebar-hover)', color: 'var(--sidebar-text)' }}
                 >
                   <FileText size={12} />
                   <span>Sample</span>
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              {/* Theme dropdown — single source of truth for all styling */}
+              <div ref={themeDropdownRef} className="relative">
                 <button
-                  onClick={toggleDarkMode}
-                  className={`flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-500 hover:bg-slate-400 text-white'
-                    }`}
+                  onClick={() => setThemeDropdownOpen(prev => !prev)}
+                  className="w-full flex items-center justify-center gap-2 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded"
+                  style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
                 >
-                  {darkMode ? <Sun size={12} /> : <Moon size={12} />}
-                  <span>{darkMode ? 'Light' : 'Dark'}</span>
+                  <Palette size={14} />
+                  <span>{THEME_MAP[themeId]?.name || 'Theme'}</span>
+                  <ChevronDown size={10} className={`transition-transform ${themeDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
-                <button
-                  onClick={reset}
-                  className="flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded bg-red-700 hover:bg-red-800 text-white"
-                >
-                  <RotateCcw size={12} />
-                  <span>Reset</span>
-                </button>
+                {themeDropdownOpen && (
+                  <div className="absolute left-0 bottom-full mb-1 w-full shadow-xl border-2 z-50 overflow-hidden max-h-72 overflow-y-auto" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
+                    {THEMES.map(theme => (
+                      <button
+                        key={theme.id}
+                        onClick={() => { setTheme(theme.id); setThemeDropdownOpen(false); }}
+                        className={`w-full text-left px-3 py-2 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2.5 transition-colors ${themeId === theme.id ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}
+                        style={{
+                          color: 'var(--sidebar-text)',
+                          backgroundColor: themeId === theme.id ? 'var(--sidebar-hover)' : 'transparent',
+                        }}
+                      >
+                        <div className="w-4 h-4 rounded-full flex-shrink-0 border border-white/20" style={{ backgroundColor: theme.swatch }} />
+                        <span className="flex-1">{theme.name}</span>
+                        <span className="text-[8px] opacity-50">{theme.isDark ? 'dark' : 'light'}</span>
+                        {themeId === theme.id && (
+                          <Check size={11} className="ml-1" strokeWidth={3} />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              {/* Color Theme Picker */}
-              <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--sidebar-border)' }}>
-                <span className="block text-[9px] font-bold uppercase tracking-widest mb-2 opacity-50">
-                  Color Theme
-                </span>
-                <div className="grid grid-cols-10 gap-1">
-                  {COLOR_THEMES.map(theme => (
-                    <button
-                      key={theme.id}
-                      onClick={() => setColorTheme(theme.id)}
-                      title={theme.name}
-                      className={`relative w-full aspect-square transition-transform hover:scale-110 ${colorThemeId === theme.id ? 'ring-2 ring-white ring-offset-1 ring-offset-transparent' : ''}`}
-                      style={{ backgroundColor: theme.swatch, borderRadius: 3 }}
-                    >
-                      {colorThemeId === theme.id && (
-                        <Check size={9} className="absolute inset-0 m-auto text-white drop-shadow-md" strokeWidth={3} />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <button
+                onClick={reset}
+                className="w-full flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded bg-red-700 hover:bg-red-800 text-white"
+              >
+                <RotateCcw size={12} />
+                <span>Reset</span>
+              </button>
             </div>
           </div>
         </aside>
 
-        <main className={`flex-1 p-6 overflow-y-auto ${darkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-900'}`}>
+        <main className="flex-1 p-6 overflow-y-auto" style={{ backgroundColor: 'var(--main-bg)', color: 'var(--main-text)' }}>
           <div className="w-full max-w-5xl mx-auto">
             {continuousMode ? (
               renderContinuousMode()
@@ -1296,58 +1276,50 @@ function App() {
                 {activeTab === 'formatting' && (isLatexSelected ? <LaTeXFormattingForm /> : <FormattingForm />)}
                 {activeTab === 'templates' && (
                   <div className="space-y-6">
-                    <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Choose Template</h3>
+                    <h3 className="text-lg font-bold" style={{ color: 'var(--main-text)' }}>Choose Template</h3>
                     {templateFilterBar}
                     <div className="grid grid-cols-2 gap-4">
-                      {paginatedTemplates.map((template) => (
+                      {paginatedTemplates.map((template) => {
+                        const isSelected = resumeData.selectedTemplate === template.id;
+                        return (
                         <button
                           key={template.id}
                           onClick={() => setTemplate(template.id)}
-                          className={`
-                            group relative flex flex-col overflow-hidden border-2 transition-all
-                            ${resumeData.selectedTemplate === template.id
-                              ? 'border-slate-800 ring-2 ring-slate-600/20'
-                              : darkMode
-                                ? 'border-slate-700 bg-slate-800 hover:border-slate-500'
-                                : 'border-slate-300 bg-slate-100 hover:border-slate-400'
-                            }
-                          `}
+                          className="group relative flex flex-col overflow-hidden border-2 transition-all"
+                          style={{
+                            borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
+                            backgroundColor: 'var(--card-bg)',
+                          }}
                         >
-                          <div className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800 relative">
+                          <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
                             <TemplateThumbnail templateId={template.id} />
-                            {resumeData.selectedTemplate === template.id && (
-                              <div className="absolute inset-0 border-4 border-slate-900/40 pointer-events-none"></div>
+                            {isSelected && (
+                              <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
                             )}
                             {template.isLatex && (
-                              <div className="absolute top-2 right-2 bg-slate-800 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10">
+                              <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
                                 pdfTeX
                               </div>
                             )}
                           </div>
 
-                          <div className={`
-                            p-3 text-left transition-colors relative
-                            ${resumeData.selectedTemplate === template.id
-                              ? (darkMode ? 'bg-slate-900 border-t border-slate-700' : 'bg-white border-t border-slate-100')
-                              : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
-                            }
-                          `}>
+                          <div
+                            className="p-3 text-left transition-colors relative"
+                            style={{
+                              backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
+                              borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
+                            }}
+                          >
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className={`font-bold text-sm leading-tight ${resumeData.selectedTemplate === template.id
-                                  ? (darkMode ? 'text-white' : 'text-slate-900')
-                                  : (darkMode ? 'text-slate-400' : 'text-slate-500')
-                                  }`}>
+                                <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
                                   {template.name}
                                 </div>
-                                <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id
-                                  ? (darkMode ? 'text-accent-light' : 'text-accent')
-                                  : (darkMode ? 'text-slate-500' : 'text-slate-400')
-                                  }`}>
+                                <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
                                   {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
                                 </div>
                               </div>
-                              {resumeData.selectedTemplate === template.id && (
+                              {isSelected && (
                                 <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
                                   <Check size={14} strokeWidth={3} />
                                 </div>
@@ -1355,14 +1327,15 @@ function App() {
                             </div>
                           </div>
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                     {templatePaginationControls}
 
                     {/* ── My Templates ── */}
-                    <div className={`border-t-2 pt-6 ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+                    <div className="border-t-2 pt-6" style={{ borderColor: 'var(--card-border)' }}>
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>My Templates</h3>
+                        <h3 className="text-lg font-bold" style={{ color: 'var(--main-text)' }}>My Templates</h3>
                         <button
                           onClick={() => setShowCreateTemplate(!showCreateTemplate)}
                           className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded"
@@ -1374,10 +1347,10 @@ function App() {
 
                       {/* Create template form */}
                       {showCreateTemplate && (
-                        <div className={`mb-4 p-4 border-2 ${darkMode ? 'bg-slate-800 border-slate-600' : 'bg-slate-50 border-slate-300'}`}>
+                        <div className="mb-4 p-4 border-2" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
                           <div className="space-y-3">
                             <div>
-                              <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                              <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
                                 Template Name
                               </label>
                               <input
@@ -1385,23 +1358,17 @@ function App() {
                                 value={newTemplateName}
                                 onChange={(e) => setNewTemplateName(e.target.value)}
                                 placeholder="e.g. Software Engineer v1"
-                                className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
-                                  ? 'bg-slate-700 border-slate-600 text-white placeholder:text-slate-500'
-                                  : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'
-                                  }`}
+                                className="w-full px-3 py-2 text-sm rounded border-2"
                               />
                             </div>
                             <div>
-                              <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                              <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
                                 Base Template
                               </label>
                               <select
                                 value={newTemplateBase}
                                 onChange={(e) => setNewTemplateBase(Number(e.target.value) as PreloadedTemplateId)}
-                                className={`w-full px-3 py-2 text-sm rounded border-2 ${darkMode
-                                  ? 'bg-slate-700 border-slate-600 text-white'
-                                  : 'bg-white border-slate-300 text-slate-900'
-                                  }`}
+                                className="w-full px-3 py-2 text-sm rounded border-2"
                               >
                                 {templates.filter(t => !t.isLatex).map((t) => (
                                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -1419,16 +1386,17 @@ function App() {
                                 }}
                                 disabled={!newTemplateName.trim()}
                                 className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${!newTemplateName.trim()
-                                  ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
+                                  ? 'cursor-not-allowed'
                                   : 'bg-green-600 hover:bg-green-500 text-white'
                                   }`}
+                                style={!newTemplateName.trim() ? { backgroundColor: 'var(--input-border)', color: 'var(--main-text-secondary)' } : {}}
                               >
                                 Create
                               </button>
                               <button
                                 onClick={() => { setShowCreateTemplate(false); setNewTemplateName(''); }}
-                                className={`px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
-                                  }`}
+                                className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors"
+                                style={{ backgroundColor: 'var(--card-bg)', color: 'var(--main-text)', border: '1px solid var(--card-border)' }}
                               >
                                 Cancel
                               </button>
@@ -1439,7 +1407,7 @@ function App() {
 
                       {/* Custom templates grid */}
                       {customTemplates.length === 0 && !showCreateTemplate ? (
-                        <div className={`text-center py-8 border-2 border-dashed ${darkMode ? 'border-slate-700 text-slate-500' : 'border-slate-300 text-slate-400'}`}>
+                        <div className="text-center py-8 border-2 border-dashed" style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}>
                           <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
                           <p className="text-sm font-semibold">No custom templates yet</p>
                           <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
@@ -1454,35 +1422,33 @@ function App() {
                             return (
                               <div
                                 key={ct.id}
-                                className={`
-                                  group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer
-                                  ${isActive
-                                    ? 'border-blue-500 ring-2 ring-blue-400/20'
-                                    : darkMode
-                                      ? 'border-slate-700 bg-slate-800 hover:border-slate-500'
-                                      : 'border-slate-300 bg-slate-100 hover:border-slate-400'
-                                  }
-                                `}
+                                className="group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer"
+                                style={{
+                                  borderColor: isActive ? 'var(--accent)' : 'var(--card-border)',
+                                  backgroundColor: 'var(--card-bg)',
+                                }}
                               >
-                                {/* Thumbnail — clicking selects the template */}
                                 <button
                                   onClick={() => {
                                     setTemplate(ct.id);
                                     updateFormatting(ct.formatting);
                                   }}
-                                  className="aspect-[3/4] overflow-hidden bg-white pdf-paper border-b-2 border-slate-200 dark:border-slate-800 w-full"
+                                  className="overflow-hidden bg-white pdf-paper w-full"
+                                  style={{ borderBottom: '2px solid var(--card-border)' }}
                                 >
                                   <TemplateThumbnail templateId={ct.baseTemplateId} />
                                   {isActive && (
-                                    <div className="absolute inset-0 border-4 border-blue-500/30 pointer-events-none"></div>
+                                    <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.3 }}></div>
                                   )}
                                 </button>
 
-                                {/* Info area */}
-                                <div className={`p-3 text-left transition-colors relative ${isActive
-                                  ? (darkMode ? 'bg-slate-900 border-t border-blue-800' : 'bg-blue-50 border-t border-blue-100')
-                                  : (darkMode ? 'bg-slate-800/50' : 'bg-slate-50')
-                                  }`}>
+                                <div
+                                  className="p-3 text-left transition-colors relative"
+                                  style={{
+                                    backgroundColor: isActive ? 'var(--main-bg)' : 'var(--card-bg)',
+                                    borderTop: isActive ? '1px solid var(--accent)' : 'none',
+                                  }}
+                                >
                                   <div className="flex items-start justify-between gap-2">
                                     <div className="flex-1 min-w-0">
                                       {isEditing ? (
@@ -1504,22 +1470,18 @@ function App() {
                                             setEditingTemplateId(null);
                                           }}
                                           autoFocus
-                                          className={`w-full px-1.5 py-0.5 text-sm font-bold rounded border ${darkMode ? 'bg-slate-700 border-slate-500 text-white' : 'bg-white border-slate-300 text-slate-900'
-                                            }`}
+                                          className="w-full px-1.5 py-0.5 text-sm font-bold rounded border"
                                         />
                                       ) : (
-                                        <div className={`font-bold text-sm leading-tight truncate ${isActive ? (darkMode ? 'text-white' : 'text-slate-900') : (darkMode ? 'text-slate-300' : 'text-slate-600')
-                                          }`}>
+                                        <div className="font-bold text-sm leading-tight truncate" style={{ color: isActive ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
                                           {ct.name}
                                         </div>
                                       )}
-                                      <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${isActive ? (darkMode ? 'text-accent-light' : 'text-accent') : (darkMode ? 'text-slate-500' : 'text-slate-400')
-                                        }`}>
+                                      <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isActive ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
                                         Based on {baseName}
                                       </div>
                                     </div>
 
-                                    {/* Action buttons */}
                                     <div className="flex items-center gap-1 flex-shrink-0">
                                       {isActive && (
                                         <div className="text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: 'var(--accent)' }}>
@@ -1527,14 +1489,10 @@ function App() {
                                         </div>
                                       )}
                                       <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setEditingTemplateId(ct.id);
-                                          setEditingTemplateName(ct.name);
-                                        }}
+                                        onClick={(e) => { e.stopPropagation(); setEditingTemplateId(ct.id); setEditingTemplateName(ct.name); }}
                                         title="Rename"
-                                        className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'
-                                          }`}
+                                        className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                        style={{ color: 'var(--main-text-secondary)' }}
                                       >
                                         <Pencil size={12} />
                                       </button>
@@ -1546,8 +1504,8 @@ function App() {
                                           updateFormatting(ct.formatting);
                                         }}
                                         title="Duplicate"
-                                        className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-200 text-slate-500'
-                                          }`}
+                                        className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                        style={{ color: 'var(--main-text-secondary)' }}
                                       >
                                         <Copy size={12} />
                                       </button>
@@ -1556,14 +1514,11 @@ function App() {
                                           e.stopPropagation();
                                           if (confirm(`Delete "${ct.name}"?`)) {
                                             deleteCustomTemplate(ct.id);
-                                            if (resumeData.selectedTemplate === ct.id) {
-                                              setTemplate(1); // Fall back to Classic
-                                            }
+                                            if (resumeData.selectedTemplate === ct.id) setTemplate(1);
                                           }
                                         }}
                                         title="Delete"
-                                        className={`p-1 rounded transition-colors opacity-0 group-hover:opacity-100 ${darkMode ? 'hover:bg-red-900/50 text-red-400' : 'hover:bg-red-100 text-red-500'
-                                          }`}
+                                        className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500"
                                       >
                                         <Trash2 size={12} />
                                       </button>
@@ -1583,7 +1538,7 @@ function App() {
           </div>
         </main>
 
-        <aside className="w-[900px] border-l-2 flex-shrink-0" style={{ borderColor: 'var(--sidebar-border)', backgroundColor: darkMode ? '#1e293b' : '#e2e8f0' }}>
+        <aside className="w-[900px] flex-shrink-0" style={{ backgroundColor: 'var(--card-bg)' }}>
           <div className="sticky top-0 h-screen">
             <PDFPreview templateId={resumeData.selectedTemplate} documentType={documentType} />
           </div>

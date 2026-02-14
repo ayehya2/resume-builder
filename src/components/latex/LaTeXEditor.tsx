@@ -146,7 +146,7 @@ export function LaTeXEditor() {
                 <button
                     onClick={() => handleModeSwitch('form')}
                     className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-2 ${mode === 'form'
-                        ? 'bg-slate-800 dark:bg-white text-white dark:text-slate-900 border-slate-800 dark:border-white'
+                        ? 'btn-accent'
                         : 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600'
                         }`}
                 >
@@ -155,7 +155,7 @@ export function LaTeXEditor() {
                 <button
                     onClick={() => handleModeSwitch('advanced')}
                     className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-2 ${mode === 'advanced'
-                        ? 'bg-slate-800 dark:bg-white text-white dark:text-slate-900 border-slate-800 dark:border-white'
+                        ? 'btn-accent'
                         : 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600'
                         }`}
                 >
@@ -173,7 +173,7 @@ export function LaTeXEditor() {
                 </button>
                 <button
                     onClick={handleDownloadTex}
-                    className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider border-2 border-slate-800 dark:border-slate-500 bg-slate-800 text-white hover:bg-slate-700 transition-colors shadow-sm"
+                    className="btn-accent flex items-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider border-2 transition-colors shadow-sm"
                 >
                     <Download size={12} />
                     Download .tex
@@ -226,7 +226,7 @@ export function LaTeXEditor() {
                     <div className="flex gap-3">
                         <button
                             onClick={handleDownloadTex}
-                            className="flex-1 py-3 text-sm font-bold uppercase tracking-wider border-2 border-slate-800 dark:border-slate-500 bg-slate-800 text-white hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                            className="btn-accent flex-1 py-3 text-sm font-bold uppercase tracking-wider border-2 transition-colors flex items-center justify-center gap-2 shadow-sm"
                         >
                             <Download size={16} />
                             Download .tex File

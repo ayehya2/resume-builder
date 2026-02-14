@@ -183,7 +183,7 @@ export function AITab({ documentType }: AITabProps) {
                             <button
                                 onClick={handleSaveKey}
                                 disabled={!keyInput.trim()}
-                                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold uppercase tracking-widest text-[10px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
+                                className="px-6 py-2.5 btn-accent font-bold uppercase tracking-widest text-[10px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.98]"
                             >
                                 Save API Key
                             </button>
@@ -298,7 +298,7 @@ export function AITab({ documentType }: AITabProps) {
                     <button
                         onClick={handleGenerate}
                         disabled={isLoading}
-                        className="w-full flex items-center justify-center gap-2.5 px-6 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md active:scale-[0.99] border-t-2 border-slate-700"
+                        className="w-full flex items-center justify-center gap-2.5 px-6 py-4 btn-accent font-bold uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md active:scale-[0.99] border-t-2 border-slate-700"
                     >
                         {isLoading ? (
                             <>

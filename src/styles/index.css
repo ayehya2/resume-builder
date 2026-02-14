@@ -96,39 +96,57 @@ code {
 }
 
 /* ==========================================
-   DARK MODE - PROFESSIONAL THEME
+   THEME-DRIVEN COLOR OVERRIDES
+   Colors come from CSS variables set by applyTheme()
+   These apply to ALL themes (light, dark, colored).
    ========================================== */
 
-.dark {
-  background-color: #0f172a;
-  color: #f8fafc;
+html {
+  background-color: var(--main-bg);
+  color: var(--main-text);
 }
 
-.dark body {
-  background-color: #0f172a;
+body {
+  background-color: var(--main-bg) !important;
+  color: var(--main-text) !important;
 }
 
-/* Text Overrides for Dark Mode */
-.dark .text-slate-900,
-.dark .text-black:not(.pdf-force-black) {
-  color: #f8fafc !important;
+/* Text Overrides — ALL themes */
+.text-slate-900:not(.pdf-paper *):not(.pdf-force-color),
+.text-black:not(.pdf-force-black):not(.pdf-paper *) {
+  color: var(--main-text) !important;
 }
 
-.dark .text-slate-700,
-.dark .text-slate-600 {
-  color: #cbd5e1 !important;
+.text-slate-700:not(.pdf-paper *),
+.text-slate-600:not(.pdf-paper *),
+.text-slate-500:not(.pdf-paper *) {
+  color: var(--main-text-secondary) !important;
 }
 
-/* Background Overrides for Dark Mode - EXCLUDE PDF PAPER */
-
-.dark .bg-white:not(.pdf-paper):not(.pdf-paper *) {
-  background-color: #0f172a !important;
+.text-slate-400:not(.pdf-paper *),
+.text-slate-300:not(.pdf-paper *) {
+  color: var(--main-text-secondary) !important;
 }
 
-.dark .bg-slate-50:not(.pdf-paper *),
-.dark .bg-slate-100:not(.pdf-paper *),
-.dark .bg-slate-200:not(.pdf-paper *) {
-  background-color: #1e293b !important;
+/* Background Overrides — ALL themes, EXCLUDE PDF PAPER */
+.bg-white:not(.pdf-paper):not(.pdf-paper *) {
+  background-color: var(--main-bg) !important;
+}
+
+.bg-slate-50:not(.pdf-paper *),
+.bg-slate-100:not(.pdf-paper *),
+.bg-slate-200:not(.pdf-paper *) {
+  background-color: var(--card-bg) !important;
+}
+
+.bg-slate-800:not(.pdf-paper *),
+.bg-slate-900:not(.pdf-paper *),
+.bg-slate-950:not(.pdf-paper *) {
+  background-color: var(--card-bg) !important;
+}
+
+.bg-slate-700:not(.pdf-paper *) {
+  background-color: var(--input-bg) !important;
 }
 
 /* Force White Paper Style for Previews */
@@ -197,48 +215,62 @@ code {
   color: #000000 !important;
 }
 
-/* Border Overrides for Dark Mode */
-.dark .border-slate-200,
-.dark .border-slate-300,
-.dark .border-slate-400 {
-  border-color: #334155 !important;
+/* Border Overrides — ALL themes */
+.border-slate-200:not(.pdf-paper *),
+.border-slate-300:not(.pdf-paper *),
+.border-slate-400:not(.pdf-paper *) {
+  border-color: var(--card-border) !important;
 }
 
-/* Sidebar and Interactive Elements */
-.dark .sidebar-bg {
-  background-color: #0f172a !important;
+.border-slate-600:not(.pdf-paper *),
+.border-slate-700:not(.pdf-paper *),
+.border-slate-800:not(.pdf-paper *) {
+  border-color: var(--card-border) !important;
 }
 
-/* Form Styles */
-.dark input[type="text"],
-.dark input[type="email"],
-.dark input[type="tel"],
-.dark input[type="url"],
-.dark textarea,
-.dark select {
-  background-color: #020617 !important;
-  color: #f8fafc !important;
-  border-color: #334155 !important;
+/* Hover bg overrides — use slightly different shades from theme */
+.hover\:bg-slate-100:hover:not(.pdf-paper *),
+.hover\:bg-slate-200:hover:not(.pdf-paper *),
+.hover\:bg-slate-300:hover:not(.pdf-paper *) {
+  background-color: var(--card-bg) !important;
 }
 
-.dark input[type="text"]:focus,
-.dark input[type="email"]:focus,
-.dark input[type="tel"]:focus,
-.dark input[type="url"]:focus,
-.dark textarea:focus {
-  border-color: #0d9488 !important;
-  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2);
+.hover\:bg-slate-600:hover:not(.pdf-paper *),
+.hover\:bg-slate-700:hover:not(.pdf-paper *) {
+  background-color: var(--sidebar-hover) !important;
 }
 
-.dark input::placeholder {
-  color: #64748b !important;
+/* dark: prefix overrides — these fire when .dark is on html */
+.dark .dark\:bg-slate-700,
+.dark .dark\:bg-slate-800,
+.dark .dark\:bg-slate-950 {
+  background-color: var(--card-bg) !important;
+}
+
+.dark .dark\:text-white,
+.dark .dark\:text-slate-200 {
+  color: var(--main-text) !important;
+}
+
+.dark .dark\:text-slate-400,
+.dark .dark\:text-slate-300 {
+  color: var(--main-text-secondary) !important;
+}
+
+.dark .dark\:border-slate-600,
+.dark .dark\:border-slate-700,
+.dark .dark\:border-slate-800 {
+  border-color: var(--card-border) !important;
+}
+
+.dark .dark\:hover\:bg-slate-600:hover {
+  background-color: var(--sidebar-hover) !important;
 }
 
 /* ==========================================
-   FORM INPUT STYLES - LIGHT MODE
+   FORM INPUT STYLES — THEME-DRIVEN (all modes)
    ========================================== */
 
-/* Force all form inputs to use slate background in light mode */
 input[type="text"],
 input[type="email"],
 input[type="tel"],
@@ -246,11 +278,9 @@ input[type="url"],
 input[type="number"],
 textarea,
 select {
-  background-color: #e2e8f0 !important;
-  /* slate-200 */
-  color: #0f172a !important;
-  border-color: #94a3b8 !important;
-  /* slate-400 */
+  background-color: var(--input-bg) !important;
+  color: var(--main-text) !important;
+  border-color: var(--input-border) !important;
 }
 
 input[type="text"]:focus,
@@ -260,15 +290,12 @@ input[type="url"]:focus,
 input[type="number"]:focus,
 textarea:focus,
 select:focus {
-  border-color: #475569 !important;
-  /* slate-600 */
-  background-color: #f1f5f9 !important;
-  /* slate-100 - slightly lighter on focus */
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 input::placeholder {
-  color: #64748b !important;
-  /* slate-500 */
+  color: var(--main-text-secondary) !important;
 }
 
 /* ==========================================
@@ -292,6 +319,13 @@ input::placeholder {
   --sidebar-text: #f8fafc;
   --sidebar-border: #1e293b;
   --sidebar-hover: #1e293b;
+  --main-bg: #f8fafc;
+  --main-text: #0f172a;
+  --main-text-secondary: #64748b;
+  --card-bg: #f1f5f9;
+  --card-border: #e2e8f0;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
 }
 
 /* ==========================================

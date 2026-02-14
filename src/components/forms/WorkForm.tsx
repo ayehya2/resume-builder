@@ -11,7 +11,7 @@ export function WorkForm() {
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Work Experience</h3>
                 <button
                     onClick={addWork}
-                    className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 font-semibold transition-colors shadow-sm"
+                    className="px-4 py-2 btn-accent font-semibold transition-colors shadow-sm"
                 >
                     + Add Job
                 </button>

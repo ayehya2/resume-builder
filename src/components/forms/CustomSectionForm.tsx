@@ -59,13 +59,13 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                             <div className="flex bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 p-1 h-[46px]">
                                 <button
                                     onClick={() => handleTypeChange(section.id, 'bullets')}
-                                    className={`px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'bullets' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
+                                    className={`px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'bullets' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
                                 >
                                     Bullets
                                 </button>
                                 <button
                                     onClick={() => handleTypeChange(section.id, 'text')}
-                                    className={`px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'text' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
+                                    className={`px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'text' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
                                 >
                                     Paragraph
                                 </button>

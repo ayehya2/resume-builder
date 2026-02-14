@@ -11,7 +11,7 @@ interface TemplateThumbnailProps {
  */
 export function TemplateThumbnail({ templateId }: TemplateThumbnailProps) {
     return (
-        <div className="w-full h-full relative overflow-hidden bg-white pdf-paper select-none pointer-events-none">
+        <div className="w-full relative overflow-hidden bg-white pdf-paper select-none pointer-events-none">
             <PDFThumbnail templateId={templateId} />
         </div>
     );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo, useCallback } from 'react';
+import { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
 import { pdf } from '@react-pdf/renderer';
 import equal from 'fast-deep-equal';
 import { useResumeStore } from '../../store';
@@ -11,12 +11,12 @@ import { compileLatexViaApi } from '../../lib/latexApiCompiler';
 import type { TemplateId, DocumentType } from '../../types';
 import { generateDocumentTitle, generateDocumentFileName } from '../../lib/documentNaming';
 import {
-    Download, Printer, ZoomIn, ZoomOut, Maximize, RotateCw,
-    ChevronLeft, ChevronRight, Info, PanelLeft, Search, X
+    Download, Printer, ZoomIn, ZoomOut, Maximize,
+    ChevronLeft, ChevronRight, Info, PanelLeft, X
 } from 'lucide-react';
 
 /* ──────────────────────────────────────
-   Types & Helpers
+   Helpers
    ────────────────────────────────────── */
 
 interface PDFPreviewProps {
@@ -42,7 +42,16 @@ async function getPdfjsLib() {
 }
 
 /* ──────────────────────────────────────
-   Component
+   Native PDF Preview — Custom Themed Toolbar
+   
+   Uses browser's built-in PDF renderer via <iframe> for:
+     • Perfect text selection
+     • Crisp vector rendering at any zoom
+     • Clickable links
+     • Ctrl+scroll zoom (handled natively inside iframe)
+   
+   Native toolbar hidden with #toolbar=0.
+   Our zoom buttons reload the iframe with #zoom=X.
    ────────────────────────────────────── */
 
 export const PDFPreview = memo(function PDFPreview({ templateId, documentType }: PDFPreviewProps) {
@@ -50,44 +59,26 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     const { coverLetterData } = useCoverLetterStore();
     const { customTemplates } = useCustomTemplateStore();
 
-    // PDF blob
+    // PDF generation
     const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const previousDataRef = useRef<unknown>(null);
     const generationRef = useRef(0);
 
-    // Viewer state
-    const [scale, setScale] = useState<number | null>(null); // null = auto fit-to-width
-    const [rotation, setRotation] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
+    // Viewer state — zoom=0 means "fit to width"
+    const [zoom, setZoom] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
 
     // UI panels
     const [showThumbnails, setShowThumbnails] = useState(false);
-    const [showSearch, setShowSearch] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
     const [showProperties, setShowProperties] = useState(false);
     const [pdfMetadata, setPdfMetadata] = useState<Record<string, string>>({});
-
-    // Thumbnails
     const [thumbnails, setThumbnails] = useState<string[]>([]);
 
-    // Dark mode
-    const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
-    useEffect(() => {
-        const obs = new MutationObserver(() =>
-            setDarkMode(document.documentElement.classList.contains('dark'))
-        );
-        obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        return () => obs.disconnect();
-    }, []);
-
-    // Refs
-    const containerRef = useRef<HTMLDivElement>(null);
-    const pdfDocRef = useRef<any>(null);
-
-    const effectiveScale = scale ?? 1.0;
+    const iframeRef = useRef<HTMLIFrameElement>(null);
 
     const downloadFileName = generateDocumentFileName({
         userName: resumeData.basics.name || '',
@@ -124,7 +115,6 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 previousDataRef.current = currentState;
             } catch (err) {
                 if (gen !== generationRef.current) return;
-                console.error('[PDFPreview] Generation failed:', err);
                 setError(err instanceof Error ? err.message : 'PDF generation failed');
             } finally {
                 if (gen === generationRef.current) setIsGenerating(false);
@@ -133,27 +123,28 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resumeData, templateId, documentType, coverLetterData, customLatexSource, customTemplates, latexFormatting]);
 
-    /* ── Render PDF pages to canvas with TextLayer ── */
+    /* ── Create / revoke blob URL ── */
+    useEffect(() => {
+        if (!pdfBlob) { setPdfUrl(null); return; }
+        const url = URL.createObjectURL(pdfBlob);
+        setPdfUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [pdfBlob]);
+
+    /* ── Metadata + thumbnails ── */
     useEffect(() => {
         if (!pdfBlob) return;
         let cancelled = false;
-
         (async () => {
             try {
                 const pdfjsLib = await getPdfjsLib();
-                const arrayBuffer = await pdfBlob.arrayBuffer();
-                const doc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const ab = await pdfBlob.arrayBuffer();
+                const doc = await pdfjsLib.getDocument({ data: ab }).promise;
                 if (cancelled) { doc.destroy(); return; }
-
-                // Cleanup previous doc
-                if (pdfDocRef.current) {
-                    try { pdfDocRef.current.destroy(); } catch { /* */ }
-                }
-                pdfDocRef.current = doc;
-
                 setTotalPages(doc.numPages);
+                setCurrentPage(1);
 
-                // Get metadata
+                // Metadata
                 try {
                     const meta = await doc.getMetadata();
                     const info: any = meta?.info || {};
@@ -163,279 +154,137 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                     if (info.Creator) md['Creator'] = info.Creator;
                     if (info.Producer) md['Producer'] = info.Producer;
                     md['Pages'] = String(doc.numPages);
+                    const p1 = await doc.getPage(1);
+                    const vp = p1.getViewport({ scale: 1 });
+                    md['Page Size'] = `${(vp.width / 72).toFixed(2)}" × ${(vp.height / 72).toFixed(2)}"`;
+                    if (!cancelled) setPdfMetadata(md);
+                } catch { /* */ }
 
-                    const page1 = await doc.getPage(1);
-                    const vp = page1.getViewport({ scale: 1 });
-                    const wIn = (vp.width / 72).toFixed(2);
-                    const hIn = (vp.height / 72).toFixed(2);
-                    md['Page Size'] = `${wIn}" × ${hIn}" (${Math.round(vp.width)} × ${Math.round(vp.height)} pts)`;
-                    setPdfMetadata(md);
-                } catch { /* ignore metadata errors */ }
-
-                // Calculate fit-to-width scale
-                if (scale === null && containerRef.current) {
-                    const page1 = await doc.getPage(1);
-                    const vp1 = page1.getViewport({ scale: 1, rotation });
-                    const containerWidth = containerRef.current.clientWidth - 40; // padding
-                    const fitScale = containerWidth / vp1.width;
-                    setScale(Math.min(Math.max(fitScale, 0.3), 3.0));
-                    return; // The scale change will re-trigger this effect
-                }
-
-                const container = containerRef.current;
-                if (!container || cancelled) return;
-
-                // Clear existing pages
-                container.innerHTML = '';
-
-                const dpr = window.devicePixelRatio || 1;
-
-                // Generate thumbnails
+                // Thumbnails
                 const thumbs: string[] = [];
-
                 for (let i = 1; i <= doc.numPages; i++) {
-                    const page = await doc.getPage(i);
-                    if (cancelled) return;
-
-                    const viewport = page.getViewport({ scale: effectiveScale, rotation });
-
-                    // Page wrapper
-                    const pageWrapper = document.createElement('div');
-                    pageWrapper.className = 'pdf-page-wrapper';
-                    pageWrapper.style.cssText = `
-                        position: relative;
-                        width: ${Math.floor(viewport.width)}px;
-                        height: ${Math.floor(viewport.height)}px;
-                        margin: 12px auto;
-                        box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-                        background: white;
-                        overflow: hidden;
-                    `;
-                    pageWrapper.dataset.pageNum = String(i);
-
-                    // Canvas
-                    const canvas = document.createElement('canvas');
-                    canvas.width = Math.floor(viewport.width * dpr);
-                    canvas.height = Math.floor(viewport.height * dpr);
-                    canvas.style.width = `${Math.floor(viewport.width)}px`;
-                    canvas.style.height = `${Math.floor(viewport.height)}px`;
-                    const ctx = canvas.getContext('2d');
-                    if (ctx) {
-                        const transform = dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] as [number, number, number, number, number, number] : undefined;
-                        await page.render({ canvasContext: ctx, canvas, viewport, transform } as any).promise;
-                    }
-                    pageWrapper.appendChild(canvas);
-
-                    // TextLayer — for text selection
+                    if (cancelled) break;
                     try {
-                        const textContent = await page.getTextContent();
-                        const textDiv = document.createElement('div');
-                        textDiv.className = 'pdf-text-layer';
-                        textDiv.style.cssText = `
-                            position: absolute;
-                            top: 0; left: 0;
-                            width: ${Math.floor(viewport.width)}px;
-                            height: ${Math.floor(viewport.height)}px;
-                            overflow: hidden;
-                            line-height: 1.0;
-                            opacity: 1;
-                        `;
-
-                        const TextLayerCls = pdfjsLib.TextLayer;
-                        if (TextLayerCls) {
-                            const tl = new TextLayerCls({
-                                textContentSource: textContent,
-                                container: textDiv,
-                                viewport: viewport,
-                            });
-                            await tl.render();
+                        const page = await doc.getPage(i);
+                        const vp = page.getViewport({ scale: 0.25 });
+                        const c = document.createElement('canvas');
+                        c.width = vp.width; c.height = vp.height;
+                        const ctx = c.getContext('2d');
+                        if (ctx) {
+                            await page.render({ canvasContext: ctx, canvas: c, viewport: vp } as any).promise;
+                            thumbs.push(c.toDataURL('image/png'));
                         }
-                        pageWrapper.appendChild(textDiv);
-                    } catch (e) {
-                        console.warn('[PDFPreview] TextLayer failed for page', i, e);
-                    }
-
-                    // AnnotationLayer — for clickable links
-                    try {
-                        const annotations = await page.getAnnotations();
-                        if (annotations.length > 0) {
-                            const linkDiv = document.createElement('div');
-                            linkDiv.className = 'pdf-link-layer';
-                            linkDiv.style.cssText = `
-                                position: absolute;
-                                top: 0; left: 0;
-                                width: ${Math.floor(viewport.width)}px;
-                                height: ${Math.floor(viewport.height)}px;
-                                overflow: hidden;
-                            `;
-
-                            for (const ann of annotations) {
-                                if (ann.subtype !== 'Link' || !ann.url) continue;
-                                const rect = ann.rect;
-                                if (!rect || rect.length < 4) continue;
-
-                                // Convert PDF coordinates to viewport coordinates
-                                const [x1, y1, x2, y2] = pdfjsLib.Util.normalizeRect(
-                                    viewport.convertToViewportRectangle(rect)
-                                );
-
-                                const a = document.createElement('a');
-                                a.href = ann.url;
-                                a.target = '_blank';
-                                a.rel = 'noopener noreferrer';
-                                a.title = ann.url;
-                                a.style.cssText = `
-                                    position: absolute;
-                                    left: ${x1}px;
-                                    top: ${y1}px;
-                                    width: ${x2 - x1}px;
-                                    height: ${y2 - y1}px;
-                                    cursor: pointer;
-                                `;
-                                linkDiv.appendChild(a);
-                            }
-                            pageWrapper.appendChild(linkDiv);
-                        }
-                    } catch (e) {
-                        console.warn('[PDFPreview] Annotations failed for page', i, e);
-                    }
-
-                    container.appendChild(pageWrapper);
-
-                    // Generate thumbnail
-                    try {
-                        const thumbScale = 0.25;
-                        const thumbVP = page.getViewport({ scale: thumbScale, rotation });
-                        const thumbCanvas = document.createElement('canvas');
-                        thumbCanvas.width = thumbVP.width;
-                        thumbCanvas.height = thumbVP.height;
-                        const thumbCtx = thumbCanvas.getContext('2d');
-                        if (thumbCtx) {
-                            await page.render({ canvasContext: thumbCtx, canvas: thumbCanvas, viewport: thumbVP } as any).promise;
-                            thumbs.push(thumbCanvas.toDataURL('image/png'));
-                        }
-                    } catch { /* thumbnail generation optional */ }
+                    } catch { /* */ }
                 }
-
                 if (!cancelled) setThumbnails(thumbs);
-
-            } catch (err) {
-                if (!cancelled) {
-                    console.error('[PDFPreview] Render error:', err);
-                    setError(err instanceof Error ? err.message : 'Render failed');
-                }
-            }
+                doc.destroy();
+            } catch { /* */ }
         })();
-
         return () => { cancelled = true; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pdfBlob, effectiveScale, rotation]);
+    }, [pdfBlob]);
 
-    /* ── Page tracking via scroll ── */
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    /* ── Iframe src ──
+       The iframe only remounts when pdfUrl changes (new PDF content).
+       Zoom and page changes navigate imperatively via location.replace
+       to avoid destroying/recreating the iframe (which causes flicker). */
+    const initialSrc = useMemo(() => {
+        if (!pdfUrl) return '';
+        return `${pdfUrl}#toolbar=0&navpanes=0&view=FitH`;
+    }, [pdfUrl]);
+
+    /* Navigate imperatively on zoom/page changes (no iframe remount) */
     useEffect(() => {
-        const el = scrollContainerRef.current;
-        if (!el) return;
-        const onScroll = () => {
-            const wrappers = el.querySelectorAll('.pdf-page-wrapper');
-            const scrollTop = el.scrollTop + el.clientHeight / 3;
-            for (let i = 0; i < wrappers.length; i++) {
-                const wrapper = wrappers[i] as HTMLElement;
-                if (wrapper.offsetTop + wrapper.offsetHeight > scrollTop) {
-                    setCurrentPage(i + 1);
-                    break;
-                }
-            }
-        };
-        el.addEventListener('scroll', onScroll, { passive: true });
-        return () => el.removeEventListener('scroll', onScroll);
-    }, [totalPages]);
-
-    /* ── Zoom ── */
-    const handleZoomIn = useCallback(() => setScale(s => Math.min((s ?? 1) + 0.15, 4.0)), []);
-    const handleZoomOut = useCallback(() => setScale(s => Math.max((s ?? 1) - 0.15, 0.25)), []);
-    const handleFitToWidth = useCallback(() => setScale(null), []);
-
-    /* ── Rotate ── */
-    const handleRotate = useCallback(() => setRotation(r => (r + 90) % 360), []);
-
-    /* ── Navigate pages ── */
-    const goToPage = useCallback((page: number) => {
-        const el = scrollContainerRef.current;
-        if (!el) return;
-        const wrappers = el.querySelectorAll('.pdf-page-wrapper');
-        if (page >= 1 && page <= wrappers.length) {
-            (wrappers[page - 1] as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setCurrentPage(page);
+        const iframe = iframeRef.current;
+        if (!iframe || !pdfUrl) return;
+        const parts = ['toolbar=0', 'navpanes=0'];
+        if (zoom === 0) parts.push('view=FitH');
+        else parts.push(`zoom=${zoom}`);
+        if (currentPage > 1) parts.push(`page=${currentPage}`);
+        const newSrc = `${pdfUrl}#${parts.join('&')}`;
+        try {
+            iframe.contentWindow?.location.replace(newSrc);
+        } catch {
+            iframe.src = newSrc;
         }
+    }, [pdfUrl, zoom, currentPage]);
+
+    /* ── Zoom controls ── */
+    const handleZoomIn = useCallback(() => {
+        setZoom(z => {
+            const cur = z === 0 ? 100 : z;
+            return Math.min(cur + 25, 500);
+        });
     }, []);
+    const handleZoomOut = useCallback(() => {
+        setZoom(z => {
+            const cur = z === 0 ? 100 : z;
+            return Math.max(cur - 25, 25);
+        });
+    }, []);
+    const handleFitToWidth = useCallback(() => setZoom(0), []);
+
+    /* ── Page nav ── */
+    const goToPage = useCallback((p: number) => {
+        if (p < 1 || p > totalPages) return;
+        setCurrentPage(p);
+    }, [totalPages]);
 
     /* ── Download ── */
     const handleDownload = useCallback(() => {
-        if (!pdfBlob) return;
-        const url = URL.createObjectURL(pdfBlob);
+        if (!pdfUrl) return;
         const a = document.createElement('a');
-        a.href = url;
+        a.href = pdfUrl;
         a.download = `${downloadFileName}.pdf`;
         a.click();
-        URL.revokeObjectURL(url);
-    }, [pdfBlob, downloadFileName]);
+    }, [pdfUrl, downloadFileName]);
 
     /* ── Print ── */
     const handlePrint = useCallback(() => {
         if (!pdfBlob) return;
         const url = URL.createObjectURL(pdfBlob);
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url;
-        document.body.appendChild(iframe);
-        iframe.onload = () => {
-            try {
-                iframe.contentWindow?.print();
-            } catch {
-                window.open(url, '_blank');
-            }
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                URL.revokeObjectURL(url);
-            }, 3000);
+        const f = document.createElement('iframe');
+        f.style.display = 'none';
+        f.src = url;
+        document.body.appendChild(f);
+        f.onload = () => {
+            try { f.contentWindow?.print(); } catch { window.open(url, '_blank'); }
+            setTimeout(() => { document.body.removeChild(f); URL.revokeObjectURL(url); }, 3000);
         };
     }, [pdfBlob]);
 
-    /* ── Theme-aware classes ── */
-    const toolbarBg = darkMode ? 'bg-[--sidebar-bg]' : 'bg-slate-100';
-    const toolbarBorder = darkMode ? 'border-[--sidebar-border]' : 'border-slate-300';
-    const textP = darkMode ? 'text-white' : 'text-slate-900';
-    const textM = darkMode ? 'text-slate-400' : 'text-slate-500';
-    const btnCls = darkMode
-        ? 'bg-slate-700 text-white hover:bg-slate-600 border border-slate-600'
-        : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-300';
-    const bodyBg = darkMode ? 'bg-slate-800' : 'bg-slate-300';
-    const scrollBg = darkMode ? 'bg-slate-900' : 'bg-slate-200';
+    /* ── Theme styles ── */
+    const toolbarBg: React.CSSProperties = { backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' };
+    const txt: React.CSSProperties = { color: 'var(--main-text)' };
+    const txtM: React.CSSProperties = { color: 'var(--main-text-secondary)' };
+    const btn: React.CSSProperties = { backgroundColor: 'var(--input-bg)', color: 'var(--main-text)', borderColor: 'var(--input-border)' };
+    const btnOn: React.CSSProperties = { ...btn, outline: '2px solid var(--accent)', outlineOffset: '-2px' };
 
-    /* ── Error state ── */
+    const zoomLabel = zoom === 0 ? 'Fit' : `${zoom}%`;
+
+    /* ── Error ── */
     if (error && !pdfBlob) {
         return (
-            <div className={`w-full h-full ${bodyBg} flex items-center justify-center p-8`}>
+            <div className="w-full h-full flex items-center justify-center p-8" style={{ backgroundColor: 'var(--card-bg)' }}>
                 <div className="max-w-lg text-center">
                     <h3 className="text-lg font-bold text-red-500 mb-2">
                         {isLatexTemplate(templateId) ? 'LaTeX Compilation Error' : 'PDF Generation Error'}
                     </h3>
                     <pre className="text-xs text-left bg-red-900/30 border-2 border-red-800 p-4 overflow-auto max-h-48 text-red-300 mb-4 whitespace-pre-wrap">{error}</pre>
                     <button onClick={() => { setError(null); previousDataRef.current = null; }}
-                        className={`${btnCls} px-4 py-2 text-sm font-bold`}>Retry</button>
+                        className="px-4 py-2 text-sm font-bold border" style={btn}>Retry</button>
                 </div>
             </div>
         );
     }
 
-    /* ── Loading state ── */
+    /* ── Loading ── */
     if (!pdfBlob) {
         return (
-            <div className={`w-full h-full ${bodyBg} flex items-center justify-center`}>
+            <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: 'var(--card-bg)' }}>
                 <div className="text-center">
-                    <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
-                    <p className={`text-sm font-semibold ${textM}`}>
+                    <div className="animate-spin h-10 w-10 border-4 border-t-transparent rounded-full mx-auto mb-4"
+                        style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+                    <p className="text-sm font-semibold" style={txtM}>
                         {isLatexTemplate(templateId) ? 'Compiling with pdfTeX...' : 'Generating preview...'}
                     </p>
                 </div>
@@ -443,129 +292,141 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
         );
     }
 
-    const zoomPercent = Math.round(effectiveScale * 100);
-
     return (
-        <div className={`w-full h-full flex flex-col ${darkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
-            {/* ── Toolbar ── */}
-            <div className={`flex items-center justify-between px-2 py-1.5 border-b-2 flex-shrink-0 ${toolbarBg} ${toolbarBorder}`}>
+        <div className="w-full h-full flex flex-col" style={{ backgroundColor: 'var(--main-bg)' }}>
+            {/* ━━ Toolbar ━━ */}
+            <div className="flex items-center justify-between px-2 py-1.5 border-b-2 flex-shrink-0 gap-1" style={toolbarBg}>
                 {/* Left: filename + page nav */}
-                <div className="flex items-center gap-2 min-w-0">
-                    <span className={`text-xs font-semibold truncate max-w-[160px] ${textP}`} title={`${downloadFileName}.pdf`}>
+                <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-xs font-semibold truncate max-w-[120px]" style={txt}
+                        title={`${downloadFileName}.pdf`}>
                         {downloadFileName}.pdf
                     </span>
                     {isGenerating && (
-                        <div className="animate-spin h-3.5 w-3.5 border-2 border-blue-500 border-t-transparent rounded-full" />
+                        <div className="animate-spin h-3.5 w-3.5 border-2 border-t-transparent rounded-full flex-shrink-0"
+                            style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
                     )}
                     {totalPages > 0 && (
-                        <div className="flex items-center gap-0.5 ml-1">
+                        <div className="flex items-center gap-0.5 flex-shrink-0">
                             <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage <= 1}
-                                className={`${btnCls} p-1 disabled:opacity-30`}><ChevronLeft size={13} /></button>
-                            <span className={`text-[11px] font-semibold px-1 ${textP}`}>
-                                {currentPage} / {totalPages}
+                                className="p-1 border transition-colors disabled:opacity-30" style={btn}>
+                                <ChevronLeft size={12} />
+                            </button>
+                            <span className="text-[11px] font-semibold px-1 tabular-nums" style={txt}>
+                                {currentPage}/{totalPages}
                             </span>
                             <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage >= totalPages}
-                                className={`${btnCls} p-1 disabled:opacity-30`}><ChevronRight size={13} /></button>
+                                className="p-1 border transition-colors disabled:opacity-30" style={btn}>
+                                <ChevronRight size={12} />
+                            </button>
                         </div>
                     )}
                 </div>
 
-                {/* Center: zoom + rotate */}
+                {/* Center: zoom + fit */}
                 <div className="flex items-center gap-1">
-                    <button onClick={() => setShowSearch(v => !v)} className={`${btnCls} p-1.5`} title="Search"><Search size={13} /></button>
-                    <div className="w-px h-5 bg-slate-500/30 mx-0.5" />
-                    <button onClick={handleZoomOut} className={`${btnCls} p-1.5`} title="Zoom Out"><ZoomOut size={13} /></button>
-                    <span className={`text-[11px] font-bold min-w-[40px] text-center ${textP}`}>{zoomPercent}%</span>
-                    <button onClick={handleZoomIn} className={`${btnCls} p-1.5`} title="Zoom In"><ZoomIn size={13} /></button>
-                    <button onClick={handleFitToWidth} className={`${btnCls} p-1.5`} title="Fit to Width"><Maximize size={13} /></button>
-                    <div className="w-px h-5 bg-slate-500/30 mx-0.5" />
-                    <button onClick={handleRotate} className={`${btnCls} p-1.5`} title="Rotate"><RotateCw size={13} /></button>
+                    <button onClick={handleZoomOut} className="p-1.5 border transition-colors" style={btn} title="Zoom Out">
+                        <ZoomOut size={13} />
+                    </button>
+                    <span className="text-[11px] font-bold min-w-[36px] text-center select-none tabular-nums" style={txt}>
+                        {zoomLabel}
+                    </span>
+                    <button onClick={handleZoomIn} className="p-1.5 border transition-colors" style={btn} title="Zoom In">
+                        <ZoomIn size={13} />
+                    </button>
+                    <button onClick={handleFitToWidth} className="p-1.5 border transition-colors"
+                        style={zoom === 0 ? btnOn : btn} title="Fit to Width">
+                        <Maximize size={13} />
+                    </button>
                 </div>
 
-                {/* Right: tools + download */}
+                {/* Right: thumbnails, properties, print, download */}
                 <div className="flex items-center gap-1">
-                    <button onClick={() => setShowThumbnails(v => !v)}
-                        className={`${btnCls} p-1.5 ${showThumbnails ? 'ring-2 ring-blue-500' : ''}`}
-                        title="Thumbnails"><PanelLeft size={13} /></button>
-                    <button onClick={() => setShowProperties(v => !v)}
-                        className={`${btnCls} p-1.5 ${showProperties ? 'ring-2 ring-blue-500' : ''}`}
-                        title="Properties"><Info size={13} /></button>
-                    <div className="w-px h-5 bg-slate-500/30 mx-0.5" />
-                    <button onClick={handlePrint} className={`${btnCls} p-1.5`} title="Print"><Printer size={13} /></button>
+                    <button onClick={() => setShowThumbnails(v => !v)} className="p-1.5 border transition-colors"
+                        style={showThumbnails ? btnOn : btn} title="Thumbnails">
+                        <PanelLeft size={13} />
+                    </button>
+                    <button onClick={() => setShowProperties(v => !v)} className="p-1.5 border transition-colors"
+                        style={showProperties ? btnOn : btn} title="Document Properties">
+                        <Info size={13} />
+                    </button>
+                    <div className="w-px h-5 mx-0.5" style={{ backgroundColor: 'var(--card-border)' }} />
+                    <button onClick={handlePrint} className="p-1.5 border transition-colors" style={btn} title="Print">
+                        <Printer size={13} />
+                    </button>
                     <button onClick={handleDownload} className="btn-accent flex items-center gap-1 px-2 py-1.5 text-xs font-bold"
-                        title="Download"><Download size={13} /></button>
+                        title="Download PDF">
+                        <Download size={13} />
+                    </button>
                 </div>
             </div>
 
-            {/* ── Search bar ── */}
-            {showSearch && (
-                <div className={`flex items-center gap-2 px-3 py-2 border-b ${toolbarBg} ${toolbarBorder}`}>
-                    <Search size={14} className={textM} />
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        placeholder="Search in document..."
-                        className={`flex-1 text-sm px-2 py-1 border ${darkMode ? 'bg-slate-800 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
-                        autoFocus
-                    />
-                    <button onClick={() => { setShowSearch(false); setSearchQuery(''); }}
-                        className={`${btnCls} p-1`}><X size={14} /></button>
-                </div>
-            )}
-
-            {/* ── Error banner (stale data + error) ── */}
+            {/* ━━ Error banner (stale) ━━ */}
             {error && (
                 <div className="bg-red-900/80 border-b-2 border-red-800 p-2 text-xs text-red-200 text-center flex-shrink-0">
                     <strong>Error:</strong> {error}
                     <button onClick={() => { setError(null); previousDataRef.current = null; }}
-                        className="ml-2 underline hover:no-underline text-red-300">Retry</button>
+                        className="ml-2 underline text-red-300">Retry</button>
                 </div>
             )}
 
-            {/* ── Main body: thumbnails sidebar + pages ── */}
+            {/* ━━ Body: thumbnails + PDF ━━ */}
             <div className="flex-1 flex overflow-hidden">
-                {/* Thumbnails sidebar */}
+                {/* Thumbnail sidebar */}
                 {showThumbnails && (
-                    <div className={`w-36 flex-shrink-0 border-r overflow-y-auto p-2 space-y-2 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-300'}`}>
-                        {thumbnails.map((thumb, idx) => (
-                            <button key={idx} onClick={() => goToPage(idx + 1)}
-                                className={`block w-full border-2 transition-all ${currentPage === idx + 1 ? 'border-blue-500 shadow-lg' : darkMode ? 'border-slate-600 hover:border-slate-400' : 'border-slate-300 hover:border-slate-400'}`}>
-                                <img src={thumb} alt={`Page ${idx + 1}`} className="w-full" />
-                                <div className={`text-[9px] font-bold text-center py-0.5 ${textM}`}>{idx + 1}</div>
+                    <div className="w-36 flex-shrink-0 border-r overflow-y-auto p-2 space-y-2"
+                        style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
+                        {thumbnails.map((src, i) => (
+                            <button key={i} onClick={() => goToPage(i + 1)}
+                                className="block w-full border-2 transition-all"
+                                style={{ borderColor: currentPage === i + 1 ? 'var(--accent)' : 'var(--card-border)' }}>
+                                <img src={src} alt={`Page ${i + 1}`} className="w-full" />
+                                <div className="text-[9px] font-bold text-center py-0.5" style={txtM}>{i + 1}</div>
                             </button>
                         ))}
                         {thumbnails.length === 0 && totalPages > 0 && (
-                            <div className={`text-[10px] text-center py-4 ${textM}`}>Loading thumbnails...</div>
+                            <div className="text-[10px] text-center py-4" style={txtM}>Loading...</div>
                         )}
                     </div>
                 )}
 
-                {/* PDF pages */}
-                <div ref={scrollContainerRef} className={`flex-1 overflow-auto ${scrollBg}`}>
-                    <div ref={containerRef} className="py-4" />
+                {/* Native PDF iframe — full size, no CSS transforms */}
+                <div className="flex-1 overflow-hidden">
+                    {pdfUrl && (
+                        <iframe
+                            key={pdfUrl}
+                            ref={iframeRef}
+                            src={initialSrc}
+                            className="w-full h-full border-0"
+                            title="PDF Preview"
+                        />
+                    )}
                 </div>
             </div>
 
-            {/* ── Properties modal ── */}
+            {/* ━━ Properties modal ━━ */}
             {showProperties && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowProperties(false)}>
-                    <div className={`${darkMode ? 'bg-slate-800 text-white border-slate-600' : 'bg-white text-slate-900 border-slate-300'} border-2 shadow-2xl max-w-sm w-full mx-4`}
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                    onClick={() => setShowProperties(false)}>
+                    <div className="border-2 shadow-2xl max-w-sm w-full mx-4"
+                        style={{ backgroundColor: 'var(--card-bg)', color: 'var(--main-text)', borderColor: 'var(--card-border)' }}
                         onClick={e => e.stopPropagation()}>
-                        <div className={`flex items-center justify-between px-4 py-3 border-b ${darkMode ? 'border-slate-600' : 'border-slate-200'}`}>
+                        <div className="flex items-center justify-between px-4 py-3 border-b"
+                            style={{ borderColor: 'var(--card-border)' }}>
                             <h3 className="font-bold text-sm">Document Properties</h3>
-                            <button onClick={() => setShowProperties(false)}
-                                className={`${btnCls} p-1`}><X size={14} /></button>
+                            <button onClick={() => setShowProperties(false)} className="p-1 border transition-colors" style={btn}>
+                                <X size={14} />
+                            </button>
                         </div>
                         <div className="p-4 space-y-2">
                             {Object.entries(pdfMetadata).map(([k, v]) => (
                                 <div key={k} className="flex justify-between text-xs">
-                                    <span className={`font-semibold ${textM}`}>{k}:</span>
-                                    <span className={`text-right max-w-[200px] truncate ${textP}`} title={v}>{v}</span>
+                                    <span className="font-semibold" style={txtM}>{k}:</span>
+                                    <span className="text-right max-w-[200px] truncate" style={txt} title={v}>{v}</span>
                                 </div>
                             ))}
                             {Object.keys(pdfMetadata).length === 0 && (
-                                <p className={`text-xs ${textM}`}>No metadata available.</p>
+                                <p className="text-xs" style={txtM}>No metadata available.</p>
                             )}
                         </div>
                     </div>
