@@ -281,94 +281,38 @@ input::placeholder {
 }
 
 /* ==========================================
-   PDF TEXT LAYER - enables text selection
+   THEME CSS VARIABLES (set by JS applyTheme)
    ========================================== */
 
-.pdf-text-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  line-height: 1;
-  z-index: 2;
-  user-select: text;
-  -webkit-user-select: text;
+:root {
+  --accent: #2563eb;
+  --accent-hover: #3b82f6;
+  --accent-light: #dbeafe;
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #f8fafc;
+  --sidebar-border: #1e293b;
+  --sidebar-hover: #1e293b;
 }
 
-.pdf-text-layer span {
-  color: transparent;
-  position: absolute;
-  white-space: pre;
-  cursor: text;
-  transform-origin: 0% 0%;
-  pointer-events: all;
+/* ==========================================
+   THEME BUTTON UTILITIES
+   ========================================== */
+
+.btn-accent {
+  background-color: var(--accent) !important;
+  color: #ffffff !important;
+  transition: background-color 0.15s, opacity 0.15s;
 }
 
-.pdf-text-layer span::selection {
-  background: rgba(0, 100, 200, 0.35);
-  color: transparent;
+.btn-accent:hover {
+  background-color: var(--accent-hover) !important;
 }
 
-.pdf-text-layer span::-moz-selection {
-  background: rgba(0, 100, 200, 0.35);
-  color: transparent;
-}
-
-/* PDF Link/Annotation layer */
-.pdf-link-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  z-index: 3;
-}
-
-.pdf-link-layer a {
-  display: block;
-  opacity: 0;
-  transition: opacity 0.15s;
-}
-
-.pdf-link-layer a:hover {
-  opacity: 1;
-  background: rgba(0, 100, 200, 0.08);
-  outline: 2px solid rgba(0, 100, 200, 0.4);
-}
-
-/* pdfjs built-in TextLayer class name (if used) */
-.textLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  z-index: 2;
-  user-select: text;
-  -webkit-user-select: text;
-}
-
-.textLayer :is(span, br) {
-  color: transparent;
-  position: absolute;
-  white-space: pre;
-  cursor: text;
-  transform-origin: 0% 0%;
-}
-
-.textLayer span::selection {
-  background: rgba(0, 100, 200, 0.35);
-  color: transparent;
-}
-
-.textLayer span::-moz-selection {
-  background: rgba(0, 100, 200, 0.35);
-  color: transparent;
-}
+/* Text color utilities */
+.text-accent { color: var(--accent) !important; }
+.text-accent-light { color: var(--accent-hover) !important; }
+.bg-accent { background-color: var(--accent) !important; }
+.border-accent { border-color: var(--accent) !important; }
 
 @media print {
   @page {

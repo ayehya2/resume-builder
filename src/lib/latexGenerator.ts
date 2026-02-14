@@ -211,7 +211,7 @@ ${bullets.map(b => `  \\item ${formatLatexText(b)}`).join('\n')}
 \\end{itemize}`
                 : '';
 
-            return `\\textbf{${escapeLatex(job.position || '')}} -- \\textit{${escapeLatex(job.company || '')}} \\hfill ${escapeLatex(job.startDate || '')} -- ${escapeLatex(job.endDate || 'Present')}
+            return `\\noindent \\textbf{${escapeLatex(job.position || '')}} -- \\textit{${escapeLatex(job.company || '')}} \\hfill ${escapeLatex(job.startDate || '')} -- ${escapeLatex(job.endDate || 'Present')}
 ${job.location ? `\\\\ ${escapeLatex(job.location)}` : ''}
 ${bulletList}`;
         }).join(`\n\\vspace{${cfg.itemSep}}\n`)}
@@ -222,15 +222,27 @@ ${bulletList}`;
     const educationSection = data.education && data.education.length > 0
         ? `\\section*{Education}
 ${data.education.map(edu => {
-            const parts: string[] = [];
             const degreeField = [edu.degree, edu.field].filter(Boolean).join(', ');
-            parts.push(`\\textbf{${escapeLatex(degreeField || '')}} -- ${escapeLatex(edu.institution || '')} \\hfill ${escapeLatex(edu.graduationDate || '')}`);
+            const institution = edu.institution || '';
 
-            if (edu.location) parts.push(`\\\\ ${escapeLatex(edu.location)}`);
-            if (edu.gpa) parts.push(`\\\\ GPA: ${escapeLatex(edu.gpa)}`);
-            if (edu.description) parts.push(`\\\\ ${formatLatexText(edu.description)}`);
+            // Header line: Degree, Field — Institution \hfill Date
+            let header = '';
+            if (degreeField && institution) {
+                header = `\\textbf{${escapeLatex(degreeField)}} -- \\textit{${escapeLatex(institution)}} \\hfill ${escapeLatex(edu.graduationDate || '')}`;
+            } else if (institution) {
+                header = `\\textbf{${escapeLatex(institution)}} \\hfill ${escapeLatex(edu.graduationDate || '')}`;
+            } else {
+                header = `\\textbf{${escapeLatex(degreeField)}} \\hfill ${escapeLatex(edu.graduationDate || '')}`;
+            }
 
-            return parts.join('\n');
+            const details: string[] = [];
+            if (edu.location) details.push(escapeLatex(edu.location));
+            if (edu.gpa) details.push(`GPA: ${escapeLatex(edu.gpa)}`);
+            const detailLine = details.length > 0 ? `\\\\ ${details.join(' \\textbar{} ')}` : '';
+
+            const descLine = edu.description ? `\\\\ ${formatLatexText(edu.description)}` : '';
+
+            return `\\noindent ${header}${detailLine}${descLine}`;
         }).join(`\n\\vspace{${cfg.itemSep}}\n`)}
 `
         : '';

@@ -33,6 +33,7 @@ import { getPDFTemplateComponent, isLatexTemplate } from './lib/pdfTemplateMap'
 import { compileLatexViaApi } from './lib/latexApiCompiler'
 import { generateLaTeXFromData } from './lib/latexGenerator'
 import { useCoverLetterStore } from './lib/coverLetterStore'
+import { useThemeStore, applyTheme, THEMES, THEME_MAP } from './lib/themeStore'
 import { useCustomTemplateStore } from './lib/customTemplateStore'
 import { getEffectiveResumeData } from './lib/templateResolver'
 import { generateDocumentFileName, generateDocumentTitle } from './lib/documentNaming'
@@ -118,13 +119,13 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
   return (
     <button
       ref={setNodeRef}
-      style={style}
+      style={{ ...style, ...(isActive ? { backgroundColor: 'var(--sidebar-hover)' } : {}) }}
       onClick={onClick}
       className={`
         w-full flex items-center gap-3 px-4 py-3 font-semibold transition-all border-l-4 cursor-pointer
         ${isActive
-          ? 'bg-slate-900 dark:bg-slate-950 !text-white border-white dark:border-white'
-          : 'bg-transparent !text-white border-transparent hover:bg-slate-900/40'
+          ? 'border-white'
+          : 'border-transparent'
         }
       `}
     >
@@ -238,6 +239,17 @@ function App() {
     }
   }, [darkMode]);
 
+  // Apply theme CSS custom properties + sync dark mode from theme
+  const { themeId, setTheme } = useThemeStore();
+  useEffect(() => {
+    const { isDark } = applyTheme(themeId);
+    if (isDark !== darkMode) {
+      setDarkMode(isDark);
+      saveDarkMode(isDark);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [themeId]);
+
   // Persist new settings
   useEffect(() => { saveContinuousMode(continuousMode); }, [continuousMode]);
   useEffect(() => { saveShowResume(showResume); }, [showResume]);
@@ -281,12 +293,14 @@ function App() {
     }
   }, [showResume, showCoverLetter]);
 
-  // Toggle dark mode
+  // Toggle dark mode (switches between light/dark base themes)
   const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    saveDarkMode(newMode);
-    document.documentElement.classList.toggle('dark', newMode);
+    const currentTheme = THEME_MAP[themeId];
+    if (currentTheme?.isDark) {
+      setTheme('light');
+    } else {
+      setTheme('dark');
+    }
   };
 
   // Handle resume/cover letter toggle with "at least one" constraint
@@ -725,14 +739,14 @@ function App() {
                       {template.name}
                     </div>
                     <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id
-                      ? (darkMode ? 'text-blue-400' : 'text-blue-600')
+                      ? (darkMode ? 'text-accent-light' : 'text-accent')
                       : (darkMode ? 'text-slate-500' : 'text-slate-400')
                       }`}>
                       {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
                     </div>
                   </div>
                   {resumeData.selectedTemplate === template.id && (
-                    <div className={`${darkMode ? 'bg-blue-500 text-white' : 'bg-slate-900 text-white'} w-6 h-6 rounded-full flex items-center justify-center shadow-sm`}>
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
                       <Check size={14} strokeWidth={3} />
                     </div>
                   )}
@@ -749,8 +763,7 @@ function App() {
             <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>My Templates</h3>
             <button
               onClick={() => setShowCreateTemplate(!showCreateTemplate)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-slate-800 hover:bg-slate-700 text-white'
-                }`}
+              className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded"
             >
               <Plus size={14} />
               <span>New Template</span>
@@ -896,7 +909,7 @@ function App() {
                               {ct.name}
                             </div>
                           )}
-                          <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${isActive ? (darkMode ? 'text-blue-400' : 'text-blue-600') : (darkMode ? 'text-slate-500' : 'text-slate-400')
+                          <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${isActive ? (darkMode ? 'text-accent-light' : 'text-accent') : (darkMode ? 'text-slate-500' : 'text-slate-400')
                             }`}>
                             Based on {baseName}
                           </div>
@@ -904,7 +917,7 @@ function App() {
 
                         <div className="flex items-center gap-1 flex-shrink-0">
                           {isActive && (
-                            <div className="bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
+                            <div className="text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: 'var(--accent)' }}>
                               <Check size={12} strokeWidth={3} />
                             </div>
                           )}
@@ -1029,11 +1042,11 @@ function App() {
   return (
     <div className={`min-h-screen flex ${darkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
       <div className="flex-1 flex w-full">
-        <aside className={`w-56 flex-shrink-0 border-r-2 text-white ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-600 border-slate-700'}`}>
+        <aside className="w-56 flex-shrink-0 border-r-2" style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)', borderColor: 'var(--sidebar-border)' }}>
           <div className="sticky top-0 h-screen flex flex-col">
             {/* Document Type Toggles */}
-            <div className={`px-4 py-3 border-b ${darkMode ? 'border-slate-700' : 'border-slate-500'}`}>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">Document Type</div>
+            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
+              <div className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-2">Document Type</div>
               <label className="flex items-center gap-2.5 cursor-pointer mb-2 group">
                 <div className="relative">
                   <input
@@ -1042,10 +1055,10 @@ function App() {
                     onChange={handleToggleResume}
                     className="sr-only"
                   />
-                  <div className={`w-4 h-4 border-2 rounded-sm flex items-center justify-center transition-all ${showResume
-                    ? 'bg-blue-500 border-blue-500'
-                    : 'border-white/40 group-hover:border-white/60'
-                    }`}>
+                  <div
+                    className={`w-4 h-4 border-2 rounded-sm flex items-center justify-center transition-all ${!showResume ? 'border-white/40 group-hover:border-white/60' : ''}`}
+                    style={showResume ? { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
+                  >
                     {showResume && <Check size={10} strokeWidth={3} className="text-white" />}
                   </div>
                 </div>
@@ -1062,10 +1075,10 @@ function App() {
                     onChange={handleToggleCoverLetter}
                     className="sr-only"
                   />
-                  <div className={`w-4 h-4 border-2 rounded-sm flex items-center justify-center transition-all ${showCoverLetter
-                    ? 'bg-blue-500 border-blue-500'
-                    : 'border-white/40 group-hover:border-white/60'
-                    }`}>
+                  <div
+                    className={`w-4 h-4 border-2 rounded-sm flex items-center justify-center transition-all ${!showCoverLetter ? 'border-white/40 group-hover:border-white/60' : ''}`}
+                    style={showCoverLetter ? { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
+                  >
                     {showCoverLetter && <Check size={10} strokeWidth={3} className="text-white" />}
                   </div>
                 </div>
@@ -1077,7 +1090,7 @@ function App() {
             </div>
 
             {/* Continuous Page Toggle */}
-            <div className={`px-4 py-3 border-b ${darkMode ? 'border-slate-700' : 'border-slate-500'}`}>
+            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
               <label className="flex items-center gap-2.5 cursor-pointer group">
                 <div className="relative">
                   <input
@@ -1086,8 +1099,9 @@ function App() {
                     onChange={() => setContinuousMode(!continuousMode)}
                     className="sr-only"
                   />
-                  <div className={`w-9 h-5 rounded-full transition-all ${continuousMode ? 'bg-blue-500' : 'bg-slate-500 group-hover:bg-slate-400'
-                    }`}>
+                  <div className={`w-9 h-5 rounded-full transition-all ${!continuousMode ? 'bg-slate-500 group-hover:bg-slate-400' : ''}`}
+                    style={continuousMode ? { backgroundColor: 'var(--accent)' } : undefined}
+                  >
                     <div className={`w-3.5 h-3.5 bg-white rounded-full shadow-sm transition-transform absolute top-[3px] ${continuousMode ? 'translate-x-[18px]' : 'translate-x-[3px]'
                       }`} />
                   </div>
@@ -1161,7 +1175,7 @@ function App() {
             </div>
 
             {/* Bottom Controls: Export, Import, Sample, Theme, Reset */}
-            <div className={`border-t ${darkMode ? 'border-slate-700' : 'border-slate-500'} p-3 space-y-2`}>
+            <div className="border-t p-3 space-y-2" style={{ borderColor: 'var(--sidebar-border)' }}>
               {/* Export button */}
               <div ref={exportDropdownRef} className="relative">
                 <button
@@ -1251,6 +1265,34 @@ function App() {
                   <span>Reset</span>
                 </button>
               </div>
+              {/* Theme Picker */}
+              <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--sidebar-border)' }}>
+                <span className="block text-[9px] font-bold uppercase tracking-widest mb-2 opacity-50">
+                  Theme
+                </span>
+                <div className="grid grid-cols-5 gap-1">
+                  {THEMES.map(theme => (
+                    <button
+                      key={theme.id}
+                      onClick={() => setTheme(theme.id)}
+                      title={theme.name}
+                      className={`relative flex flex-col items-center gap-0.5 px-0.5 py-1 transition-all hover:scale-105 ${themeId === theme.id ? 'ring-2 ring-white ring-offset-1 ring-offset-transparent' : ''}`}
+                      style={{ backgroundColor: theme.colors.sidebar, borderRadius: 3 }}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full border border-white/20"
+                        style={{ backgroundColor: theme.colors.accent }}
+                      />
+                      <span className="text-[7px] font-semibold leading-tight truncate w-full text-center" style={{ color: theme.colors.sidebarText }}>
+                        {theme.name}
+                      </span>
+                      {themeId === theme.id && (
+                        <Check size={8} className="absolute top-0.5 right-0.5 text-white drop-shadow-md" strokeWidth={3} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </aside>
@@ -1327,14 +1369,14 @@ function App() {
                                   {template.name}
                                 </div>
                                 <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${resumeData.selectedTemplate === template.id
-                                  ? (darkMode ? 'text-blue-400' : 'text-blue-600')
+                                  ? (darkMode ? 'text-accent-light' : 'text-accent')
                                   : (darkMode ? 'text-slate-500' : 'text-slate-400')
                                   }`}>
                                   {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
                                 </div>
                               </div>
                               {resumeData.selectedTemplate === template.id && (
-                                <div className={`${darkMode ? 'bg-blue-500 text-white' : 'bg-slate-900 text-white'} w-6 h-6 rounded-full flex items-center justify-center shadow-sm`}>
+                                <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
                                   <Check size={14} strokeWidth={3} />
                                 </div>
                               )}
@@ -1351,8 +1393,7 @@ function App() {
                         <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>My Templates</h3>
                         <button
                           onClick={() => setShowCreateTemplate(!showCreateTemplate)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-slate-800 hover:bg-slate-700 text-white'
-                            }`}
+                          className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded"
                         >
                           <Plus size={14} />
                           <span>New Template</span>
@@ -1500,7 +1541,7 @@ function App() {
                                           {ct.name}
                                         </div>
                                       )}
-                                      <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${isActive ? (darkMode ? 'text-blue-400' : 'text-blue-600') : (darkMode ? 'text-slate-500' : 'text-slate-400')
+                                      <div className={`text-[10px] font-semibold mt-0.5 uppercase tracking-wider ${isActive ? (darkMode ? 'text-accent-light' : 'text-accent') : (darkMode ? 'text-slate-500' : 'text-slate-400')
                                         }`}>
                                         Based on {baseName}
                                       </div>
@@ -1509,7 +1550,7 @@ function App() {
                                     {/* Action buttons */}
                                     <div className="flex items-center gap-1 flex-shrink-0">
                                       {isActive && (
-                                        <div className="bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
+                                        <div className="text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: 'var(--accent)' }}>
                                           <Check size={12} strokeWidth={3} />
                                         </div>
                                       )}
@@ -1570,7 +1611,7 @@ function App() {
           </div>
         </main>
 
-        <aside className="w-[900px] border-l-2 flex-shrink-0 border-slate-700 bg-slate-800">
+        <aside className="w-[900px] border-l-2 flex-shrink-0" style={{ borderColor: 'var(--sidebar-border)', backgroundColor: darkMode ? '#1e293b' : '#e2e8f0' }}>
           <div className="sticky top-0 h-screen">
             <PDFPreview templateId={resumeData.selectedTemplate} documentType={documentType} />
           </div>
