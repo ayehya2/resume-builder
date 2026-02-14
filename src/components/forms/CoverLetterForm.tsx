@@ -1,7 +1,6 @@
 import { useCoverLetterStore } from '../../lib/coverLetterStore';
 import { useResumeStore } from '../../store';
 import { Download, Sparkles } from 'lucide-react';
-import { BulletList } from './BulletList';
 
 export function CoverLetterForm() {
     const { coverLetterData, updateRecipient, updatePosition, updateDate, updateContent, updateClosing, updateSignature, autoPopulateFromResume } = useCoverLetterStore();

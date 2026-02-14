@@ -10,16 +10,13 @@ import { generateLaTeXFromData } from '../../lib/latexGenerator';
 import { compileLatexViaApi } from '../../lib/latexApiCompiler';
 import type { TemplateId, DocumentType } from '../../types';
 import { generateDocumentTitle, generateDocumentFileName } from '../../lib/documentNaming';
-import { Download, Printer, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { Download, Printer, ZoomIn, ZoomOut, Maximize, RotateCw } from 'lucide-react';
 
 interface PDFPreviewProps {
     templateId: TemplateId;
     documentType: DocumentType;
 }
 
-/**
- * Set up pdfjs-dist and return the library (same pattern as pdfToImage.ts).
- */
 async function getPdfjsLib(): Promise<any> {
     const pdfjsLib = await import('pdfjs-dist');
     try {
@@ -38,50 +35,42 @@ async function getPdfjsLib(): Promise<any> {
 }
 
 const ZOOM_LEVELS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0];
+const btnBase = "p-1.5 bg-slate-700 text-white hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
 
 export const PDFPreview = memo(function PDFPreview({ templateId, documentType }: PDFPreviewProps) {
     const { resumeData, customLatexSource, latexFormatting } = useResumeStore();
     const { coverLetterData } = useCoverLetterStore();
     const { customTemplates } = useCustomTemplateStore();
 
-    // PDF blob state
     const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Viewer state
     const [numPages, setNumPages] = useState(0);
     const [scale, setScale] = useState(1.0);
-    const pageNaturalWidthRef = useRef<number>(0); // store first page width at scale=1
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [rotation, setRotation] = useState(0);
 
-    // Refs
     const pagesContainerRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
     const previousDataRef = useRef<unknown>(null);
     const generationRef = useRef(0);
     const pdfDocRef = useRef<any>(null);
+    const pageNaturalWidthRef = useRef<number>(0);
 
-    // Document naming
     const downloadFileName = generateDocumentFileName({
         userName: resumeData.basics.name || '',
         documentType,
         jobTitle: documentType === 'coverletter' ? coverLetterData.position : undefined,
     });
 
-    // ── Generate PDF blob when data changes ──
+    // ── Generate PDF blob ──
     useEffect(() => {
         const currentState = {
-            resumeData,
-            templateId,
-            documentType,
-            coverLetterData,
-            customLatexSource,
-            latexFormatting,
+            resumeData, templateId, documentType,
+            coverLetterData, customLatexSource, latexFormatting,
         };
 
-        if (previousDataRef.current && equal(currentState, previousDataRef.current) && pdfBlob) {
-            return;
-        }
+        if (previousDataRef.current && equal(currentState, previousDataRef.current) && pdfBlob) return;
 
         const currentGeneration = ++generationRef.current;
 
@@ -107,7 +96,6 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 }
 
                 if (currentGeneration !== generationRef.current) return;
-
                 setPdfBlob(blob);
                 previousDataRef.current = currentState;
             } catch (err) {
@@ -115,9 +103,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 console.error('[PDFPreview] Generation failed:', err);
                 setError(err instanceof Error ? err.message : 'PDF generation failed');
             } finally {
-                if (currentGeneration === generationRef.current) {
-                    setIsGenerating(false);
-                }
+                if (currentGeneration === generationRef.current) setIsGenerating(false);
             }
         };
 
@@ -125,10 +111,9 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [resumeData, templateId, documentType, coverLetterData, customLatexSource, customTemplates, latexFormatting]);
 
-    // ── Render ALL pages when blob or zoom changes ──
+    // ── Render all pages ──
     useEffect(() => {
         if (!pdfBlob) return;
-
         let cancelled = false;
 
         const renderAllPages = async () => {
@@ -136,7 +121,6 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 const pdfjsLib = await getPdfjsLib();
                 const arrayBuffer = await pdfBlob.arrayBuffer();
 
-                // Destroy previous document
                 if (pdfDocRef.current) {
                     pdfDocRef.current.destroy();
                     pdfDocRef.current = null;
@@ -157,33 +141,31 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
 
                 const container = pagesContainerRef.current;
                 if (!container) return;
-
-                // Clear previous canvases
                 container.innerHTML = '';
 
-                // Render each page into its own canvas
+                const dpr = window.devicePixelRatio;
+
                 for (let i = 1; i <= pdfDoc.numPages; i++) {
                     if (cancelled) return;
 
                     const page = await pdfDoc.getPage(i);
 
-                    // Store natural page width (at scale=1) from first page for fit-to-page
                     if (i === 1) {
-                        const naturalViewport = page.getViewport({ scale: 1 });
-                        pageNaturalWidthRef.current = naturalViewport.width;
+                        const nv = page.getViewport({ scale: 1, rotation });
+                        pageNaturalWidthRef.current = nv.width;
                     }
 
-                    const viewport = page.getViewport({ scale: scale * window.devicePixelRatio });
+                    const viewport = page.getViewport({ scale: scale * dpr, rotation });
 
                     const canvas = document.createElement('canvas');
                     canvas.width = viewport.width;
                     canvas.height = viewport.height;
-                    canvas.style.width = `${viewport.width / window.devicePixelRatio}px`;
-                    canvas.style.height = `${viewport.height / window.devicePixelRatio}px`;
+                    canvas.style.width = `${viewport.width / dpr}px`;
+                    canvas.style.height = `${viewport.height / dpr}px`;
                     canvas.style.display = 'block';
+                    canvas.style.backgroundColor = 'white';
                     canvas.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
                     canvas.style.marginBottom = '16px';
-                    canvas.style.backgroundColor = 'white';
 
                     const ctx = canvas.getContext('2d');
                     if (ctx) {
@@ -195,18 +177,15 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                     page.cleanup();
                 }
             } catch (err) {
-                if (!cancelled) {
-                    console.error('[PDFPreview] Render failed:', err);
-                }
+                if (!cancelled) console.error('[PDFPreview] Render failed:', err);
             }
         };
 
         renderAllPages();
-
         return () => { cancelled = true; };
-    }, [pdfBlob, scale]);
+    }, [pdfBlob, scale, rotation]);
 
-    // Cleanup on unmount
+    // Cleanup
     useEffect(() => {
         return () => {
             if (pdfDocRef.current) {
@@ -251,11 +230,12 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
         const container = scrollContainerRef.current;
         const pageWidth = pageNaturalWidthRef.current;
         if (!container || !pageWidth) return;
-        // container width minus padding (32px total)
         const availableWidth = container.clientWidth - 32;
-        const fitScale = availableWidth / pageWidth;
-        // clamp between min and max
-        setScale(Math.max(0.25, Math.min(fitScale, 3.0)));
+        setScale(Math.max(0.25, Math.min(availableWidth / pageWidth, 3.0)));
+    }, []);
+
+    const handleRotate = useCallback(() => {
+        setRotation(r => (r + 90) % 360);
     }, []);
 
     // ── Error state ──
@@ -270,10 +250,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                         {error}
                     </pre>
                     <button
-                        onClick={() => {
-                            setError(null);
-                            previousDataRef.current = null;
-                        }}
+                        onClick={() => { setError(null); previousDataRef.current = null; }}
                         className="px-4 py-2 bg-slate-700 text-white hover:bg-slate-600 text-sm font-bold transition-colors"
                     >
                         Retry
@@ -297,70 +274,54 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
         );
     }
 
-    // ── Main render ──
     return (
         <div className="w-full h-full bg-slate-800 flex flex-col">
-            {/* Custom toolbar */}
-            <div className="flex items-center justify-between px-3 py-2 bg-slate-950 border-b-2 border-slate-600 flex-shrink-0">
-                {/* Document name + page count */}
-                <div className="flex items-center gap-2">
-                    <span className="text-xs text-white font-semibold truncate max-w-[250px]" title={`${downloadFileName}.pdf`}>
+            {/* Toolbar */}
+            <div className="flex items-center justify-between px-2 py-1.5 bg-slate-950 border-b-2 border-slate-600 flex-shrink-0 gap-1">
+                {/* Document name + pages */}
+                <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs text-white font-semibold truncate max-w-[180px]" title={`${downloadFileName}.pdf`}>
                         {downloadFileName}.pdf
                     </span>
                     {numPages > 0 && (
-                        <span className="text-xs text-white font-semibold">
+                        <span className="text-xs text-white font-semibold whitespace-nowrap">
                             ({numPages} {numPages === 1 ? 'page' : 'pages'})
                         </span>
                     )}
                 </div>
 
-                {/* Zoom controls */}
-                <div className="flex items-center gap-1.5">
-                    <button
-                        onClick={handleZoomOut}
-                        disabled={scale <= ZOOM_LEVELS[0]}
-                        className="p-1.5 rounded bg-slate-700 text-white hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        title="Zoom out"
-                    >
-                        <ZoomOut size={18} />
+                {/* Zoom + Rotate */}
+                <div className="flex items-center gap-0.5">
+                    <button onClick={handleZoomOut} disabled={scale <= ZOOM_LEVELS[0]} className={btnBase} title="Zoom out">
+                        <ZoomOut size={16} />
                     </button>
-                    <span className="text-sm text-white font-bold min-w-[48px] text-center tabular-nums">
+                    <span className="text-xs text-white font-bold min-w-[40px] text-center tabular-nums px-1">
                         {Math.round(scale * 100)}%
                     </span>
-                    <button
-                        onClick={handleZoomIn}
-                        disabled={scale >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]}
-                        className="p-1.5 rounded bg-slate-700 text-white hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        title="Zoom in"
-                    >
-                        <ZoomIn size={18} />
+                    <button onClick={handleZoomIn} disabled={scale >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]} className={btnBase} title="Zoom in">
+                        <ZoomIn size={16} />
                     </button>
-                    <button
-                        onClick={handleFitToPage}
-                        className="p-1.5 rounded bg-slate-700 text-white hover:bg-slate-600 transition-colors"
-                        title="Fit to width"
-                    >
-                        <Maximize size={18} />
+                    <button onClick={handleFitToPage} className={btnBase} title="Fit to width">
+                        <Maximize size={16} />
+                    </button>
+                    <button onClick={handleRotate} className={btnBase} title="Rotate 90°">
+                        <RotateCw size={16} />
                     </button>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={handlePrint}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-slate-700 text-white hover:bg-slate-600 transition-colors"
-                        title="Print"
-                    >
-                        <Printer size={16} />
-                        <span className="text-xs font-bold">Print</span>
+                <div className="flex items-center gap-0.5">
+                    <button onClick={handlePrint} className={`${btnBase} flex items-center gap-1 px-2`} title="Print">
+                        <Printer size={15} />
+                        <span className="text-xs font-bold hidden lg:inline">Print</span>
                     </button>
                     <button
                         onClick={handleDownload}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded transition-colors"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors"
                         title={`Download ${downloadFileName}.pdf`}
                     >
                         <Download size={14} />
-                        Download
+                        <span className="hidden lg:inline">Download</span>
                     </button>
                 </div>
             </div>
@@ -376,19 +337,12 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
             {error && (
                 <div className="bg-red-900/80 border-b-2 border-red-800 p-2 text-xs text-red-200 text-center flex-shrink-0">
                     <strong>Error:</strong> {error}
-                    <button
-                        onClick={() => {
-                            setError(null);
-                            previousDataRef.current = null;
-                        }}
-                        className="ml-2 underline hover:no-underline text-red-300"
-                    >
-                        Retry
-                    </button>
+                    <button onClick={() => { setError(null); previousDataRef.current = null; }}
+                        className="ml-2 underline hover:no-underline text-red-300">Retry</button>
                 </div>
             )}
 
-            {/* Scrollable pages container — all pages stacked vertically */}
+            {/* Scrollable pages */}
             <div
                 ref={scrollContainerRef}
                 className="flex-1 overflow-auto flex flex-col items-center bg-slate-700/50"
