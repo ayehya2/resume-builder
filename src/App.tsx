@@ -1311,25 +1311,15 @@ function App() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={handleImport}
-                  disabled={isImporting}
-                  className={`flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  style={{ backgroundColor: 'var(--sidebar-hover)', color: 'var(--sidebar-text)' }}
-                >
-                  <Upload size={12} />
-                  <span>{isImporting ? 'Importing...' : 'Import'}</span>
-                </button>
-                <button
-                  onClick={loadSampleData}
-                  className="flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded"
-                  style={{ backgroundColor: 'var(--sidebar-hover)', color: 'var(--sidebar-text)' }}
-                >
-                  <FileText size={12} />
-                  <span>Sample</span>
-                </button>
-              </div>
+              <button
+                onClick={handleImport}
+                disabled={isImporting}
+                className={`w-full flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-all rounded hover:brightness-125 active:opacity-70 ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                style={{ backgroundColor: 'var(--sidebar-hover)', color: 'var(--sidebar-text)' }}
+              >
+                <Upload size={12} />
+                <span>{isImporting ? 'Importing...' : 'Import'}</span>
+              </button>
 
               {/* Theme dropdown — hidden if iframed to defer to parent header picker */}
               {window.self === window.top && (
@@ -1367,13 +1357,23 @@ function App() {
                   )}
                 </div>
               )}
-              <button
-                onClick={reset}
-                className="w-full flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded bg-red-700 hover:bg-red-800 text-white"
-              >
-                <RotateCcw size={12} />
-                <span>Reset</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={loadSampleData}
+                  className="flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-all rounded hover:brightness-125 active:opacity-70"
+                  style={{ backgroundColor: 'var(--sidebar-hover)', color: 'var(--sidebar-text)' }}
+                >
+                  <FileText size={12} />
+                  <span>Sample</span>
+                </button>
+                <button
+                  onClick={reset}
+                  className="flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded bg-red-700 hover:bg-red-800 text-white"
+                >
+                  <RotateCcw size={12} />
+                  <span>Reset</span>
+                </button>
+              </div>
             </div>
           </div>
         </aside>
