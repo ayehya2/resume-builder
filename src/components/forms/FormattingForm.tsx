@@ -43,7 +43,7 @@ export function FormattingForm({
         if (activeCustomTemplate) {
             updateCustomTemplate(activeCustomTemplate.id, { formatting: { ...formatting } });
         }
-    }, [formatting]);
+    }, [formatting, activeCustomTemplate, updateCustomTemplate]);
 
     return (
         <div className="space-y-6">
@@ -578,7 +578,7 @@ export function FormattingForm({
                                 className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                             >
                                 <option value="headers-only">Headers Only</option>
-                                <option value="headers-and-links">Headers &amp; Links</option>
+                                <option value="headers-and-links">Headers & Links</option>
                                 <option value="all-accents">All Accents</option>
                             </select>
                         </div>

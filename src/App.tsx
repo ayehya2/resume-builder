@@ -148,6 +148,18 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
   );
 }
 
+interface ParentDocument {
+  id: string;
+  title?: string;
+  type?: string;
+}
+
+interface ParentApplication {
+  id: string;
+  company: string;
+  position: string;
+}
+
 function App() { // Stores
   const {
     resumeData,
@@ -178,8 +190,8 @@ function App() { // Stores
   const [documentType, setDocumentType] = useState<DocumentType>('resume')
 
   // Data from parent (if iframed)
-  const [parentDocuments, setParentDocuments] = useState<any[]>([])
-  const [parentApplications, setParentApplications] = useState<any[]>([])
+  const [parentDocuments, setParentDocuments] = useState<ParentDocument[]>([])
+  const [parentApplications, setParentApplications] = useState<ParentApplication[]>([])
   const [parentSaveStatus, setParentSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [docDropdownOpen, setDocDropdownOpen] = useState(false);
   const [jobDropdownOpen, setJobDropdownOpen] = useState(false);
@@ -441,7 +453,7 @@ function App() { // Stores
       broadcastSave();
     }, 1000);
     return () => clearTimeout(timeout);
-  }, [resumeData, coverLetterData, documentType, showResume, showCoverLetter, broadcastSave]);
+  }, [resumeData, coverLetterData, documentType, showResume, showCoverLetter, broadcastSave, parentSaveStatus]);
 
   // Periodic safety sync (every 30s)
   useEffect(() => {
@@ -506,7 +518,7 @@ function App() { // Stores
         setActiveTab('templates');
       }
     }
-  }, [showResume, showCoverLetter, activeTab]);
+  }, [showResume, showCoverLetter, activeTab, setActiveTab]);
 
   // (Dark mode is controlled by theme selection — no separate toggle)
 
@@ -664,10 +676,10 @@ function App() { // Stores
     filteredCount: number,
     search: string,
     setSearch: (s: string) => void,
-    filter: string,
-    setFilter: (f: any) => void,
-    sort: string,
-    setSort: (s: any) => void
+    filter: 'all' | 'standard' | 'latex',
+    setFilter: (f: 'all' | 'standard' | 'latex') => void,
+    sort: 'default' | 'latex-first' | 'standard-first',
+    setSort: (s: 'default' | 'latex-first' | 'standard-first') => void
   ) => (
     <div className="flex flex-wrap items-stretch gap-3 mb-6 w-full">
       <div className="flex flex-col justify-center border-r-2 pr-3 mr-1 shrink-0" style={{ borderColor: 'var(--card-border)' }}>
@@ -702,7 +714,7 @@ function App() { // Stores
       <div className="flex-1 min-w-[120px] relative">
         <select
           value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          onChange={(e) => setFilter(e.target.value as 'all' | 'standard' | 'latex')}
           className="w-full h-full bg-black/30 border-2 border-white/10 rounded-none px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all focus:border-white/30 cursor-pointer appearance-none"
           style={{ color: 'var(--main-text)' }}
         >
@@ -716,7 +728,7 @@ function App() { // Stores
       <div className="flex-1 min-w-[130px] relative">
         <select
           value={sort}
-          onChange={(e) => setSort(e.target.value)}
+          onChange={(e) => setSort(e.target.value as 'default' | 'latex-first' | 'standard-first')}
           className="w-full h-full bg-black/30 border-2 border-white/10 rounded-none px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all focus:border-white/30 cursor-pointer appearance-none"
           style={{ color: 'var(--main-text)' }}
         >
@@ -742,7 +754,7 @@ function App() { // Stores
     perPage: number,
     setPerPage: (n: number) => void,
     page: number,
-    setPage: (p: any) => void
+    setPage: (p: number | ((prev: number) => number)) => void
   ) => {
     // If we have very few items total, don't show pagination unless we're already paging
     if (filteredCount <= 6 && perPage !== 6) return null;
@@ -1002,7 +1014,7 @@ function App() { // Stores
                 <div className="text-center py-8 border-2 border-dashed" style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}>
                   <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
                   <p className="text-sm font-semibold">No custom templates yet</p>
-                  <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
+                  <p className="text-xs mt-1">Click &quot;New Template&quot; to create one with your own formatting</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
@@ -1605,7 +1617,7 @@ function App() { // Stores
                     {parentDocuments.length === 0 ? (
                       <div className="p-4 text-center text-[9px] opacity-30 uppercase tracking-widest italic">No Items Found</div>
                     ) : (
-                      parentDocuments.map(doc => (
+                      parentDocuments.map((doc: ParentDocument) => (
                         <button
                           key={doc.id}
                           onClick={() => { window.parent.postMessage({ type: 'LOAD_PARENT_DOCUMENT', id: doc.id }, '*'); setDocDropdownOpen(false); }}
@@ -1647,7 +1659,7 @@ function App() { // Stores
                     ) : (
                       parentApplications
                         .filter(app => !jobSearch || app.company.toLowerCase().includes(jobSearch.toLowerCase()) || app.position.toLowerCase().includes(jobSearch.toLowerCase()))
-                        .map(app => (
+                        .map((app: ParentApplication) => (
                           <button
                             key={app.id}
                             onClick={() => { window.parent.postMessage({ type: 'LINK_PARENT_JOB', id: app.id }, '*'); setJobDropdownOpen(false); }}
@@ -1870,7 +1882,7 @@ function App() { // Stores
                           <div className="text-center py-8 border-2 border-dashed" style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}>
                             <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
                             <p className="text-sm font-semibold">No custom templates yet</p>
-                            <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
+                            <p className="text-xs mt-1">Click &quot;New Template&quot; to create one with your own formatting</p>
                           </div>
                         ) : (
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">

@@ -132,7 +132,7 @@ export function AITab({ documentType }: AITabProps) {
             <div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">AI Assistant</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Get AI-powered suggestions for your {documentType === 'resume' ? 'resume' : 'cover letter'} content using Google's Gemini API
+                    Get AI-powered suggestions for your {documentType === 'resume' ? 'resume' : 'cover letter'} content using Google&apos;s Gemini API
                 </p>
             </div>
 
@@ -345,7 +345,7 @@ export function AITab({ documentType }: AITabProps) {
                 <div className="flex items-start gap-3 opacity-60 hover:opacity-100 transition-opacity">
                     <ShieldCheck size={16} className="text-slate-500 mt-0.5" />
                     <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-relaxed">
-                        Security Notice: Your API key is persisted locally within your browser's secure storage. Requests are dispatched directly to the Google AI Gateway. No data is stored on our auxiliary servers.
+                        Security Notice: Your API key is persisted locally within your browser&apos;s secure storage. Requests are dispatched directly to the Google AI Gateway. No data is stored on our auxiliary servers.
                     </p>
                 </div>
             </div>

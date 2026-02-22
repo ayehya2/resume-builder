@@ -50,6 +50,7 @@ export function parseBoldTextPDF(
             parts.push(text.slice(lastIndex, match.index));
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const style: any = {};
         if (match[1] === '**' || match[1] === '__') {
             style.fontWeight = 'bold';

@@ -156,6 +156,7 @@ export function CoverLetterPDFTemplate({ data, documentTitle, templateId }: Cove
         paragraph: {
             marginBottom: getSpacingValue(formatting?.paragraphSpacing),
             textAlign: 'justify',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             fontWeight: formatting?.bodyTextWeight === 'medium' ? 'medium' : formatting?.bodyTextWeight === 'light' ? 'thin' : 'normal' as any,
         }
     });
@@ -177,6 +178,7 @@ export function CoverLetterPDFTemplate({ data, documentTitle, templateId }: Cove
 
     return (
         <Document title={documentTitle}>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <Page size={(formatting?.pageFormat?.toUpperCase() || "LETTER") as any} style={dynamicStyles.page}>
                 {/* User's contact information header */}
                 {userBasics && (

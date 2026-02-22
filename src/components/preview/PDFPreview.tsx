@@ -27,7 +27,8 @@ interface PDFPreviewProps {
 }
 
 async function getPdfjsLib() {
-    const pdfjsLib = await import('pdfjs-dist');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfjsLib = await import('pdfjs-dist') as any;
     try {
         const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url);
         pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl.href;
@@ -112,6 +113,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                         jobTitle: documentType === 'coverletter' ? coverLetterData.position : undefined,
                     });
                     const comp = getPDFTemplateComponent(effectiveData, documentType, coverLetterData, title);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     blob = await pdf(comp as any).toBlob();
                 }
                 if (gen !== generationRef.current) return;
@@ -151,6 +153,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 // Metadata
                 try {
                     const meta = await doc.getMetadata();
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const info: any = meta?.info || {};
                     const md: Record<string, string> = {};
                     if (info.Title) md['Title'] = info.Title;
@@ -175,6 +178,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                         c.width = vp.width; c.height = vp.height;
                         const ctx = c.getContext('2d');
                         if (ctx) {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             await page.render({ canvasContext: ctx, canvas: c, viewport: vp } as any).promise;
                             thumbs.push(c.toDataURL('image/png'));
                         }

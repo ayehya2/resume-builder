@@ -53,7 +53,7 @@ export function importFromJSON(jsonString: string): ResumeData {
     try {
         const data = JSON.parse(jsonString) as ResumeData;
         return migrateData(data);
-    } catch (error) {
+    } catch {
         throw new Error('Invalid JSON format');
     }
 }
@@ -67,8 +67,10 @@ function migrateData(data: any): ResumeData {
         const standardSections = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
 
         // Custom sections from customSections array
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const customSectionIds = (data.customSections || []).map((cs: any) => cs.id);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data.sections = Array.from(new Set(data.sections)).filter((s: any) =>
             standardSections.includes(s) || customSectionIds.includes(s)
         );
@@ -76,6 +78,7 @@ function migrateData(data: any): ResumeData {
 
     // Migrate CustomSections from version 1 (content: string[]) to version 2 (items: CustomSectionEntry[])
     if (data.customSections && Array.isArray(data.customSections)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data.customSections = data.customSections.map((section: any) => {
             if (section.content) {
                 // If it's the old format, migrate to new format
@@ -87,6 +90,7 @@ function migrateData(data: any): ResumeData {
                     link: '',
                     bullets: [c]
                 }));
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { content, ...rest } = section;
                 return { ...rest, items: newItems.length > 0 ? newItems : [{ title: '', subtitle: '', date: '', location: '', link: '', bullets: [''] }] };
             }

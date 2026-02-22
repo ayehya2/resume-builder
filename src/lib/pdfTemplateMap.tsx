@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import type { ReactElement } from 'react';
 import type { ResumeData, CoverLetterData, DocumentType } from '../types';
 

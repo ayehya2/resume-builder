@@ -84,7 +84,7 @@ Format: Return ONLY the bullet points, one per line, without bullet symbols or n
     const bullets = response
         .split('\n')
         .map(line => line.trim())
-        .filter(line => line.length > 0 && !line.match(/^[\d\-\*•]/))
+        .filter(line => line.length > 0 && !line.match(/^[\d\-*•]/))
         .slice(0, 5);
 
     return bullets.length > 0 ? bullets : [response.trim()];
@@ -199,7 +199,7 @@ ${context.contentType === 'bullets'
         const bullets = response
             .split('\n')
             .map(line => line.trim())
-            .filter(line => line.length > 0 && !line.match(/^[\d\-\*•]/));
+            .filter(line => line.length > 0 && !line.match(/^[\d\-*•]/));
         return bullets.length > 0 ? bullets : [response.trim()];
     } else {
         return [response.trim()];

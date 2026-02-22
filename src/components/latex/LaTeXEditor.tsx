@@ -68,7 +68,7 @@ export function LaTeXEditor() {
         }
 
         setMode(newMode);
-    }, [mode, customLatexSource, effectiveData, clearCustomLatex, setCustomLatex]);
+    }, [mode, customLatexSource, effectiveData, clearCustomLatex, setCustomLatex, latexFormatting, selectedTemplate]);
 
     const handleLatexChange = useCallback((value: string | undefined) => {
         if (value === undefined) return;
@@ -91,7 +91,7 @@ export function LaTeXEditor() {
         const freshSource = generateLaTeXFromData(effectiveData, selectedTemplate, latexFormatting);
         setTexSource(freshSource);
         setCustomLatex(freshSource);
-    }, [effectiveData, selectedTemplate, setCustomLatex]);
+    }, [effectiveData, selectedTemplate, setCustomLatex, latexFormatting]);
 
     const handleDownloadTex = useCallback(() => {
         const source = mode === 'advanced' && customLatexSource ? customLatexSource : texSource;

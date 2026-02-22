@@ -95,7 +95,7 @@ export function BasicsForm() {
 
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-700">
                     <div className="flex justify-between items-center mb-3">
-                        <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Websites & Links</h4>
+                        <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Websites &amp; Links</h4>
                         <button
                             onClick={addWebsite}
                             className="px-3 py-1.5 btn-accent font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-sm rounded-sm"

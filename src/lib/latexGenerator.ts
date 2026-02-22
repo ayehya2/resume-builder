@@ -443,6 +443,7 @@ ${customSectionsTeX}
 /**
  * Generate a complete LaTeX cover letter document.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const generateLaTeXCoverLetter = (data: any, templateId: number): string => {
     // Falls back to Professional (11) if templateId is not 21-23
     const cfg = TEMPLATE_CONFIGS[templateId] || TEMPLATE_CONFIGS[11];

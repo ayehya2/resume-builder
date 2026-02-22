@@ -4,8 +4,10 @@ import type { ReactElement } from 'react';
 /**
  * Internal: Set up pdfjs-dist and return the library.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getPdfjsLib(): Promise<any> {
-    const pdfjsLib = await import('pdfjs-dist');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfjsLib = await import('pdfjs-dist') as any;
 
     try {
         const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url);
@@ -29,6 +31,7 @@ async function getPdfjsLib(): Promise<any> {
 async function renderPdfPageToImage(arrayBuffer: ArrayBuffer, scale: number): Promise<string | null> {
     const pdfjsLib = await getPdfjsLib();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let pdfDoc: any;
     try {
         pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -65,6 +68,7 @@ export async function pdfToImage(
     scale = 2.0
 ): Promise<string | null> {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const blob = await pdf(component as any).toBlob();
         const arrayBuffer = await blob.arrayBuffer();
         return await renderPdfPageToImage(arrayBuffer, scale);

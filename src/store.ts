@@ -532,18 +532,20 @@ export const useResumeStore = create<ResumeStore>()(
         }),
         {
             name: 'resume-builder-data',
-            merge: (persistedState: any, currentState: ResumeStore) => {
+            merge: (persistedState: unknown, currentState: ResumeStore) => {
                 if (!persistedState) return currentState;
                 const persisted = persistedState as ResumeStore;
                 const data = persisted.resumeData;
 
                 // Migrate old custom sections (content → items)
                 if (data?.customSections) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     data.customSections = data.customSections.map((section: any) => {
                         if (section.content) {
                             const newItems = section.content.map((c: string) => ({
                                 title: '', subtitle: '', date: '', location: '', link: '', bullets: [c],
                             }));
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             const { content: _content, ...rest } = section;
                             return { ...rest, items: newItems.length > 0 ? newItems : [{ title: '', subtitle: '', date: '', location: '', link: '', bullets: [''] }] };
                         }
@@ -554,7 +556,9 @@ export const useResumeStore = create<ResumeStore>()(
                 // Deduplicate sections
                 if (data?.sections) {
                     const standardSections = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const customIds = (data.customSections || []).map((cs: any) => cs.id);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     data.sections = Array.from(new Set(data.sections)).filter((s: any) =>
                         standardSections.includes(s) || customIds.includes(s)
                     );

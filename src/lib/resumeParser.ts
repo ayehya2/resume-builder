@@ -8,10 +8,11 @@ interface PDFParseResult {
 
 export async function parsePDF(file: File): Promise<PDFParseResult> {
     // Dynamic import of pdfjs-dist
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let pdfjsLib: any;
     try {
         pdfjsLib = await import('pdfjs-dist');
-    } catch (e) {
+    } catch {
         throw new Error('Failed to load PDF library. Please try again or use a different file format.');
     }
 
@@ -34,15 +35,16 @@ export async function parsePDF(file: File): Promise<PDFParseResult> {
     let arrayBuffer: ArrayBuffer;
     try {
         arrayBuffer = await file.arrayBuffer();
-    } catch (e) {
+    } catch {
         throw new Error('Failed to read the PDF file. The file may be corrupted.');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let pdfDoc: any;
     try {
         const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
         pdfDoc = await loadingTask.promise;
-    } catch (e: any) {
+    } catch (e: unknown) {
         // If worker fails, retry with worker disabled
         try {
             pdfjsLib.GlobalWorkerOptions.workerSrc = '';
@@ -51,9 +53,10 @@ export async function parsePDF(file: File): Promise<PDFParseResult> {
                 disableAutoFetch: true,
             });
             pdfDoc = await loadingTask.promise;
-        } catch (e2: any) {
+        } catch (e2: unknown) {
+            const message = (e2 as Error)?.message || (e as Error)?.message || 'Unknown error';
             throw new Error(
-                `Failed to parse PDF: ${e2?.message || e?.message || 'Unknown error'}. ` +
+                `Failed to parse PDF: ${message}. ` +
                 'The file may be corrupted or password-protected.'
             );
         }
@@ -68,6 +71,7 @@ export async function parsePDF(file: File): Promise<PDFParseResult> {
     let totalTextItems = 0;
 
     for (let i = 1; i <= pdfDoc.numPages; i++) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let page: any;
         try {
             page = await pdfDoc.getPage(i);
@@ -78,6 +82,7 @@ export async function parsePDF(file: File): Promise<PDFParseResult> {
         // Extract text with spatial awareness
         try {
             const content = await page.getTextContent();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const items = content.items.filter((item: any) => 'str' in item && item.str.trim().length > 0);
 
             totalTextItems += items.length;
@@ -85,6 +90,7 @@ export async function parsePDF(file: File): Promise<PDFParseResult> {
             if (items.length === 0) continue;
 
             // Sort items by Y (descending = top-to-bottom) then X (ascending = left-to-right)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const sorted = [...items].sort((a: any, b: any) => {
                 const yDiff = b.transform[5] - a.transform[5];
                 if (Math.abs(yDiff) > 3) return yDiff; // different lines
@@ -97,6 +103,7 @@ export async function parsePDF(file: File): Promise<PDFParseResult> {
             let lastY: number | null = null;
             let lastX: number | null = null;
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             for (const item of sorted as any[]) {
                 const y = item.transform[5];
                 const x = item.transform[4];
@@ -178,17 +185,18 @@ export async function parsePDF(file: File): Promise<PDFParseResult> {
 
 // ─── DOCX Parsing ────────────────────────────────────────────────
 export async function parseDocx(file: File): Promise<string> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mammoth: any;
     try {
         mammoth = await import('mammoth');
-    } catch (e) {
+    } catch {
         throw new Error('Failed to load DOCX parsing library. Please try again or use a different file format.');
     }
 
     let arrayBuffer: ArrayBuffer;
     try {
         arrayBuffer = await file.arrayBuffer();
-    } catch (e) {
+    } catch {
         throw new Error('Failed to read the DOCX file. The file may be corrupted.');
     }
 
@@ -199,11 +207,12 @@ export async function parseDocx(file: File): Promise<string> {
             throw new Error('No text content found in the document.');
         }
         return result.value;
-    } catch (e: any) {
+    } catch (e: unknown) {
         // mammoth may throw if the file isn't actually a valid DOCX
-        if (e?.message?.includes('No text content')) throw e;
+        const message = (e as Error)?.message || 'Unknown error';
+        if (message.includes('No text content')) throw e;
         throw new Error(
-            `Failed to parse DOCX file: ${e?.message || 'Unknown error'}. ` +
+            `Failed to parse DOCX file: ${message}. ` +
             'Make sure this is a valid .docx file (not .doc). ' +
             'Older .doc files are not supported — please re-save as .docx.'
         );
@@ -559,20 +568,21 @@ export async function parseResumeFile(file: File): Promise<Partial<ResumeData>> 
             default:
                 throw new Error(`Unsupported file type: .${ext}. Supported formats: PDF, DOCX, TXT, LaTeX, JSON.`);
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Re-throw with more descriptive messages
-        if (error?.message === 'JSON_PASSTHROUGH') throw error;
-        if (error?.message?.includes('No text')) throw error;
-        if (error?.message?.includes('not supported')) throw error;
-        if (error?.message?.includes('too large')) throw error;
-        if (error?.message?.includes('empty')) throw error;
-        if (error?.message?.includes('Failed to')) throw error;
-        if (error?.message?.includes('scanned')) throw error;
-        if (error?.message?.includes('image-based')) throw error;
+        const message = (error as Error)?.message || 'Unknown error';
+        if (message === 'JSON_PASSTHROUGH') throw error;
+        if (message.includes('No text')) throw error;
+        if (message.includes('not supported')) throw error;
+        if (message.includes('too large')) throw error;
+        if (message.includes('empty')) throw error;
+        if (message.includes('Failed to')) throw error;
+        if (message.includes('scanned')) throw error;
+        if (message.includes('image-based')) throw error;
 
         console.error(`Resume parser error for .${ext}:`, error);
         throw new Error(
-            `Failed to parse .${ext} file: ${error?.message || 'Unknown error'}. ` +
+            `Failed to parse .${ext} file: ${message}. ` +
             'Try saving the file in a different format (e.g., plain text or JSON).'
         );
     }

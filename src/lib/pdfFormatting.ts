@@ -226,13 +226,13 @@ export function getPDFSocialIconSize(baseFontSize: number): number {
 /**
  * Get case transformation for section headers
  */
-export function getPDFSectionHeaderStyle(style: 'uppercase' | 'capitalize' | 'normal'): any {
+export function getPDFSectionHeaderStyle(style: 'uppercase' | 'capitalize' | 'normal'): 'uppercase' | 'capitalize' | 'none' {
     const styleMap = {
         uppercase: 'uppercase',
         capitalize: 'capitalize',
         normal: 'none'
     };
-    return styleMap[style] || 'uppercase';
+    return (styleMap[style] || 'uppercase') as 'uppercase' | 'capitalize' | 'none';
 }
 
 /**

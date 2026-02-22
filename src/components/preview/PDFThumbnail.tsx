@@ -34,11 +34,15 @@ export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData
     const [hasError, setHasError] = useState(false);
     const generationId = useRef(0);
 
+    // Cast docData to any to pass to getEffectiveResumeData which expects ResumeData
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const baseEffectiveData = getEffectiveResumeData(docData as any, customTemplates);
     const effectiveData = { ...baseEffectiveData, selectedTemplate: templateId };
 
     const formattingFingerprint = JSON.stringify(effectiveData.formatting);
-    const fingerprint = `${isCoverLetter ? 'cv' : 'resume'}-${templateId}-${formattingFingerprint}-${(docData as any).basics?.name || (docData as any).company}-${effectiveData.sections?.join(',') || ''}-${(docData as any).work?.length || 0}-${customLatexSource ? 'custom' : 'auto'}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const doc = docData as any;
+    const fingerprint = `${isCoverLetter ? 'cv' : 'resume'}-${templateId}-${formattingFingerprint}-${doc.basics?.name || doc.company || ''}-${effectiveData.sections?.join(',') || ''}-${doc.work?.length || 0}-${customLatexSource ? 'custom' : 'auto'}`;
 
     useEffect(() => {
         const currentId = ++generationId.current;
@@ -59,17 +63,19 @@ export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData
 
                 if (isLatexCoverLetter) {
                     // LaTeX cover letter compilation via API
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const texSource = generateLaTeXCoverLetter(docData as any, templateId);
                     const blob = await compileLatexViaApi(texSource);
                     if (currentId !== generationId.current) return;
                     url = await blobToImage(blob, 1.5);
                 } else if (isLatex) {
                     // Real LaTeX resume compilation via API
-                    const texSource = customLatexSource || generateLaTeXFromData(effectiveData as any, templateId, latexFormatting);
+                    const texSource = customLatexSource || generateLaTeXFromData(effectiveData, templateId, latexFormatting);
                     const blob = await compileLatexViaApi(texSource);
                     if (currentId !== generationId.current) return;
                     url = await blobToImage(blob, 1.5);
                 } else {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const component = getPDFTemplateComponent(effectiveData as any, isCoverLetter ? 'coverletter' : 'resume', isCoverLetter ? docData as any : undefined);
                     url = await pdfToImage(component, 1.5);
                 }
