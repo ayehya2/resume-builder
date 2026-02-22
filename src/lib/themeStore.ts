@@ -32,21 +32,21 @@ export interface AppTheme {
 export const THEMES: AppTheme[] = [
     // ── BASE ──
     {
-        id: 'light', name: 'Light', isDark: false, swatch: '#edf4fb',
-        colors: {
-            accent: '#2563eb', accentHover: '#3b82f6', accentLight: '#c7dbf5',
-            sidebar: '#3b5278', sidebarText: '#f8fafc', sidebarBorder: '#4d6893', sidebarHover: '#2e4563',
-            mainBg: '#edf4fb', mainText: '#0f172a', mainTextSecondary: '#64748b',
-            cardBg: '#dce8f3', cardBorder: '#e2e8f0', inputBg: '#f5f9fe', inputBorder: '#cbd5e1',
-        },
-    },
-    {
         id: 'dark', name: 'Dark', isDark: true, swatch: '#0f172a',
         colors: {
             accent: '#3b82f6', accentHover: '#60a5fa', accentLight: '#1e3a8a',
             sidebar: '#020617', sidebarText: '#e2e8f0', sidebarBorder: '#1e293b', sidebarHover: '#0f172a',
             mainBg: '#0f172a', mainText: '#f1f5f9', mainTextSecondary: '#94a3b8',
             cardBg: '#1e293b', cardBorder: '#334155', inputBg: '#020617', inputBorder: '#334155',
+        },
+    },
+    {
+        id: 'light', name: 'Light', isDark: false, swatch: '#edf4fb',
+        colors: {
+            accent: '#2563eb', accentHover: '#3b82f6', accentLight: '#c7dbf5',
+            sidebar: '#3b5278', sidebarText: '#f8fafc', sidebarBorder: '#4d6893', sidebarHover: '#2e4563',
+            mainBg: '#edf4fb', mainText: '#0f172a', mainTextSecondary: '#64748b',
+            cardBg: '#dce8f3', cardBorder: '#e2e8f0', inputBg: '#f5f9fe', inputBorder: '#cbd5e1',
         },
     },
     // ── COLOR THEMES (dark base) ──
@@ -235,7 +235,7 @@ function loadThemeId(): string {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved && THEME_MAP[saved]) return saved;
     } catch { /* ignore */ }
-    return 'light';
+    return 'dark';
 }
 
 interface ThemeState {
@@ -256,7 +256,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
  * Apply all theme CSS variables + dark class to the document.
  */
 export function applyTheme(themeId: string): boolean {
-    const theme = THEME_MAP[themeId] || THEME_MAP['light'];
+    const theme = THEME_MAP[themeId] || THEME_MAP['dark'];
     const c = theme.colors;
     const root = document.documentElement;
     const s = root.style;
