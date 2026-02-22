@@ -251,10 +251,36 @@ function App() {
     };
     document.addEventListener('mousedown', handleClickOutside);
 
-    // Listen for theme messages from parent window
+    // Listen for messages from parent window (theme, load document, link job)
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'SET_THEME' && event.data.themeId) {
         setTheme(event.data.themeId);
+      }
+      if (event.data?.type === 'LOAD_RESUME' && event.data.data) {
+        // Load full resume data into the store
+        const data = event.data.data;
+        if (data.resumeData) {
+          useResumeStore.setState({ resumeData: data.resumeData });
+        } else if (data.basics || data.work || data.education || data.skills) {
+          // Data is the resume data itself
+          useResumeStore.setState({ resumeData: { ...useResumeStore.getState().resumeData, ...data } });
+        }
+        // Load cover letter data if provided
+        if (event.data.coverLetterData) {
+          useCoverLetterStore.setState({ coverLetterData: event.data.coverLetterData });
+        }
+      }
+      if (event.data?.type === 'LINK_JOB' && event.data.job) {
+        // Pre-fill cover letter with job data
+        const job = event.data.job;
+        const currentCL = useCoverLetterStore.getState().coverLetterData;
+        useCoverLetterStore.setState({
+          coverLetterData: {
+            ...currentCL,
+            company: job.company || currentCL.company,
+            position: job.title || currentCL.position,
+          }
+        });
       }
     };
     window.addEventListener('message', handleMessage);
@@ -304,10 +330,28 @@ function App() {
   useEffect(() => { saveShowCoverLetter(showCoverLetter); }, [showCoverLetter]);
 
   // Auto-save cover letter & document type every 30 seconds (resume store auto-persists via Zustand middleware)
+  // Also notify parent window so it can persist to cf-documents
   useEffect(() => {
     const interval = setInterval(() => {
       saveCoverLetterData(coverLetterData);
       saveDocumentType(documentType);
+
+      // Broadcast to parent for cf-documents persistence
+      if (window.parent !== window) {
+        try {
+          const currentResumeData = useResumeStore.getState().resumeData;
+          const docId = `builder-${(currentResumeData.basics?.name || 'untitled').replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+          const title = generateDocumentTitle({ userName: currentResumeData.basics?.name, documentType });
+          window.parent.postMessage({
+            type: 'DOCUMENT_SAVED',
+            documentId: docId,
+            documentType,
+            title,
+            data: { resumeData: currentResumeData },
+            coverLetterData,
+          }, '*');
+        } catch { /* ignore serialization errors */ }
+      }
     }, 30000);
     return () => clearInterval(interval);
   }, [coverLetterData, documentType]);
