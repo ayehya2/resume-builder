@@ -166,11 +166,23 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                                 </div>
 
                                 <div className="pt-2">
-                                    <label className="block text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2 px-1">Content Details</label>
+                                    <div className="flex justify-between items-center mb-2 px-1">
+                                        <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Content Details</label>
+                                        {section.type === 'bullets' && (
+                                            <button
+                                                onClick={() => updateCustomSectionItem(section.id, index, { bullets: [...item.bullets, ''] })}
+                                                className="px-2 py-1 btn-accent font-bold text-[10px] uppercase tracking-wider transition-all active:scale-95 shadow-sm rounded-sm"
+                                                type="button"
+                                            >
+                                                + Add Point
+                                            </button>
+                                        )}
+                                    </div>
                                     {section.type === 'bullets' ? (
                                         <BulletList
                                             bullets={item.bullets}
                                             onChange={(bullets) => updateCustomSectionItem(section.id, index, { bullets })}
+                                            showAddButton={false}
                                         />
                                     ) : (
                                         <textarea
@@ -187,7 +199,7 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
 
                         <button
                             onClick={() => addCustomSectionItem(section.id)}
-                            className="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-slate-500 dark:hover:border-slate-500 text-slate-500 dark:text-slate-400 font-semibold transition-all bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center gap-2 rounded-none"
+                            className="w-full py-2.5 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-slate-500 dark:hover:border-slate-500 text-slate-500 dark:text-slate-400 font-semibold transition-all bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center gap-2 rounded-none"
                         >
                             <Plus size={18} />
                             <span>Add New Entry to {section.title}</span>

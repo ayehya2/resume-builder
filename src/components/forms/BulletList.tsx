@@ -4,9 +4,10 @@ interface BulletListProps {
     bullets: string[];
     onChange: (bullets: string[]) => void;
     placeholder?: string;
+    showAddButton?: boolean;
 }
 
-export function BulletList({ bullets, onChange, placeholder }: BulletListProps) {
+export function BulletList({ bullets, onChange, placeholder, showAddButton = true }: BulletListProps) {
     const addBullet = () => {
         onChange([...bullets, '']);
     };
@@ -58,15 +59,17 @@ export function BulletList({ bullets, onChange, placeholder }: BulletListProps) 
                     )}
                 </div>
             ))}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 pt-1">
-                <button
-                    onClick={addBullet}
-                    className="px-2 py-1 sm:px-3 sm:py-1.5 btn-accent font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all active:scale-95 shadow-sm rounded-sm"
-                    type="button"
-                >
-                    + Add Point
-                </button>
-                <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 italic leading-tight">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 pt-0.5">
+                {showAddButton && (
+                    <button
+                        onClick={addBullet}
+                        className="px-2 py-1 sm:px-3 sm:py-1.5 btn-accent font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all active:scale-95 shadow-sm rounded-sm"
+                        type="button"
+                    >
+                        + Add Point
+                    </button>
+                )}
+                <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 italic leading-tight ml-auto">
                     Tip: Use <strong>**bold**</strong> and <em>*italic*</em>
                 </p>
             </div>

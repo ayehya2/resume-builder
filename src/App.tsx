@@ -802,7 +802,7 @@ function App() { // Stores
   // Render all forms stacked (continuous mode)
   const renderContinuousMode = () => {
     const sections: React.ReactNode[] = [];
-    const dividerClass = 'pb-8 mb-8 border-b-2' as const;
+    const dividerClass = 'pb-6 mb-6 border-b-2' as const;
 
     // ━━ PERSISTENT PROFILE ━━
     sections.push(

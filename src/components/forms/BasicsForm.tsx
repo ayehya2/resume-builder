@@ -23,10 +23,10 @@ export function BasicsForm() {
 
     return (
         <div className="space-y-6">
-            <header className="space-y-1">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Profile Information</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Your personal details and contact information — used across your resume and cover letter.
+            <header className="space-y-0.5">
+                <h3 className="text-lg font-black uppercase tracking-widest text-slate-800 dark:text-white">Profile Information</h3>
+                <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    Personal & Contact Details — Used across all documents
                 </p>
             </header>
 

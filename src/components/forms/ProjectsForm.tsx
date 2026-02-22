@@ -18,7 +18,7 @@ export function ProjectsForm() {
             </div>
 
             {projects.length === 0 && (
-                <p className="text-slate-500 dark:text-slate-400 font-medium text-center py-8 bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700">
+                <p className="text-slate-500 dark:text-slate-400 font-medium text-center py-4 bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-700">
                     No projects added yet. Click "Add Project" to get started.
                 </p>
             )}
@@ -108,11 +108,21 @@ export function ProjectsForm() {
                         </div>
 
                         <div className="pt-2">
-                            <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Description & Key Features</label>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Description & Key Features</label>
+                                <button
+                                    onClick={() => updateProject(index, { bullets: [...project.bullets, ''] })}
+                                    className="px-2 py-1 btn-accent font-bold text-[10px] uppercase tracking-wider transition-all active:scale-95 shadow-sm rounded-sm"
+                                    type="button"
+                                >
+                                    + Add Point
+                                </button>
+                            </div>
                             <BulletList
                                 bullets={project.bullets}
                                 onChange={(bullets) => updateProject(index, { bullets })}
                                 placeholder="Built full-stack e-commerce platform"
+                                showAddButton={false}
                             />
                         </div>
                     </div>
