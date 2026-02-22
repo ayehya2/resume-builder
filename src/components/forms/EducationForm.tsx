@@ -1,4 +1,5 @@
 import { useResumeStore } from '../../store'
+import { SmartDateInput } from './SmartDateInput';
 
 export function EducationForm() {
     const { resumeData, addEducation, updateEducation, removeEducation } = useResumeStore();
@@ -83,12 +84,11 @@ export function EducationForm() {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Graduation Date</label>
-                                <input
-                                    type="text"
+                                <SmartDateInput
+                                    label="Graduation Date"
+                                    type="month"
                                     value={edu.graduationDate}
-                                    onChange={(e) => updateEducation(index, { graduationDate: e.target.value })}
-                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                    onChange={(val) => updateEducation(index, { graduationDate: val })}
                                     placeholder="May 2017"
                                 />
                             </div>

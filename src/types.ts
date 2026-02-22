@@ -217,6 +217,8 @@ export interface CoverLetterData {
     content: string;
     closing: string;
     signature: string;
+    email?: string;
+    phone?: string;
     selectedTemplate: TemplateId;
     formatting: FormattingOptions;
     // Reference to resume basics for auto-population

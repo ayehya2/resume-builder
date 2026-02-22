@@ -454,8 +454,19 @@ export const generateLaTeXCoverLetter = (data: any, templateId: number): string 
     const address = userBasics?.address || '';
 
     const bodyContent = content || '';
-    const hasGreeting = bodyContent.toLowerCase().trim().startsWith('dear');
-    const hasClosing = bodyContent.toLowerCase().trim().includes('sincerely') || bodyContent.toLowerCase().trim().includes('thank you');
+    const normalizedContent = bodyContent.toLowerCase().trim();
+    const hasGreeting = normalizedContent.startsWith('dear') ||
+        normalizedContent.startsWith('to ') ||
+        normalizedContent.startsWith('hello') ||
+        normalizedContent.startsWith('hi ');
+
+    const hasClosing = normalizedContent.includes('sincerely') ||
+        normalizedContent.includes('thank you') ||
+        normalizedContent.includes('best regards') ||
+        normalizedContent.includes('kind regards') ||
+        normalizedContent.includes('yours truly') ||
+        normalizedContent.includes('thanks,') ||
+        normalizedContent.includes('regards,');
 
     return `\\documentclass[${cfg.fontSize},letterpaper]{article}
 

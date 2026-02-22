@@ -2,6 +2,7 @@ import { useResumeStore } from '../../store';
 import { BulletList } from './BulletList';
 import { Plus, ExternalLink } from 'lucide-react';
 import type { CustomSection, CustomSectionEntry } from '../../types';
+import { SmartDateInput } from './SmartDateInput';
 
 interface CustomSectionFormProps {
     sectionId?: string;
@@ -121,13 +122,12 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Date</label>
-                                        <input
-                                            type="text"
+                                        <SmartDateInput
+                                            label="Date"
+                                            type="month"
                                             value={item.date}
-                                            onChange={(e) => updateCustomSectionItem(section.id, index, { date: e.target.value })}
-                                            className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
-                                            placeholder="Jan 2024 - Present"
+                                            onChange={(val) => updateCustomSectionItem(section.id, index, { date: val })}
+                                            placeholder="Jan 2024"
                                         />
                                     </div>
                                     <div>

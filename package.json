@@ -1,8 +1,8 @@
 {
-  "name": "resume-builder",
+  "name": "cvstack",
   "private": true,
   "version": "2.0.0",
-  "description": "Professional-grade Resume Builder with extensive formatting, dark theme, and real-time PDF preview.",
+  "description": "Professional-grade resume & cover letter builder with 14+ templates, LaTeX support, and real-time PDF preview.",
   "type": "module",
   "scripts": {
     "dev": "vite",

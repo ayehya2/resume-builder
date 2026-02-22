@@ -25,9 +25,6 @@ export function BasicsForm() {
         <div className="space-y-6">
             <header className="space-y-0.5">
                 <h3 className="text-lg font-black uppercase tracking-widest text-slate-800 dark:text-white">Profile Information</h3>
-                <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                    Personal & Contact Details — Used across all documents
-                </p>
             </header>
 
             <div className="bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 sm:p-5 space-y-4 shadow-sm">

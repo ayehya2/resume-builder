@@ -1,12 +1,11 @@
 import { useCoverLetterStore } from '../../lib/coverLetterStore';
 import { useResumeStore } from '../../store';
-import { Sparkles, User } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { SmartDateInput } from './SmartDateInput';
 
 export function CoverLetterForm() {
-    const { coverLetterData, updateRecipient, updatePosition, updateDate, updateContent, updateClosing } = useCoverLetterStore();
-    const { resumeData } = useResumeStore();
-
-    const profileName = resumeData.basics?.name;
+    const { coverLetterData, updateRecipient, updatePosition, updateDate, updateContent } = useCoverLetterStore();
+    useResumeStore();
 
     return (
         <div className="space-y-6">
@@ -14,34 +13,14 @@ export function CoverLetterForm() {
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Cover Letter</h3>
             </div>
 
-            {/* Profile info banner */}
-            <div className="p-3 bg-slate-100 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700/60">
-                <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-slate-700 dark:bg-slate-600 text-white rounded-sm">
-                        <User size={14} />
-                    </div>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest leading-none">
-                        {profileName
-                            ? <>Your name, contact details & signature are populated from <span className="text-slate-900 dark:text-white">Profile</span></>
-                            : <>Fill in your <span className="text-slate-900 dark:text-white">Profile</span> section to auto-populate your name, contact details & signature</>
-                        }
-                    </p>
-                </div>
-            </div>
-
             {/* Date */}
-            <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                    Date
-                </label>
-                <input
-                    type="text"
-                    value={coverLetterData.date}
-                    onChange={(e) => updateDate(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
-                    placeholder="January 29, 2026"
-                />
-            </div>
+            <SmartDateInput
+                label="Date"
+                type="date"
+                value={coverLetterData.date}
+                onChange={updateDate}
+                placeholder="January 29, 2026"
+            />
 
             {/* Recipient Information — 2×2 grid */}
             <div className="p-5 border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
@@ -119,28 +98,14 @@ export function CoverLetterForm() {
             {/* Letter Body (Content) */}
             <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Letter Body (Greeting & Paragraphs)
+                    Letter Body (Greeting, Content, & Signature)
                 </label>
                 <textarea
                     value={coverLetterData.content}
                     onChange={(e) => updateContent(e.target.value)}
-                    rows={12}
-                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all resize-vertical"
-                    placeholder={`Dear Hiring Manager,\n\nI am writing to express my strong interest in the [Position] role at [Company].\n\n[Body Paragraph 1]\n\n[Body Paragraph 2]`}
-                />
-            </div>
-
-            {/* Closing */}
-            <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Closing
-                </label>
-                <input
-                    type="text"
-                    value={coverLetterData.closing}
-                    onChange={(e) => updateClosing(e.target.value)}
-                    className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
-                    placeholder="Sincerely,"
+                    rows={15}
+                    className="w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all resize-vertical leading-relaxed"
+                    placeholder={`Dear Hiring Manager,\n\nI am writing to express my interest...\n\nSincerely,\n\n[Your Name]`}
                 />
             </div>
 

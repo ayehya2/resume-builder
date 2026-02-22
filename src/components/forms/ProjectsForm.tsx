@@ -1,5 +1,6 @@
 import { useResumeStore } from '../../store'
 import { BulletList } from './BulletList';
+import { SmartDateInput } from './SmartDateInput';
 
 export function ProjectsForm() {
     const { resumeData, addProject, updateProject, removeProject } = useResumeStore();
@@ -74,24 +75,23 @@ export function ProjectsForm() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                             <div>
-                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Start Date</label>
-                                <input
-                                    type="text"
-                                    value={project.startDate}
-                                    onChange={(e) => updateProject(index, { startDate: e.target.value })}
-                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                <SmartDateInput
+                                    label="Start Date"
+                                    type="month"
+                                    value={project.startDate || ''}
+                                    onChange={(val) => updateProject(index, { startDate: val })}
                                     placeholder="Jan 2023"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">End Date</label>
-                                <input
-                                    type="text"
-                                    value={project.endDate}
-                                    onChange={(e) => updateProject(index, { endDate: e.target.value })}
-                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                <SmartDateInput
+                                    label="End Date"
+                                    type="month"
+                                    value={project.endDate || ''}
+                                    onChange={(val) => updateProject(index, { endDate: val })}
                                     placeholder="Present"
+                                    showPresent={true}
                                 />
                             </div>
                         </div>

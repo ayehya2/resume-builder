@@ -1,5 +1,6 @@
 import { useResumeStore } from '../../store'
 import { BulletList } from './BulletList';
+import { SmartDateInput } from './SmartDateInput';
 
 export function WorkForm() {
     const { resumeData, addWork, updateWork, removeWork } = useResumeStore();
@@ -73,24 +74,23 @@ export function WorkForm() {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Start Date</label>
-                                <input
-                                    type="text"
+                                <SmartDateInput
+                                    label="Start Date"
+                                    type="month"
                                     value={job.startDate}
-                                    onChange={(e) => updateWork(index, { startDate: e.target.value })}
-                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                    onChange={(val) => updateWork(index, { startDate: val })}
                                     placeholder="Jan 2020"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">End Date</label>
-                                <input
-                                    type="text"
+                                <SmartDateInput
+                                    label="End Date"
+                                    type="month"
                                     value={job.endDate}
-                                    onChange={(e) => updateWork(index, { endDate: e.target.value })}
-                                    className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                    onChange={(val) => updateWork(index, { endDate: val })}
                                     placeholder="Present"
+                                    showPresent={true}
                                 />
                             </div>
                         </div>
