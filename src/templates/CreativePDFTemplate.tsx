@@ -256,7 +256,7 @@ export function CreativePDFTemplate({ data, documentTitle }: CreativePDFTemplate
                                                     {job.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                         <View key={i} style={styles.bulletPoint}>
                                                             <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                            <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                            <Text>{parseBoldTextPDF(bullet.replace(/^[•\-*]\s*/, ''), Text)}</Text>
                                                         </View>
                                                     ))}
                                                 </View>
@@ -295,7 +295,7 @@ export function CreativePDFTemplate({ data, documentTitle }: CreativePDFTemplate
                                                     {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                         <View key={i} style={styles.bulletPoint}>
                                                             <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                            <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                            <Text>{parseBoldTextPDF(bullet.replace(/^[•\-*]\s*/, ''), Text)}</Text>
                                                         </View>
                                                     ))}
                                                 </View>

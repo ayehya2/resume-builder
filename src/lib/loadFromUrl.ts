@@ -11,6 +11,7 @@
 
 import { useResumeStore } from '../store';
 import { useCoverLetterStore } from './coverLetterStore';
+import { saveShowCoverLetter, saveActiveTab } from './storage';
 import type { WorkExperience, Education, Skill, Project, Award, CustomSection, TemplateId, FormattingOptions } from '../types';
 
 const PREFILL_KEY = 'resume_builder_prefill';
@@ -251,6 +252,10 @@ function applyExternalData(data: ExternalResumeData): void {
         coverLetterStore.updateClosing(
             'Thank you for considering my application. I look forward to discussing this position further.'
         );
+
+        // Auto-enable cover letter so the user sees the generated content
+        saveShowCoverLetter(true);
+        saveActiveTab('cover-letter');
     }
 
     console.log('[loadPrefillData] Applied successfully. Store state:', useResumeStore.getState().resumeData);

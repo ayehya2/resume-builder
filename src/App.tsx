@@ -1,6 +1,6 @@
 "use client";
 // v2.0.2 - Clean professional build
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy, useCallback } from 'react';
 import { useResumeStore } from './store'
 import { BasicsForm } from './components/forms/BasicsForm'
 import { WorkForm } from './components/forms/WorkForm'
@@ -188,6 +188,34 @@ function App() {
   const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
   const [editingTemplateName, setEditingTemplateName] = useState('');
 
+  // Broadcast current state to parent window for cf-documents persistence
+  const broadcastSave = useCallback(() => {
+    if (window.parent !== window) {
+      try {
+        const currentResumeData = useResumeStore.getState().resumeData;
+        const currentCL = useCoverLetterStore.getState().coverLetterData;
+        // Use cover letter fields as fallback for document ID when basics.name is empty
+        const baseName = currentResumeData.basics?.name
+          || (documentType === 'coverletter'
+            ? `${currentCL.company || ''} ${currentCL.position || ''}`.trim()
+            : '')
+          || 'untitled';
+        const docId = `builder-${baseName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+        const title = generateDocumentTitle({ userName: currentResumeData.basics?.name || baseName, documentType });
+        window.parent.postMessage({
+          type: 'DOCUMENT_SAVED',
+          documentId: docId,
+          documentType,
+          showResume,
+          showCoverLetter,
+          title,
+          data: { resumeData: currentResumeData },
+          coverLetterData: currentCL,
+        }, '*');
+      } catch { /* ignore serialization errors */ }
+    }
+  }, [documentType, showResume, showCoverLetter]);
+
   // Scroll to a section in continuous mode instead of switching tabs
   const scrollToContinuousSection = (tabKey: TabKey) => {
     const sectionId = `continuous-section-${tabKey}`;
@@ -256,31 +284,86 @@ function App() {
       if (event.data?.type === 'SET_THEME' && event.data.themeId) {
         setTheme(event.data.themeId);
       }
-      if (event.data?.type === 'LOAD_RESUME' && event.data.data) {
-        // Load full resume data into the store
+      if (event.data?.type === 'LOAD_RESUME' || event.data?.type === 'HYDRATE_DOCUMENT') {
         const data = event.data.data;
-        if (data.resumeData) {
-          useResumeStore.setState({ resumeData: data.resumeData });
-        } else if (data.basics || data.work || data.education || data.skills) {
-          // Data is the resume data itself
-          useResumeStore.setState({ resumeData: { ...useResumeStore.getState().resumeData, ...data } });
+        if (data) {
+          if (data.resumeData) {
+            useResumeStore.setState({ resumeData: data.resumeData });
+          } else if (data.basics || data.work || data.education || data.skills) {
+            useResumeStore.setState({ resumeData: { ...useResumeStore.getState().resumeData, ...data } });
+          }
         }
-        // Load cover letter data if provided
         if (event.data.coverLetterData) {
           useCoverLetterStore.setState({ coverLetterData: event.data.coverLetterData });
         }
+        if (event.data.showResume !== undefined) setShowResume(event.data.showResume);
+        if (event.data.showCoverLetter !== undefined) setShowCoverLetter(event.data.showCoverLetter);
+        if (event.data.documentType) setDocumentType(event.data.documentType);
+
+        // Immediate broadcast to parent for confirmation/sync
+        setTimeout(() => broadcastSave(), 100);
+      }
+      if (event.data?.type === 'RESET_DOCUMENT') {
+        reset(); // Clear resume store
+        useCoverLetterStore.setState({
+          coverLetterData: {
+            date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            recipientName: '',
+            recipientTitle: '',
+            company: '',
+            companyAddress: '',
+            position: '',
+            content: '',
+            signature: '',
+            closing: 'Thank you for considering my application. I look forward to discussing this position further.'
+          }
+        });
+        setDocumentType('resume');
+        setShowResume(true);
+        setShowCoverLetter(false);
       }
       if (event.data?.type === 'LINK_JOB' && event.data.job) {
-        // Pre-fill cover letter with job data
+        // Pre-fill cover letter with full generated content
         const job = event.data.job;
         const currentCL = useCoverLetterStore.getState().coverLetterData;
+        const currentBasics = useResumeStore.getState().resumeData.basics;
+
+        // Update recipient info
         useCoverLetterStore.setState({
           coverLetterData: {
             ...currentCL,
             company: job.company || currentCL.company,
             position: job.title || currentCL.position,
+            signature: currentBasics?.name || currentCL.signature,
           }
         });
+
+        // Generate a full cover letter body (same logic as loadPrefillData)
+        if (job.title && job.company) {
+          let generatedContent = `Dear Hiring Manager,\n\nI am writing to express my strong interest in the ${job.title} position at ${job.company}.`;
+          if (job.description) {
+            generatedContent += `\n\nAfter reviewing the job description, I am excited about the opportunity to contribute to ${job.company}. My background and skills align well with your requirements.`;
+          }
+          if (job.skills && job.skills.length > 0) {
+            generatedContent += `\n\nI have extensive experience with ${job.skills.slice(0, 5).join(', ')}, which makes me a strong candidate for this role.`;
+          }
+          generatedContent += `\n\nI am enthusiastic about the opportunity to bring my expertise to ${job.company} and contribute to your team's success.`;
+          useCoverLetterStore.getState().updateContent(generatedContent);
+          useCoverLetterStore.getState().updateClosing(
+            'Thank you for considering my application. I look forward to discussing this position further.'
+          );
+        }
+
+        // Auto-enable cover letter and switch to it
+        setShowCoverLetter(true);
+        setActiveTab('cover-letter');
+
+        // Explicitly broadcast save to parent after linking
+        setTimeout(() => broadcastSave(), 200);
+      }
+      if (event.data?.type === 'REQUEST_SAVE') {
+        // Parent is requesting an immediate save broadcast
+        broadcastSave();
       }
     };
     window.addEventListener('message', handleMessage);
@@ -289,7 +372,7 @@ function App() {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('message', handleMessage);
     };
-  }, [setTheme]);
+  }, [setTheme, broadcastSave, reset]); // Added broadcastSave and reset to prevent stale closures
 
   // Load non-store persisted data on mount; resume store is auto-persisted via Zustand middleware
   useEffect(() => {
@@ -324,37 +407,23 @@ function App() {
     applyTheme(themeId);
   }, [themeId]);
 
+
+
   // Persist new settings
   useEffect(() => { saveContinuousMode(continuousMode); }, [continuousMode]);
   useEffect(() => { saveShowResume(showResume); }, [showResume]);
   useEffect(() => { saveShowCoverLetter(showCoverLetter); }, [showCoverLetter]);
 
-  // Auto-save cover letter & document type every 30 seconds (resume store auto-persists via Zustand middleware)
+  // Auto-save cover letter & document type every 5 seconds (resume store auto-persists via Zustand middleware)
   // Also notify parent window so it can persist to cf-documents
   useEffect(() => {
     const interval = setInterval(() => {
       saveCoverLetterData(coverLetterData);
       saveDocumentType(documentType);
-
-      // Broadcast to parent for cf-documents persistence
-      if (window.parent !== window) {
-        try {
-          const currentResumeData = useResumeStore.getState().resumeData;
-          const docId = `builder-${(currentResumeData.basics?.name || 'untitled').replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
-          const title = generateDocumentTitle({ userName: currentResumeData.basics?.name, documentType });
-          window.parent.postMessage({
-            type: 'DOCUMENT_SAVED',
-            documentId: docId,
-            documentType,
-            title,
-            data: { resumeData: currentResumeData },
-            coverLetterData,
-          }, '*');
-        } catch { /* ignore serialization errors */ }
-      }
-    }, 30000);
+      broadcastSave();
+    }, 5000);
     return () => clearInterval(interval);
-  }, [coverLetterData, documentType]);
+  }, [coverLetterData, documentType, broadcastSave]);
 
   // Sync documentType with toggles and activeTab
   useEffect(() => {
@@ -383,7 +452,7 @@ function App() {
         setActiveTab('templates');
       }
     }
-  }, [showResume, showCoverLetter]);
+  }, [showResume, showCoverLetter, activeTab]);
 
   // (Dark mode is controlled by theme selection — no separate toggle)
 
@@ -391,11 +460,13 @@ function App() {
   const handleToggleResume = () => {
     if (showResume && !showCoverLetter) return; // Can't uncheck both
     setShowResume(!showResume);
+    setTimeout(() => broadcastSave(), 0);
   };
 
   const handleToggleCoverLetter = () => {
     if (showCoverLetter && !showResume) return; // Can't uncheck both
     setShowCoverLetter(!showCoverLetter);
+    setTimeout(() => broadcastSave(), 0);
   };
 
   // Export JSON
@@ -560,46 +631,52 @@ function App() {
 
   // Template filter bar JSX (reused in both modes)
   const templateFilterBar = (
-    <div className="space-y-3 mb-4">
+    <div className="flex flex-wrap items-center gap-3 mb-6">
       {/* Search bar */}
-      <div className="relative">
+      <div className="relative flex-1 min-w-[200px]">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--main-text-secondary)' }} />
         <input
           type="text"
           value={templateSearch}
           onChange={(e) => setTemplateSearch(e.target.value)}
           placeholder="Search templates..."
-          className="w-full pl-9 pr-3 py-2 text-sm border-2 transition-colors outline-none"
+          className="w-full pl-9 pr-3 py-2 text-sm border-2 transition-colors outline-none h-[38px]"
           style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--main-text)' }}
         />
       </div>
-      {/* Filter + Sort row */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {(['all', 'latex', 'standard'] as const).map(filter => (
-          <button
-            key={filter}
-            onClick={() => setTemplateFilter(filter)}
-            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors border-2 ${templateFilter === filter ? 'btn-accent' : ''}`}
-            style={templateFilter !== filter ? { backgroundColor: 'transparent', borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' } : {}}
-          >
-            {filter === 'all' ? 'All' : filter === 'latex' ? 'LaTeX' : 'Standard'}
-          </button>
-        ))}
-        <div className="flex-1" />
-        {/* Sort dropdown */}
+
+      {/* Filter Options */}
+      <div className="h-[38px]">
         <select
-          value={templateSort}
-          onChange={(e) => setTemplateSort(e.target.value as typeof templateSort)}
-          className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider border-2 outline-none cursor-pointer transition-colors"
+          value={templateFilter}
+          onChange={(e) => setTemplateFilter(e.target.value as typeof templateFilter)}
+          className="px-3 h-full text-[10px] font-bold uppercase tracking-wider border-2 outline-none cursor-pointer transition-colors"
           style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--main-text-secondary)' }}
         >
-          <option value="default">Default Order</option>
-          <option value="latex-first">LaTeX First</option>
-          <option value="standard-first">Standard First</option>
+          <option value="all">All Templates</option>
+          <option value="latex">LaTeX Templates</option>
+          <option value="standard">Standard Templates</option>
         </select>
       </div>
+
+      {/* Sort dropdown - only show when "all" is selected */}
+      {templateFilter === 'all' && (
+        <div className="h-[38px]">
+          <select
+            value={templateSort}
+            onChange={(e) => setTemplateSort(e.target.value as typeof templateSort)}
+            className="px-3 h-full text-[10px] font-bold uppercase tracking-wider border-2 outline-none cursor-pointer transition-colors"
+            style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--main-text-secondary)' }}
+          >
+            <option value="default">Default Order</option>
+            <option value="latex-first">LaTeX First</option>
+            <option value="standard-first">Standard First</option>
+          </select>
+        </div>
+      )}
+
       {/* Count */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2 ml-auto">
         <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>
           {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
           {templateSearch.trim() && ' found'}
@@ -707,6 +784,7 @@ function App() {
         blob = await compileLatexViaApi(texSource);
       } else {
         const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData, docTitle);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         blob = await pdf(templateComponent as any).toBlob();
       }
 
@@ -744,6 +822,7 @@ function App() {
         blob = await compileLatexViaApi(texSource);
       } else {
         const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData, docTitle);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         blob = await pdf(templateComponent as any).toBlob();
       }
 
@@ -1425,7 +1504,8 @@ function App() {
 
         {/* ━━ Main Content ━━
             Mobile: full-width, hidden when preview is active
-            Desktop: flex-1 */}
+            Tablet: w-[450px]
+            Desktop: w-[900px] */}
         <main className={`flex-1 px-2 py-3 sm:p-4 lg:p-6 overflow-y-auto pb-32 lg:pb-6 ${mobileView !== 'form' ? 'hidden lg:block' : ''}`}
           style={{ backgroundColor: 'var(--main-bg)', color: 'var(--main-text)' }}>
           <div className="w-full max-w-5xl mx-auto">

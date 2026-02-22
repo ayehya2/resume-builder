@@ -216,7 +216,7 @@ export function AcademicPDFTemplate({ data, documentTitle }: AcademicPDFTemplate
                                                         {job.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                             <View key={i} style={styles.bulletPoint}>
                                                                 <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                                <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                                <Text>{parseBoldTextPDF(bullet.replace(/^[•\-*]\s*/, ''), Text)}</Text>
                                                             </View>
                                                         ))}
                                                     </View>
@@ -276,7 +276,7 @@ export function AcademicPDFTemplate({ data, documentTitle }: AcademicPDFTemplate
                                                         {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                             <View key={i} style={styles.bulletPoint}>
                                                                 <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                                <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                                <Text>{parseBoldTextPDF(bullet.replace(/^[•\-*]\s*/, ''), Text)}</Text>
                                                             </View>
                                                         ))}
                                                     </View>
@@ -337,7 +337,7 @@ export function AcademicPDFTemplate({ data, documentTitle }: AcademicPDFTemplate
                                                         {entry.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                             <View key={i} style={styles.bulletPoint}>
                                                                 <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                                <Text>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                                <Text>{parseBoldTextPDF(bullet.replace(/^[•\-*]\s*/, ''), Text)}</Text>
                                                             </View>
                                                         ))}
                                                     </View>

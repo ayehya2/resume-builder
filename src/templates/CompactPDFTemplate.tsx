@@ -140,7 +140,7 @@ export function CompactPDFTemplate({ data, documentTitle }: CompactPDFTemplatePr
         textTransform: getPDFSectionHeaderStyle(formatting.sectionHeaderStyle),
         marginBottom: 4,
         paddingBottom: 2,
-        borderBottom: `0.5pt solid ${accentColor}40` as any,
+        borderBottom: `0.5pt solid ${accentColor}40`,
         letterSpacing: 1,
     };
 
@@ -202,7 +202,7 @@ export function CompactPDFTemplate({ data, documentTitle }: CompactPDFTemplatePr
                                                         {job.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                             <View key={i} style={styles.bulletPoint}>
                                                                 <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                                <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                                <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-*]\s*/, ''), Text)}</Text>
                                                             </View>
                                                         ))}
                                                     </View>
@@ -241,7 +241,7 @@ export function CompactPDFTemplate({ data, documentTitle }: CompactPDFTemplatePr
                                                         {project.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                             <View key={i} style={styles.bulletPoint}>
                                                                 <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                                <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                                <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-*]\s*/, ''), Text)}</Text>
                                                             </View>
                                                         ))}
                                                     </View>
@@ -281,7 +281,7 @@ export function CompactPDFTemplate({ data, documentTitle }: CompactPDFTemplatePr
                                                             {entry.bullets.filter(b => b.trim()).map((bullet, i) => (
                                                                 <View key={i} style={styles.bulletPoint}>
                                                                     <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
-                                                                    <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-\*]\s*/, ''), Text)}</Text>
+                                                                    <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-*]\s*/, ''), Text)}</Text>
                                                                 </View>
                                                             ))}
                                                         </View>
@@ -306,7 +306,7 @@ export function CompactPDFTemplate({ data, documentTitle }: CompactPDFTemplatePr
                     </View>
 
                     {/* Right Column {getPDFDateSeparator(formatting.dateSeparator)} Supplementary */}
-                    <View style={{ flex: 1, borderLeft: `0.5pt solid ${accentColor}30` as any, paddingLeft: 10 }}>
+                    <View style={{ flex: 1, borderLeft: `0.5pt solid ${accentColor}30`, paddingLeft: 10 }}>
                         {sections.map((sectionKey) => {
                             if (sectionKey === 'education' && education.length > 0) {
                                 return (

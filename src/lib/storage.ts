@@ -59,6 +59,7 @@ export function importFromJSON(jsonString: string): ResumeData {
 }
 
 // Migrate old data format to new format
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function migrateData(data: any): ResumeData {
     // Ensure unique sections
     if (data.sections && Array.isArray(data.sections)) {

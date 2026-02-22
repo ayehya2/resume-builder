@@ -211,7 +211,7 @@ export function AITab({ documentType }: AITabProps) {
                             </label>
                             <select
                                 value={generationType}
-                                onChange={(e) => setGenerationType(e.target.value as any)}
+                                onChange={(e) => setGenerationType(e.target.value as 'resume-bullet' | 'resume-summary' | 'cover-opening' | 'cover-body' | 'improve')}
                                 className="w-full px-4 py-2.5 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all appearance-none cursor-pointer"
                             >
                                 {documentType === 'resume' ? (
