@@ -67,7 +67,8 @@ import {
   Copy,
   Search,
   Menu,
-  Eye
+  Eye,
+  Settings
 } from 'lucide-react'
 import './styles/index.css'
 
@@ -1340,7 +1341,7 @@ function App() { // Stores
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Code2 size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
+                    <Settings size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
                     <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 group-hover:text-white/90 transition-colors">Advanced Mode</span>
                   </div>
                 </label>
