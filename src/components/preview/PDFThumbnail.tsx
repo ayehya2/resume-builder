@@ -6,10 +6,11 @@ import { getPDFTemplateComponent, isLatexTemplate } from '../../lib/pdfTemplateM
 import { pdfToImage, blobToImage } from '../../lib/pdfToImage';
 import { generateLaTeXFromData } from '../../lib/latexGenerator';
 import { compileLatexViaApi } from '../../lib/latexApiCompiler';
-import type { TemplateId } from '../../types';
+import type { TemplateId, ResumeData } from '../../types';
 
 interface PDFThumbnailProps {
     templateId: TemplateId;
+    previewData?: ResumeData;
 }
 
 /**
@@ -17,8 +18,10 @@ interface PDFThumbnailProps {
  * template. For LaTeX templates, it compiles via the real pdfTeX API.
  * Debounces re-renders (~600ms for non-LaTeX, ~1200ms for LaTeX due to API latency).
  */
-export const PDFThumbnail = memo(function PDFThumbnail({ templateId }: PDFThumbnailProps) {
-    const { resumeData, customLatexSource, latexFormatting } = useResumeStore();
+export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData }: PDFThumbnailProps) {
+    const store = useResumeStore();
+    const resumeData = previewData || store.resumeData;
+    const { customLatexSource, latexFormatting } = store;
     const { customTemplates } = useCustomTemplateStore();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);

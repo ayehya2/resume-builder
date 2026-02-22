@@ -39,6 +39,7 @@ import { useThemeStore, applyTheme, THEMES, THEME_MAP } from './lib/themeStore'
 import { useCustomTemplateStore } from './lib/customTemplateStore'
 import { getEffectiveResumeData } from './lib/templateResolver'
 import { generateDocumentFileName, generateDocumentTitle } from './lib/documentNaming'
+import { SAMPLE_RESUME_DATA } from './lib/sampleData'
 import {
   Plus,
   LayoutTemplate,
@@ -187,6 +188,7 @@ function App() {
   const [newTemplateBase, setNewTemplateBase] = useState<PreloadedTemplateId>(1);
   const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
   const [editingTemplateName, setEditingTemplateName] = useState('');
+  const [previewDataSource, setPreviewDataSource] = useState<'sample' | 'real'>('sample');
 
   // Broadcast current state to parent window for cf-documents persistence
   const broadcastSave = useCallback(() => {
@@ -632,14 +634,21 @@ function App() {
   // Template filter bar JSX (reused in both modes)
   const templateFilterBar = (
     <div className="flex flex-wrap items-center gap-3 mb-6">
+      <div className="flex items-baseline gap-2 border-r-2 pr-3 mr-1" style={{ borderColor: 'var(--card-border)' }}>
+        <h3 className="text-lg font-extrabold whitespace-nowrap" style={{ color: 'var(--main-text)' }}>Choose Template</h3>
+        <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest whitespace-nowrap" style={{ color: 'var(--main-text-secondary)' }}>
+          {filteredTemplates.length} Available
+        </span>
+      </div>
+
       {/* Search bar */}
-      <div className="relative flex-1 min-w-[200px]">
+      <div className="relative flex-1 min-w-[180px]">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--main-text-secondary)' }} />
         <input
           type="text"
           value={templateSearch}
           onChange={(e) => setTemplateSearch(e.target.value)}
-          placeholder="Search templates..."
+          placeholder="Search..."
           className="w-full pl-9 pr-3 py-2 text-sm border-2 transition-colors outline-none h-[38px]"
           style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--main-text)' }}
         />
@@ -675,13 +684,15 @@ function App() {
         </div>
       )}
 
-      {/* Count */}
-      <div className="flex items-center gap-2 ml-auto">
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>
-          {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
-          {templateSearch.trim() && ' found'}
-        </span>
-      </div>
+      {/* Preview Data Toggle */}
+      <button
+        onClick={() => setPreviewDataSource(prev => prev === 'sample' ? 'real' : 'sample')}
+        className={`px-3 h-[38px] text-[10px] font-bold uppercase tracking-wider border-2 transition-colors ${previewDataSource === 'real' ? 'btn-accent' : ''}`}
+        style={previewDataSource !== 'real' ? { backgroundColor: 'transparent', borderColor: 'var(--input-border)', color: 'var(--main-text-secondary)' } : {}}
+        title={previewDataSource === 'sample' ? 'Show how templates look with your own data' : 'Show templates with professional sample data'}
+      >
+        {previewDataSource === 'sample' ? 'Show My Data' : 'Show Sample'}
+      </button>
     </div>
   );
 
@@ -846,7 +857,6 @@ function App() {
     // Template selector
     sections.push(
       <div key="templates" id="continuous-section-templates" className={dividerClass}>
-        <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--main-text)' }}>Choose Template</h3>
         {templateFilterBar}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {paginatedTemplates.map((template) => {
@@ -862,7 +872,10 @@ function App() {
                 }}
               >
                 <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
-                  <TemplateThumbnail templateId={template.id} />
+                  <TemplateThumbnail
+                    templateId={template.id}
+                    previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
+                  />
                   {isSelected && (
                     <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
                   )}
@@ -1005,7 +1018,10 @@ function App() {
                       className="overflow-hidden bg-white pdf-paper w-full"
                       style={{ borderBottom: '2px solid var(--card-border)' }}
                     >
-                      <TemplateThumbnail templateId={ct.baseTemplateId} />
+                      <TemplateThumbnail
+                        templateId={ct.baseTemplateId}
+                        previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
+                      />
                       {isActive && (
                         <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.3 }}></div>
                       )}
@@ -1534,7 +1550,6 @@ function App() {
                 {activeTab === 'formatting' && (isLatexSelected ? <LaTeXFormattingForm /> : <FormattingForm />)}
                 {activeTab === 'templates' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-bold" style={{ color: 'var(--main-text)' }}>Choose Template</h3>
                     {templateFilterBar}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {paginatedTemplates.map((template) => {
@@ -1550,7 +1565,10 @@ function App() {
                             }}
                           >
                             <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
-                              <TemplateThumbnail templateId={template.id} />
+                              <TemplateThumbnail
+                                templateId={template.id}
+                                previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
+                              />
                               {isSelected && (
                                 <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
                               )}
@@ -1694,7 +1712,10 @@ function App() {
                                   className="overflow-hidden bg-white pdf-paper w-full"
                                   style={{ borderBottom: '2px solid var(--card-border)' }}
                                 >
-                                  <TemplateThumbnail templateId={ct.baseTemplateId} />
+                                  <TemplateThumbnail
+                                    templateId={ct.baseTemplateId}
+                                    previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
+                                  />
                                   {isActive && (
                                     <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.3 }}></div>
                                   )}
