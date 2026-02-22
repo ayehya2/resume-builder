@@ -38,6 +38,7 @@ export function SmartDateInput({
     }, [currentYear]);
 
     // Parse current value
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const parsedDate = useMemo(() => {
         if (!value) return { month: '', year: '', day: '' };
         if (value.toLowerCase() === 'present' || value.toLowerCase() === 'currently' || value.toLowerCase() === 'ongoing') {

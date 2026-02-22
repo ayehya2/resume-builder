@@ -1351,7 +1351,7 @@ function App() { // Stores
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `} style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)', borderColor: 'var(--sidebar-border)' }}>
           <div className="h-full flex flex-col overflow-hidden">
-            <div className="px-4 pt-4 pb-2 space-y-3">
+            <div className="px-4 pt-4 pb-4 space-y-3">
               {/* Dashboard Link (only if iframed) */}
               {window.self !== window.top && (
                 <button
@@ -1363,65 +1363,66 @@ function App() { // Stores
                 </button>
               )}
 
-              <div className="flex p-1 bg-black/40 rounded-none border-2 border-white/20 shadow-none overflow-hidden gap-0.5">
+
+              <div className="flex p-0.5 bg-black/40 rounded-none border border-white/10 shadow-none overflow-hidden gap-0.5">
                 <button
                   onClick={handleToggleResume}
-                  className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-1 rounded-none text-[11px] font-black uppercase tracking-tighter border transition-all duration-200 ${showResume ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-white border-white/40 hover:text-white hover:bg-white/5'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-2 rounded-none text-[10px] font-black uppercase tracking-tighter border transition-all duration-200 ${showResume ? 'bg-white text-black border-white' : 'bg-transparent text-white border-transparent hover:text-white hover:bg-white/5'}`}
                 >
-                  <FileCheck size={14} className={showResume ? "text-black" : "text-white"} />
+                  <FileCheck size={13} className={showResume ? "text-black" : "text-white/40 group-hover:text-white/70"} />
                   <span>Resume</span>
                 </button>
                 <button
                   onClick={handleToggleCoverLetter}
-                  className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-1 rounded-none text-[11px] font-black uppercase tracking-tighter border transition-all duration-200 ${showCoverLetter ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-white border-white/40 hover:text-white hover:bg-white/5'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-2 rounded-none text-[10px] font-black uppercase tracking-tighter border transition-all duration-200 ${showCoverLetter ? 'bg-white text-black border-white' : 'bg-transparent text-white border-transparent hover:text-white hover:bg-white/5'}`}
                 >
-                  <Mail size={14} className={showCoverLetter ? "text-black" : "text-white"} />
+                  <Mail size={13} className={showCoverLetter ? "text-black" : "text-white/40 group-hover:text-white/70"} />
                   <span>Cover Letter</span>
                 </button>
               </div>
-            </div>
 
-            {/* Toggles */}
-            <div className="space-y-2 px-4 pb-4">
-              <label className="flex items-center gap-2.5 cursor-pointer group">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={continuousMode}
-                    onChange={() => setContinuousMode(!continuousMode)}
-                    className="sr-only"
-                  />
-                  <div className="w-8 h-4 rounded-none transition-all ring-2 ring-white/20"
-                    style={{ backgroundColor: continuousMode ? 'var(--accent)' : 'rgba(0,0,0,0.5)' }}
-                  >
-                    <div className={`w-3 h-3 bg-white rounded-none shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-transform absolute top-[2px] ${continuousMode ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+              {/* Toggles */}
+              <div className="space-y-2.5 pt-1 pl-1.5">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={continuousMode}
+                      onChange={() => setContinuousMode(!continuousMode)}
+                      className="sr-only"
+                    />
+                    <div className="w-8 h-4 rounded-none transition-all ring-2 ring-white/10"
+                      style={{ backgroundColor: continuousMode ? 'var(--accent)' : 'rgba(0,0,0,0.5)' }}
+                    >
+                      <div className={`w-3 h-3 bg-white rounded-none shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-transform absolute top-[2px] ${continuousMode ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Layers size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 group-hover:text-white/90 transition-colors">Continuous Page</span>
-                </div>
-              </label>
+                  <div className="flex items-center gap-2">
+                    <Layers size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 group-hover:text-white/90 transition-colors">Continuous Page</span>
+                  </div>
+                </label>
 
-              <label className="flex items-center gap-2.5 cursor-pointer group">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={isAdvancedMode}
-                    onChange={() => setIsAdvancedMode(!isAdvancedMode)}
-                    className="sr-only"
-                  />
-                  <div className="w-8 h-4 rounded-none transition-all ring-2 ring-white/40"
-                    style={{ backgroundColor: isAdvancedMode ? 'var(--accent)' : 'rgba(0,0,0,0.5)' }}
-                  >
-                    <div className={`w-3 h-3 bg-white rounded-none shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-transform absolute top-[2px] ${isAdvancedMode ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={isAdvancedMode}
+                      onChange={() => setIsAdvancedMode(!isAdvancedMode)}
+                      className="sr-only"
+                    />
+                    <div className="w-8 h-4 rounded-none transition-all ring-2 ring-white/40"
+                      style={{ backgroundColor: isAdvancedMode ? 'var(--accent)' : 'rgba(0,0,0,0.5)' }}
+                    >
+                      <div className={`w-3 h-3 bg-white rounded-none shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-transform absolute top-[2px] ${isAdvancedMode ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Settings size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 group-hover:text-white/90 transition-colors">Advanced Mode</span>
-                </div>
-              </label>
+                  <div className="flex items-center gap-2">
+                    <Settings size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 group-hover:text-white/90 transition-colors">Advanced Mode</span>
+                  </div>
+                </label>
+              </div>
             </div>
 
             {thickSeparator}
