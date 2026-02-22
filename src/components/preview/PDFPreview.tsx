@@ -384,17 +384,16 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                     {/* Tex Export (if LaTeX template) */}
                     {isLatexTemplate(templateId) && (
                         <button onClick={handleDownloadTex} className="hidden lg:flex p-2 sm:p-1.5 border transition-colors" style={btn} title="Download .TEX Source">
-                            <Code2 size={16} />
+                            <Code2 size={16} strokeWidth={2} />
                         </button>
                     )}
 
                     <button onClick={handlePrint} className="p-2 sm:p-1.5 border transition-colors" style={btn} title="Print">
                         <Printer size={16} />
                     </button>
-                    <button onClick={handleDownload} className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider shadow-sm"
+                    <button onClick={handleDownload} className="btn-accent p-2 sm:p-1.5 shadow-lg transition-all active:scale-95 hover:brightness-110"
                         title="Download PDF">
-                        <Download size={14} strokeWidth={3} />
-                        <span className="hidden xs:inline">PDF</span>
+                        <Download size={16} strokeWidth={2.5} />
                     </button>
                 </div>
             </div>
