@@ -1303,25 +1303,48 @@ function App() { // Stores
               </div>
 
               {/* Continuous Page Toggle */}
-              <label className="flex items-center gap-2.5 cursor-pointer group px-1">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={continuousMode}
-                    onChange={() => setContinuousMode(!continuousMode)}
-                    className="sr-only"
-                  />
-                  <div className="w-8 h-4 rounded-none transition-all ring-2 ring-white/40"
-                    style={{ backgroundColor: continuousMode ? 'var(--accent)' : 'rgba(0,0,0,0.5)' }}
-                  >
-                    <div className={`w-3 h-3 bg-white rounded-none shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-transform absolute top-[2px] ${continuousMode ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+              <div className="space-y-2 px-1">
+                <label className="flex items-center gap-2.5 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={continuousMode}
+                      onChange={() => setContinuousMode(!continuousMode)}
+                      className="sr-only"
+                    />
+                    <div className="w-8 h-4 rounded-none transition-all ring-2 ring-white/40"
+                      style={{ backgroundColor: continuousMode ? 'var(--accent)' : 'rgba(0,0,0,0.5)' }}
+                    >
+                      <div className={`w-3 h-3 bg-white rounded-none shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-transform absolute top-[2px] ${continuousMode ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Layers size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 group-hover:text-white/90 transition-colors">Continuous Page</span>
-                </div>
-              </label>
+                  <div className="flex items-center gap-2">
+                    <Layers size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 group-hover:text-white/90 transition-colors">Continuous Page</span>
+                  </div>
+                </label>
+
+                {/* Advanced Mode Toggle */}
+                <label className="flex items-center gap-2.5 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={isAdvancedMode}
+                      onChange={() => setIsAdvancedMode(!isAdvancedMode)}
+                      className="sr-only"
+                    />
+                    <div className="w-8 h-4 rounded-none transition-all ring-2 ring-white/40"
+                      style={{ backgroundColor: isAdvancedMode ? 'var(--accent)' : 'rgba(0,0,0,0.5)' }}
+                    >
+                      <div className={`w-3 h-3 bg-white rounded-none shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-transform absolute top-[2px] ${isAdvancedMode ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Code2 size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 group-hover:text-white/90 transition-colors">Advanced Mode</span>
+                  </div>
+                </label>
+              </div>
             </div>
 
             {thickSeparator}
@@ -1420,21 +1443,7 @@ function App() { // Stores
 
             {/* Bottom Controls: Export, Import, Sample, Theme, Reset */}
             <div className="border-t-2 p-3 space-y-3 shrink-0 mt-auto bg-[#0a0a14]/80 backdrop-blur-md" style={{ borderColor: 'var(--sidebar-border)' }}>
-              {/* Simple/Advanced Toggle */}
-              <div className="flex p-0.5 bg-black/40 rounded-none border border-white/10 shadow-none overflow-hidden gap-0.5">
-                <button
-                  onClick={() => setIsAdvancedMode(false)}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded-none text-[9px] font-black uppercase tracking-tighter border transition-all duration-200 ${!isAdvancedMode ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-white border-white/20 hover:text-white hover:bg-white/5'}`}
-                >
-                  <span>Simple</span>
-                </button>
-                <button
-                  onClick={() => setIsAdvancedMode(true)}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded-none text-[9px] font-black uppercase tracking-tighter border transition-all duration-200 ${isAdvancedMode ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-white border-white/20 hover:text-white hover:bg-white/5'}`}
-                >
-                  <span>Advanced</span>
-                </button>
-              </div>
+
 
               <button
                 onClick={handleImport}
