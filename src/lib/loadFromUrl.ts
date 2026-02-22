@@ -96,7 +96,7 @@ export function loadPrefillData(): void {
                 applyExternalData(data);
                 setTimeout(() => {
                     history.replaceState(null, '', window.location.pathname + window.location.search);
-                }, 2000);
+                }, 50); // Immediate clear to prevent re-run on re-renders
             }
         }
     } catch (err) {

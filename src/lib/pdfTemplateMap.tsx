@@ -14,9 +14,9 @@ import { CoverLetterPDFTemplate } from '../templates/CoverLetterPDFTemplate';
 
 /**
  * All LaTeX template IDs.
- * 11 = Professional, 12 = Compact, 13 = Ultra Compact, 14 = Academic
+ * 11-14 = Resume, 21-23 = Cover Letter
  */
-export const LATEX_TEMPLATE_IDS = [11, 12, 13, 14] as const;
+export const LATEX_TEMPLATE_IDS = [11, 12, 13, 14, 21, 22] as const;
 
 /**
  * Check if a template ID corresponds to a real LaTeX template.
@@ -37,7 +37,13 @@ export function getPDFTemplateComponent(
     documentTitle?: string
 ): ReactElement {
     if (documentType === 'coverletter' && coverLetterData) {
-        return <CoverLetterPDFTemplate data={coverLetterData} documentTitle={documentTitle} />;
+        return (
+            <CoverLetterPDFTemplate
+                data={coverLetterData}
+                documentTitle={documentTitle}
+                templateId={effectiveData.selectedTemplate}
+            />
+        );
     }
 
     switch (effectiveData.selectedTemplate) {

@@ -2,11 +2,30 @@ import { useEffect, useRef } from 'react';
 import { useResumeStore } from '../../store'
 import { useCustomTemplateStore } from '../../lib/customTemplateStore';
 import { isCustomTemplate } from '../../lib/templateResolver';
-import type { ColorTheme, SectionDivider, Alignment, FontFamily, NameSize, Spacing, BulletStyle, SectionTitleSize, BulletIndent, HeaderLineStyle, DateFormat, SubHeaderWeight, SkillLayout, CompanyTitleOrder, BodyTextWeight, ItalicStyle, DateSeparator, AccentColorPosition } from '../../types';
+import type { FormattingOptions, ColorTheme, SectionDivider, Alignment, FontFamily, NameSize, Spacing, BulletStyle, SectionTitleSize, BulletIndent, HeaderLineStyle, DateFormat, SubHeaderWeight, SkillLayout, CompanyTitleOrder, BodyTextWeight, ItalicStyle, DateSeparator, AccentColorPosition } from '../../types';
 
-export function FormattingForm() {
-    const { resumeData, updateFormatting, resetFormatting } = useResumeStore();
-    const { formatting } = resumeData;
+interface FormattingFormProps {
+    data?: FormattingOptions;
+    update?: (formatting: Partial<FormattingOptions>) => void;
+    reset?: () => void;
+    title?: string;
+    description?: string;
+}
+
+export function FormattingForm({
+    data: propsData,
+    update: propsUpdate,
+    reset: propsReset,
+    title = "Formatting",
+    description = "Deep customization for professional-grade documents. Changes apply to all templates."
+}: FormattingFormProps) {
+    const { resumeData, updateFormatting: storeUpdate, resetFormatting: storeReset } = useResumeStore();
+
+    // Choose between props (CV mode) and store (Resume mode)
+    const formatting = propsData || resumeData.formatting;
+    const updateFormatting = propsUpdate || storeUpdate;
+    const resetFormatting = propsReset || storeReset;
+
     const { customTemplates, updateCustomTemplate } = useCustomTemplateStore();
 
     // Find active custom template (if any)
@@ -30,23 +49,22 @@ export function FormattingForm() {
         <div className="space-y-6">
             {/* Custom template banner */}
             {activeCustomTemplate && (
-                <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
-                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                    <div>
-                        <div className="text-sm font-bold text-blue-800 dark:text-blue-300">
-                            Editing: {activeCustomTemplate.name}
-                        </div>
-                        <div className="text-xs text-blue-600 dark:text-blue-400">
-                            Changes auto-save to this custom template
-                        </div>
+                <div className="flex items-center gap-2 px-3 py-1 bg-black/40 border-2 border-white/10 rounded-none shadow-none">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Layout Engine</span>
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-none animate-pulse" />
+                    <div className="text-sm font-bold text-blue-800 dark:text-blue-300">
+                        Editing: {activeCustomTemplate.name}
+                    </div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400">
+                        Changes auto-save to this custom template
                     </div>
                 </div>
             )}
 
             <header className="space-y-1">
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-white">Formatting</h3>
+                <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-white">{title}</h3>
                 <p className="text-[10px] sm:text-sm text-slate-500 dark:text-slate-400 font-medium italic">
-                    Deep customization for professional-grade resumes. Changes apply to all templates.
+                    {description}
                 </p>
             </header>
 
@@ -171,7 +189,7 @@ export function FormattingForm() {
                                     type="checkbox"
                                     checked={formatting.sectionTitleUnderline}
                                     onChange={(e) => updateFormatting({ sectionTitleUnderline: e.target.checked })}
-                                    className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600"
+                                    className="w-4 h-4 border-slate-300 text-slate-700 focus:ring-slate-500 dark:bg-slate-950 dark:border-slate-600 rounded-none"
                                 />
                                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Underline Titles</span>
                             </label>
@@ -545,7 +563,7 @@ export function FormattingForm() {
                                         type="color"
                                         value={formatting.customColor}
                                         onChange={(e) => updateFormatting({ customColor: e.target.value })}
-                                        className="w-10 h-10 border-2 border-slate-300 dark:border-slate-600 cursor-pointer bg-transparent"
+                                        className="w-10 h-10 border-2 border-slate-300 dark:border-slate-600 cursor-pointer bg-transparent rounded-none"
                                         title="Pick custom accent color"
                                     />
                                 )}
@@ -697,7 +715,7 @@ export function FormattingForm() {
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button
                     onClick={resetFormatting}
-                    className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white border-2 border-transparent font-black uppercase tracking-widest transition-all active:scale-95 shadow-md text-[10px] sm:text-xs"
+                    className="flex-1 px-4 py-3 bg-[#7f1d1d] hover:bg-[#991b1b] text-white border-2 border-transparent font-black uppercase tracking-widest transition-all active:scale-95 shadow-md text-[10px] sm:text-xs"
                 >
                     Reset All Formatting
                 </button>

@@ -59,13 +59,13 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                             <div className="flex bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 p-1 h-[40px] sm:h-[46px]">
                                 <button
                                     onClick={() => handleTypeChange(section.id, 'bullets')}
-                                    className={`px-3 sm:px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'bullets' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
+                                    className={`px-3 sm:px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all rounded-none ${section.type === 'bullets' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
                                 >
                                     Bullets
                                 </button>
                                 <button
                                     onClick={() => handleTypeChange(section.id, 'text')}
-                                    className={`px-3 sm:px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all ${section.type === 'text' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
+                                    className={`px-3 sm:px-4 py-1 text-[10px] font-black uppercase tracking-widest transition-all rounded-none ${section.type === 'text' ? 'btn-accent shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
                                 >
                                     Paragraph
                                 </button>
@@ -187,7 +187,7 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
 
                         <button
                             onClick={() => addCustomSectionItem(section.id)}
-                            className="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-slate-500 dark:hover:border-slate-500 text-slate-500 dark:text-slate-400 font-semibold transition-all bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center gap-2"
+                            className="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-slate-500 dark:hover:border-slate-500 text-slate-500 dark:text-slate-400 font-semibold transition-all bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center gap-2 rounded-none"
                         >
                             <Plus size={18} />
                             <span>Add New Entry to {section.title}</span>

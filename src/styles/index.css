@@ -100,6 +100,74 @@ html {
   color: var(--main-text);
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Custom Scrollbars — Theme Aware
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Global Scrollbar Force — Strict Square & Arrows */
+::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--main-bg) !important;
+  border-radius: 0 !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--sidebar-border), var(--main-text) 25%) !important;
+  border: 1px solid var(--main-bg) !important;
+  border-radius: 0 !important;
+  background-clip: padding-box !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent) !important;
+}
+
+/* Arrows */
+::-webkit-scrollbar-button {
+  display: block !important;
+  background-color: var(--main-bg) !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 0 !important;
+}
+
+/* Top Arrow (Up) */
+::-webkit-scrollbar-button:vertical:decrement {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M1 5l3-3 3 3'/%3E%3C/svg%3E") !important;
+}
+
+/* Bottom Arrow (Down) */
+::-webkit-scrollbar-button:vertical:increment {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='square'%3E%3Cpath d='M1 3l3 3 3-3'/%3E%3C/svg%3E") !important;
+}
+
+/* Hide extra buttons if browser adds them */
+::-webkit-scrollbar-button:start:increment,
+::-webkit-scrollbar-button:end:decrement {
+  display: none !important;
+}
+
+/* Specific visibility fix for Dark/Colored themes */
+.dark ::-webkit-scrollbar-thumb,
+[data-theme*="dark"] ::-webkit-scrollbar-thumb,
+[style*="--main-bg: #0f172a"] ::-webkit-scrollbar-thumb,
+[style*="--main-bg:#0f172a"] ::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--sidebar-border), #fff 40%) !important;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover,
+[data-theme*="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover) !important;
+}
+
+
+
 body {
   background-color: var(--main-bg) !important;
   color: var(--main-text) !important;
@@ -330,6 +398,7 @@ input::placeholder {
   background-color: var(--accent) !important;
   color: #ffffff !important;
   transition: background-color 0.15s, opacity 0.15s;
+  border-radius: 0 !important;
 }
 
 .btn-accent:hover {

@@ -42,7 +42,7 @@ export function LaTeXFormattingForm() {
                 </div>
                 <button
                     onClick={resetLatexFormatting}
-                    className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-red-700 text-white hover:bg-red-600 transition-colors"
+                    className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-[#7f1d1d] text-white hover:bg-[#991b1b] transition-colors"
                 >
                     Reset to Defaults
                 </button>

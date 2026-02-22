@@ -48,7 +48,7 @@ export function BulletList({ bullets, onChange, placeholder }: BulletListProps) 
                     {bullets.length > 1 && (
                         <button
                             onClick={() => removeBullet(idx)}
-                            className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 bg-red-700 text-white hover:bg-red-600 font-black transition-colors flex items-center justify-center rounded-sm"
+                            className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 bg-[#7f1d1d] text-white hover:bg-[#991b1b] font-black transition-colors flex items-center justify-center rounded-none"
                             type="button"
                             title="Remove point"
                         >

@@ -7,14 +7,15 @@ import { useCoverLetterStore } from '../../lib/coverLetterStore';
 import { useCustomTemplateStore } from '../../lib/customTemplateStore';
 import { getEffectiveResumeData } from '../../lib/templateResolver';
 import { getPDFTemplateComponent, isLatexTemplate } from '../../lib/pdfTemplateMap';
-import { generateLaTeXFromData } from '../../lib/latexGenerator';
+import { generateLaTeXFromData, generateLaTeXCoverLetter } from '../../lib/latexGenerator';
 import { compileLatexViaApi } from '../../lib/latexApiCompiler';
 import type { TemplateId, DocumentType } from '../../types';
 import { generateDocumentTitle, generateDocumentFileName } from '../../lib/documentNaming';
 import {
     Download, Printer, ZoomIn, ZoomOut, Maximize,
-    ChevronLeft, ChevronRight, Info, PanelLeft, X
+    ChevronLeft, ChevronRight, Info, PanelLeft, X, Code2, FileJson
 } from 'lucide-react';
+import { exportToJSON } from '../../lib/storage';
 
 /* ──────────────────────────────────────
    Helpers
@@ -99,8 +100,10 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
             try {
                 const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
                 let blob: Blob;
-                if (isLatexTemplate(templateId) && documentType !== 'coverletter') {
-                    const tex = customLatexSource || generateLaTeXFromData(effectiveData, templateId, latexFormatting);
+                if (isLatexTemplate(templateId)) {
+                    const tex = documentType === 'coverletter'
+                        ? generateLaTeXCoverLetter(coverLetterData, templateId)
+                        : (customLatexSource || generateLaTeXFromData(effectiveData, templateId, latexFormatting));
                     blob = await compileLatexViaApi(tex);
                 } else {
                     const title = generateDocumentTitle({
@@ -243,6 +246,36 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
         };
     }, [pdfBlob]);
 
+    /* ── Export JSON ── */
+    const handleExportJSON = useCallback(() => {
+        const json = exportToJSON(resumeData);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const name = resumeData.basics.name || 'resume';
+        a.download = `resume-${name}.json`.replace(/[^a-z0-9._-]/gi, '_');
+        a.click();
+        URL.revokeObjectURL(url);
+    }, [resumeData]);
+
+    /* ── Download .TEX ── */
+    const handleDownloadTex = useCallback(() => {
+        const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
+        const texSource = documentType === 'coverletter'
+            ? generateLaTeXCoverLetter(coverLetterData, templateId)
+            : (customLatexSource || generateLaTeXFromData(effectiveData, templateId, latexFormatting));
+
+        const blob = new Blob([texSource], { type: 'application/x-latex' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const name = resumeData.basics.name || (documentType === 'coverletter' ? 'cover-letter' : 'resume');
+        a.download = `${name.replace(/[^a-z0-9._-]/gi, '_')}.tex`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }, [resumeData, customTemplates, documentType, coverLetterData, templateId, customLatexSource, latexFormatting]);
+
     /* ── Theme styles ── */
     const toolbarBg: React.CSSProperties = { backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' };
     const txt: React.CSSProperties = { color: 'var(--main-text)' };
@@ -257,12 +290,12 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
         return (
             <div className="w-full h-full flex items-center justify-center p-8" style={{ backgroundColor: 'var(--card-bg)' }}>
                 <div className="max-w-lg text-center">
-                    <h3 className="text-lg font-bold text-red-500 mb-2">
+                    <h3 className="text-lg font-bold text-[#7f1d1d] mb-2 uppercase tracking-tighter">
                         {isLatexTemplate(templateId) ? 'LaTeX Compilation Error' : 'PDF Generation Error'}
                     </h3>
-                    <pre className="text-xs text-left bg-red-900/30 border-2 border-red-800 p-4 overflow-auto max-h-48 text-red-300 mb-4 whitespace-pre-wrap">{error}</pre>
+                    <pre className="text-xs text-left bg-[#7f1d1d]/10 border-2 border-[#7f1d1d]/30 p-4 overflow-auto max-h-48 text-[#7f1d1d] mb-4 whitespace-pre-wrap font-mono">{error}</pre>
                     <button onClick={() => { setError(null); previousDataRef.current = null; }}
-                        className="px-4 py-2 text-sm font-bold border" style={btn}>Retry</button>
+                        className="px-6 py-2.5 text-xs font-bold uppercase tracking-widest border-2 transition-all active:scale-95" style={btn}>Retry Processing</button>
                 </div>
             </div>
         );
@@ -286,9 +319,9 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
     return (
         <div className="w-full h-full flex flex-col" style={{ backgroundColor: 'var(--main-bg)' }}>
             {/* ━━ Toolbar ━━ */}
-            <div className="flex flex-wrap items-center justify-between px-2 py-1.5 border-b-2 flex-shrink-0 gap-y-2 gap-x-1" style={toolbarBg}>
+            <div className="flex items-center gap-2 px-3 py-2 border-b-2 z-20 flex-shrink-0" style={toolbarBg}>
                 {/* Left: filename + page nav */}
-                <div className="flex items-center gap-1.5 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0 flex-1">
                     <span className="hidden sm:inline text-xs font-semibold truncate max-w-[120px]" style={txt}
                         title={`${downloadFileName}.pdf`}>
                         {downloadFileName}.pdf
@@ -315,11 +348,11 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 </div>
 
                 {/* Center: zoom + fit */}
-                <div className="flex items-center gap-1 order-3 sm:order-none w-full sm:w-auto justify-center sm:justify-start">
+                <div className="flex items-center gap-1 flex-shrink-0 justify-center">
                     <button onClick={handleZoomOut} className="p-2 sm:p-1.5 border transition-colors" style={btn} title="Zoom Out">
                         <ZoomOut size={16} />
                     </button>
-                    <span className="text-[11px] font-bold min-w-[36px] text-center select-none tabular-nums" style={txt}>
+                    <span className="text-[11px] font-bold min-w-[44px] text-center select-none tabular-nums" style={txt}>
                         {zoomLabel}
                     </span>
                     <button onClick={handleZoomIn} className="p-2 sm:p-1.5 border transition-colors" style={btn} title="Zoom In">
@@ -332,7 +365,7 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                 </div>
 
                 {/* Right: thumbnails, properties, print, download */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-1 justify-end">
                     <button onClick={() => setShowThumbnails(v => !v)} className="p-2 sm:p-1.5 border transition-colors"
                         style={showThumbnails ? btnOn : btn} title="Thumbnails">
                         <PanelLeft size={16} strokeWidth={showThumbnails ? 3 : 2} />
@@ -341,7 +374,20 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
                         style={showProperties ? btnOn : btn} title="Document Properties">
                         <Info size={16} />
                     </button>
-                    <div className="hidden sm:block w-px h-5 mx-0.5" style={{ backgroundColor: 'var(--card-border)' }} />
+                    <div className="hidden lg:block w-px h-5 mx-0.5" style={{ backgroundColor: 'var(--card-border)' }} />
+
+                    {/* JSON Export */}
+                    <button onClick={handleExportJSON} className="hidden lg:flex p-2 sm:p-1.5 border transition-colors" style={btn} title="Export JSON">
+                        <FileJson size={16} />
+                    </button>
+
+                    {/* Tex Export (if LaTeX template) */}
+                    {isLatexTemplate(templateId) && (
+                        <button onClick={handleDownloadTex} className="hidden lg:flex p-2 sm:p-1.5 border transition-colors" style={btn} title="Download .TEX Source">
+                            <Code2 size={16} />
+                        </button>
+                    )}
+
                     <button onClick={handlePrint} className="p-2 sm:p-1.5 border transition-colors" style={btn} title="Print">
                         <Printer size={16} />
                     </button>
@@ -355,10 +401,10 @@ export const PDFPreview = memo(function PDFPreview({ templateId, documentType }:
 
             {/* ━━ Error banner (stale) ━━ */}
             {error && (
-                <div className="bg-red-900/80 border-b-2 border-red-800 p-2 text-xs text-red-200 text-center flex-shrink-0">
+                <div className="bg-[#7f1d1d] border-b-2 border-black/20 p-2 text-xs text-white text-center flex-shrink-0 font-bold uppercase tracking-wide">
                     <strong>Error:</strong> {error}
                     <button onClick={() => { setError(null); previousDataRef.current = null; }}
-                        className="ml-2 underline text-red-300">Retry</button>
+                        className="ml-3 underline hover:text-white/80 transition-colors">Retry</button>
                 </div>
             )}
 

@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import { useResumeStore } from '../../store';
+import { useCoverLetterStore } from '../../lib/coverLetterStore';
 import { useCustomTemplateStore } from '../../lib/customTemplateStore';
 import { getEffectiveResumeData } from '../../lib/templateResolver';
 import { getPDFTemplateComponent, isLatexTemplate } from '../../lib/pdfTemplateMap';
 import { pdfToImage, blobToImage } from '../../lib/pdfToImage';
-import { generateLaTeXFromData } from '../../lib/latexGenerator';
+import { generateLaTeXFromData, generateLaTeXCoverLetter } from '../../lib/latexGenerator';
 import { compileLatexViaApi } from '../../lib/latexApiCompiler';
-import type { TemplateId, ResumeData } from '../../types';
+import type { TemplateId, ResumeData, CoverLetterData } from '../../types';
 
 interface PDFThumbnailProps {
     templateId: TemplateId;
-    previewData?: ResumeData;
+    previewData?: ResumeData | CoverLetterData;
+    isCoverLetter?: boolean;
 }
 
 /**
@@ -18,25 +20,30 @@ interface PDFThumbnailProps {
  * template. For LaTeX templates, it compiles via the real pdfTeX API.
  * Debounces re-renders (~600ms for non-LaTeX, ~1200ms for LaTeX due to API latency).
  */
-export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData }: PDFThumbnailProps) {
-    const store = useResumeStore();
-    const resumeData = previewData || store.resumeData;
-    const { customLatexSource, latexFormatting } = store;
+export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData, isCoverLetter }: PDFThumbnailProps) {
+    const resumeStore = useResumeStore();
+    const coverLetterStore = useCoverLetterStore();
+
+    const docData = previewData || (isCoverLetter ? coverLetterStore.coverLetterData : resumeStore.resumeData);
+    const { customLatexSource, latexFormatting } = isCoverLetter
+        ? { customLatexSource: '', latexFormatting: undefined } // CL doesn't have custom latex yet
+        : resumeStore;
     const { customTemplates } = useCustomTemplateStore();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const generationId = useRef(0);
 
-    const baseEffectiveData = getEffectiveResumeData(resumeData, customTemplates);
+    const baseEffectiveData = getEffectiveResumeData(docData as any, customTemplates);
     const effectiveData = { ...baseEffectiveData, selectedTemplate: templateId };
 
     const formattingFingerprint = JSON.stringify(effectiveData.formatting);
-    const fingerprint = `${templateId}-${formattingFingerprint}-${effectiveData.basics.name}-${effectiveData.sections.join(',')}-${effectiveData.work.length}-${effectiveData.education.length}-${effectiveData.skills.length}-${customLatexSource ? 'custom' : 'auto'}`;
+    const fingerprint = `${isCoverLetter ? 'cv' : 'resume'}-${templateId}-${formattingFingerprint}-${(docData as any).basics?.name || (docData as any).company}-${effectiveData.sections?.join(',') || ''}-${(docData as any).work?.length || 0}-${customLatexSource ? 'custom' : 'auto'}`;
 
     useEffect(() => {
         const currentId = ++generationId.current;
         const isLatex = isLatexTemplate(templateId);
+        const isLatexCoverLetter = isLatex && isCoverLetter;
 
         // Longer debounce for LaTeX to avoid hammering the API
         const debounceMs = isLatex ? 1200 : 600;
@@ -50,14 +57,20 @@ export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData
             try {
                 let url: string | null = null;
 
-                if (isLatex) {
-                    // Real LaTeX compilation via API
-                    const texSource = customLatexSource || generateLaTeXFromData(effectiveData, templateId, latexFormatting);
+                if (isLatexCoverLetter) {
+                    // LaTeX cover letter compilation via API
+                    const texSource = generateLaTeXCoverLetter(docData as any, templateId);
+                    const blob = await compileLatexViaApi(texSource);
+                    if (currentId !== generationId.current) return;
+                    url = await blobToImage(blob, 1.5);
+                } else if (isLatex) {
+                    // Real LaTeX resume compilation via API
+                    const texSource = customLatexSource || generateLaTeXFromData(effectiveData as any, templateId, latexFormatting);
                     const blob = await compileLatexViaApi(texSource);
                     if (currentId !== generationId.current) return;
                     url = await blobToImage(blob, 1.5);
                 } else {
-                    const component = getPDFTemplateComponent(effectiveData, 'resume');
+                    const component = getPDFTemplateComponent(effectiveData as any, isCoverLetter ? 'coverletter' : 'resume', isCoverLetter ? docData as any : undefined);
                     url = await pdfToImage(component, 1.5);
                 }
 

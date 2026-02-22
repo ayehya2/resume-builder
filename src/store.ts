@@ -3,6 +3,61 @@ import { persist } from 'zustand/middleware';
 import type { ResumeData, TemplateId, Basics, WorkExperience, Education, Skill, Project, Award, SectionKey, LaTeXFormattingOptions } from './types';
 import { SAMPLE_RESUME_DATA } from './lib/sampleData';
 
+// Default formatting options
+export const getDefaultFormatting = (): import('./types').FormattingOptions => ({
+    fontFamily: 'default',
+    baseFontSize: '11pt',
+    nameSize: 'large',
+    sectionTitleSize: 'small',
+    sectionTitleBold: true,
+    sectionTitleUnderline: false,
+    lineSpacing: '1.2',
+    sectionSpacing: 'normal',
+    paragraphSpacing: 'normal',
+    pageMargins: 'custom',
+    marginTop: '0.6',
+    marginBottom: '0.6',
+    marginLeft: '0.6',
+    marginRight: '0.6',
+    // Granular Spacing
+    entrySpacing: 'normal',
+    bulletSpacing: 'normal',
+    bulletGap: '4pt',
+    // Typography
+    sectionHeaderStyle: 'uppercase',
+    fontWeightName: 'BOLD',
+    fontWeightSectionTitle: 'BOLD',
+    fontWeightBody: 'NORMAL',
+    // Decorative
+    showIcons: true,
+    socialIconStyle: 'none',
+    pageFormat: 'Letter',
+    bulletStyle: 'bullet',
+    bulletIndent: 'none',
+    colorTheme: 'black',
+    customColor: '#000000',
+    separator: '|',
+    sectionDividers: 'line',
+    headerLineStyle: 'none',
+    headerAlignment: 'center',
+    // Content Controls (Phase 4)
+    dateFormat: 'short',
+    subHeaderWeight: 'bold',
+    skillLayout: 'comma',
+    showLocation: true,
+    showGPA: true,
+    companyTitleOrder: 'company-first',
+    // Phase 4.5 — Extended Formatting
+    bodyTextWeight: 'normal',
+    italicStyle: 'normal',
+    sectionTitleSpacing: 'normal',
+    showEducationDescription: true,
+    showProjectKeywords: true,
+    showAwardsSummaries: true,
+    dateSeparator: '—',
+    accentColorPosition: 'headers-only',
+});
+
 // Default/empty resume data
 const getDefaultResumeData = (): ResumeData => ({
     basics: {
@@ -21,65 +76,16 @@ const getDefaultResumeData = (): ResumeData => ({
     customSections: [],
     sections: ['profile', 'education', 'work', 'skills', 'projects', 'awards'],
     selectedTemplate: 1,
-    formatting: {
-        fontFamily: 'default',
-        baseFontSize: '11pt',
-        nameSize: 'large',
-        sectionTitleSize: 'small',
-        sectionTitleBold: true,
-        sectionTitleUnderline: false,
-        lineSpacing: '1.2',
-        sectionSpacing: 'normal',
-        paragraphSpacing: 'normal',
-        pageMargins: 'custom',
-        marginTop: '0.6',
-        marginBottom: '0.6',
-        marginLeft: '0.6',
-        marginRight: '0.6',
-        // Granular Spacing
-        entrySpacing: 'normal',
-        bulletSpacing: 'normal',
-        bulletGap: '4pt',
-        // Typography
-        sectionHeaderStyle: 'uppercase',
-        fontWeightName: 'BOLD',
-        fontWeightSectionTitle: 'BOLD',
-        fontWeightBody: 'NORMAL',
-        // Decorative
-        showIcons: true,
-        socialIconStyle: 'none',
-        pageFormat: 'Letter',
-        bulletStyle: 'bullet',
-        bulletIndent: 'none',
-        colorTheme: 'black',
-        customColor: '#000000',
-        separator: '|',
-        sectionDividers: 'line',
-        headerLineStyle: 'none',
-        headerAlignment: 'center',
-        // Content Controls (Phase 4)
-        dateFormat: 'short',
-        subHeaderWeight: 'bold',
-        skillLayout: 'comma',
-        showLocation: true,
-        showGPA: true,
-        companyTitleOrder: 'company-first',
-        // Phase 4.5 — Extended Formatting
-        bodyTextWeight: 'normal',
-        italicStyle: 'normal',
-        sectionTitleSpacing: 'normal',
-        showEducationDescription: true,
-        showProjectKeywords: true,
-        showAwardsSummaries: true,
-        dateSeparator: '—',
-        accentColorPosition: 'headers-only',
-    },
+    formatting: getDefaultFormatting(),
 });
 
 interface ResumeStore {
     resumeData: ResumeData;
+    showResume: boolean;
+    activeTab: string;
 
-    // LaTeX Advanced Mode: stores custom-edited LaTeX source (null = generate from form data)
+    setShowResume: (show: boolean) => void;
+    setActiveTab: (tab: string) => void;
     customLatexSource: string | null;
 
     // LaTeX-specific formatting overrides (null = use template defaults)
@@ -146,8 +152,13 @@ export const useResumeStore = create<ResumeStore>()(
     persist(
         (set) => ({
             resumeData: getDefaultResumeData(),
+            showResume: true,
+            activeTab: 'basics',
             customLatexSource: null,
             latexFormatting: null,
+
+            setShowResume: (show) => set({ showResume: show }),
+            setActiveTab: (tab) => set({ activeTab: tab }),
 
             // Basics
             updateBasics: (basics) =>
@@ -508,9 +519,13 @@ export const useResumeStore = create<ResumeStore>()(
                 set({ latexFormatting: null, customLatexSource: null }),
 
             loadSampleData: () => {
-                set({
-                    resumeData: SAMPLE_RESUME_DATA
-                });
+                set((state) => ({
+                    resumeData: {
+                        ...SAMPLE_RESUME_DATA,
+                        selectedTemplate: state.resumeData.selectedTemplate,
+                        formatting: state.resumeData.formatting,
+                    },
+                }));
             },
 
             reset: () => set({ resumeData: getDefaultResumeData() }),

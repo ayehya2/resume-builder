@@ -223,3 +223,19 @@ export const SAMPLE_RESUME_DATA: ResumeData = {
         accentColorPosition: 'headers-only',
     },
 };
+
+export const SAMPLE_COVER_LETTER_DATA = {
+    recipientName: 'Jonathan Reed',
+    recipientTitle: 'Director of Engineering',
+    company: 'CloudScale Solutions',
+    companyAddress: '450 Innovation Way\nPalo Alto, CA 94301',
+    position: 'Staff Software Engineer',
+    date: 'February 24, 2024',
+    content: `Dear Mr. Reed,\n\nI am writing to express my strong interest in the Staff Software Engineer position at CloudScale Solutions, as advertised on your company's careers portal. With over 8 years of experience in building scalable distributed systems and leading engineering teams at high-growth companies like Stripe and Airbnb, I am confident that my technical expertise and leadership skills align perfectly with the goals of your engineering organization.\n\nThroughout my career, I have focused on solving complex infrastructure challenges. At Stripe, I led a critical migration that reduced p99 latency by 75% and enabled the platform to handle a 4x increase in transaction volume. I am particularly drawn to CloudScale Solutions because of your commitment to pushing the boundaries of edge computing and real-time data processing—areas where I have deep experience and a proven track record of success.\n\nMy approach to engineering combines rigorous technical standards with a collaborative mindset. I believe in building systems that are not only performant but also maintainable and observable. At Airbnb, I established company-wide standards for microservices observability that reduced MTTR by 80%, demonstrating my ability to drive impact across the entire organization.\n\nI am excited about the possibility of bringing my background in high-performance computing and team leadership to CloudScale Solutions. Thank you for your time and consideration. I look forward to the opportunity to discuss how I can contribute to your team's continued success.\n\nSincerely,\n\nSarah J. Mitchell`,
+    closing: 'Sincerely',
+    signature: 'Sarah J. Mitchell',
+    selectedTemplate: 24,
+    formatting: { ...SAMPLE_RESUME_DATA.formatting },
+    userBasics: { ...SAMPLE_RESUME_DATA.basics },
+};
+

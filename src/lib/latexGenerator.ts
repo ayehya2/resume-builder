@@ -99,6 +99,36 @@ const TEMPLATE_CONFIGS: Record<number, LaTeXTemplateConfig> = {
         parskip: true,
         extraPreamble: '% Academic style: use Computer Modern serif throughout\n\\usepackage{lmodern}',
     },
+    // 21: Professional LaTeX Cover Letter
+    21: {
+        fontSize: '11pt',
+        margins: '1.0in',
+        headerSize: '\\Huge',
+        sectionTitleSize: '\\large',
+        sectionSpaceBefore: '12pt',
+        sectionSpaceAfter: '6pt',
+        itemSep: '8pt',
+        bulletItemSep: '0pt',
+        bulletTopSep: '4pt',
+        headerVSpace: '0.2in',
+        contactVSpace: '4pt',
+        parskip: true,
+    },
+    // 22: Executive LaTeX Cover Letter
+    22: {
+        fontSize: '10pt',
+        margins: '0.8in',
+        headerSize: '\\LARGE',
+        sectionTitleSize: '\\normalsize',
+        sectionSpaceBefore: '10pt',
+        sectionSpaceAfter: '4pt',
+        itemSep: '6pt',
+        bulletItemSep: '0pt',
+        bulletTopSep: '2pt',
+        headerVSpace: '0.15in',
+        contactVSpace: '2pt',
+        parskip: true,
+    },
 };
 
 /**
@@ -405,6 +435,69 @@ ${contactLine}
 
 ${orderedSections}
 ${customSectionsTeX}
+
+\\end{document}
+`;
+};
+
+/**
+ * Generate a complete LaTeX cover letter document.
+ */
+export const generateLaTeXCoverLetter = (data: any, templateId: number): string => {
+    // Falls back to Professional (11) if templateId is not 21-23
+    const cfg = TEMPLATE_CONFIGS[templateId] || TEMPLATE_CONFIGS[11];
+    const { recipientName, recipientTitle, company, companyAddress, date, content, closing, signature, userBasics } = data;
+
+    const userName = userBasics?.name || 'Your Name';
+    const email = userBasics?.email || '';
+    const phone = userBasics?.phone || '';
+    const address = userBasics?.address || '';
+
+    const bodyContent = content || '';
+    const hasGreeting = bodyContent.toLowerCase().trim().startsWith('dear');
+    const hasClosing = bodyContent.toLowerCase().trim().includes('sincerely') || bodyContent.toLowerCase().trim().includes('thank you');
+
+    return `\\documentclass[${cfg.fontSize},letterpaper]{article}
+
+\\usepackage[utf8]{inputenc}
+\\usepackage[margin=${cfg.margins}]{geometry}
+\\usepackage{hyperref}
+${cfg.parskip ? '\\usepackage{parskip}' : ''}
+
+% Professional cover letter font
+\\usepackage{charter}
+
+\\begin{document}
+
+% User Header
+\\begin{center}
+    {\\Huge \\textbf{${escapeLatex(userName)}}} \\\\
+    \\vspace{4pt}
+    ${escapeLatex(address)} \\textbar{} ${escapeLatex(phone)} \\textbar{} ${escapeLatex(email)}
+\\end{center}
+
+\\vspace{0.2in}
+
+% Date
+${escapeLatex(date || new Date().toLocaleDateString())}
+
+\\vspace{0.2in}
+
+% Recipient
+\\noindent ${escapeLatex(recipientName || '')} \\\\
+${recipientTitle ? escapeLatex(recipientTitle) + ' \\\\' : ''}
+${company ? '\\textbf{' + escapeLatex(company) + '} \\\\' : ''}
+${escapeLatex(companyAddress || '')}
+
+\\vspace{0.2in}
+
+${hasGreeting ? '' : `Dear ${escapeLatex(recipientName || 'Hiring Manager')}, \\\\ \\vspace{0.15in}`}
+
+${bodyContent.split('\n').map((line: string) => line.trim() === '' ? '\\par\\vspace{10pt}' : escapeLatex(line)).join('\n')}
+
+\\vspace{0.3in}
+
+${hasClosing ? '' : `${escapeLatex(closing || 'Sincerely')}, \\\\ \\vspace{0.4in} \\textbf{${escapeLatex(signature || userName)}}`}
 
 \\end{document}
 `;

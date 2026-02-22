@@ -29,7 +29,7 @@ export function SkillsForm() {
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-white">Skills</h3>
                 <button
                     onClick={addSkill}
-                    className="px-3 py-1.5 btn-accent font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-sm rounded-sm"
+                    className="px-3 py-1.5 btn-accent font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-sm rounded-none"
                 >
                     + Add Category
                 </button>
@@ -102,7 +102,7 @@ export function SkillsForm() {
                                 />
                                 <button
                                     onClick={() => addSkillItem(index)}
-                                    className="px-4 py-1.5 sm:py-2 bg-slate-700 text-white hover:bg-slate-600 font-bold text-xs uppercase transition-colors shadow-sm rounded-sm"
+                                    className="px-4 py-1.5 sm:py-2 bg-slate-700 text-white hover:bg-slate-600 font-bold text-xs uppercase transition-colors shadow-sm rounded-none"
                                 >
                                     Add
                                 </button>

@@ -85,7 +85,7 @@ export interface Award {
 
 // Template Types
 export type TemplateId = number;
-export type PreloadedTemplateId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 11 | 12 | 13 | 14;
+export type PreloadedTemplateId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 11 | 12 | 13 | 14 | 21 | 22 | 23 | 24 | 25;
 export type SectionKey = 'profile' | 'education' | 'work' | 'skills' | 'projects' | 'awards' | string;
 
 export interface CustomTemplate {
@@ -217,6 +217,8 @@ export interface CoverLetterData {
     content: string;
     closing: string;
     signature: string;
+    selectedTemplate: TemplateId;
+    formatting: FormattingOptions;
     // Reference to resume basics for auto-population
     userBasics?: Basics;
 }

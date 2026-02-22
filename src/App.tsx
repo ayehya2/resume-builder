@@ -12,6 +12,7 @@ import { CustomSectionForm } from './components/forms/CustomSectionForm'
 import { CoverLetterForm } from './components/forms/CoverLetterForm'
 import { AITab } from './components/forms/AITab'
 import { FormattingForm } from './components/forms/FormattingForm'
+import { CoverLetterFormattingForm } from './components/forms/CoverLetterFormattingForm'
 import { LaTeXFormattingForm } from './components/forms/LaTeXFormattingForm'
 import { TemplateThumbnail } from './components/preview/TemplateThumbnail'
 import { PDFPreview } from './components/preview/PDFPreview'
@@ -22,24 +23,20 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from '@dnd-kit/utilities'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import {
-  exportToJSON, importFromJSON,
-  saveActiveTab, loadActiveTab,
+  importFromJSON,
+  saveActiveTab,
   saveCoverLetterData, loadCoverLetterData, saveDocumentType, loadDocumentType,
-  saveContinuousMode, loadContinuousMode, saveShowResume, loadShowResume,
-  saveShowCoverLetter, loadShowCoverLetter
+  saveContinuousMode, loadContinuousMode, saveShowResume,
+  saveShowCoverLetter
 } from './lib/storage'
 import { loadPrefillData } from './lib/loadFromUrl'
 import { parseResumeFile } from './lib/resumeParser'
-import { pdf } from '@react-pdf/renderer'
-import { getPDFTemplateComponent, isLatexTemplate } from './lib/pdfTemplateMap'
-import { compileLatexViaApi } from './lib/latexApiCompiler'
-import { generateLaTeXFromData } from './lib/latexGenerator'
+import { isLatexTemplate } from './lib/pdfTemplateMap'
 import { useCoverLetterStore } from './lib/coverLetterStore'
 import { useThemeStore, applyTheme, THEMES, THEME_MAP } from './lib/themeStore'
 import { useCustomTemplateStore } from './lib/customTemplateStore'
-import { getEffectiveResumeData } from './lib/templateResolver'
-import { generateDocumentFileName, generateDocumentTitle } from './lib/documentNaming'
-import { SAMPLE_RESUME_DATA } from './lib/sampleData'
+import { generateDocumentTitle } from './lib/documentNaming'
+import { SAMPLE_RESUME_DATA, SAMPLE_COVER_LETTER_DATA } from './lib/sampleData';
 import {
   Plus,
   LayoutTemplate,
@@ -51,29 +48,25 @@ import {
   FolderKanban,
   Award,
   ListChecks,
-  File,
   Sparkles,
-  Download,
-  Printer,
   Check,
   Upload,
   FileText,
   RotateCcw,
-  FileDown,
   GripVertical,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Code2,
   Layers,
   FileCheck,
   Mail,
   Pencil,
   Trash2,
   Copy,
-  Code2,
   Search,
-  ChevronLeft,
-  ChevronRight,
   Menu,
-  X,
   Eye
 } from 'lucide-react'
 import './styles/index.css'
@@ -92,20 +85,26 @@ interface TabItem {
   sectionKey?: SectionKey;
 }
 
-const templates: Array<{ id: TemplateId; name: string; isLatex?: boolean; description?: string }> = [
-  { id: 1, name: 'Classic' },
-  { id: 2, name: 'Modern' },
-  { id: 3, name: 'Minimal' },
-  { id: 4, name: 'Executive' },
-  { id: 5, name: 'Creative' },
-  { id: 6, name: 'Technical' },
-  { id: 7, name: 'Elegant' },
-  { id: 8, name: 'Compact' },
-  { id: 9, name: 'Academic' },
-  { id: 11, name: 'Professional LaTeX', isLatex: true, description: 'Standard pdfTeX resume' },
-  { id: 12, name: 'Compact LaTeX', isLatex: true, description: '10pt, tight spacing' },
-  { id: 13, name: 'Ultra Compact LaTeX', isLatex: true, description: '9pt, max density' },
-  { id: 14, name: 'Academic LaTeX', isLatex: true, description: 'Academic CV style' },
+const templates: Array<{ id: TemplateId; name: string; isLatex?: boolean; description?: string; type?: DocumentType }> = [
+  { id: 1, name: 'Classic', type: 'resume' },
+  { id: 2, name: 'Modern', type: 'resume' },
+  { id: 3, name: 'Minimal', type: 'resume' },
+  { id: 4, name: 'Executive', type: 'resume' },
+  { id: 5, name: 'Creative', type: 'resume' },
+  { id: 6, name: 'Technical', type: 'resume' },
+  { id: 7, name: 'Elegant', type: 'resume' },
+  { id: 8, name: 'Compact', type: 'resume' },
+  { id: 9, name: 'Academic', type: 'resume' },
+  { id: 11, name: 'Professional LaTeX', isLatex: true, description: 'Standard pdfTeX resume', type: 'resume' },
+  { id: 12, name: 'Compact LaTeX', isLatex: true, description: '10pt, tight spacing', type: 'resume' },
+  { id: 13, name: 'Ultra Compact LaTeX', isLatex: true, description: '9pt, max density', type: 'resume' },
+  { id: 14, name: 'Academic LaTeX', isLatex: true, description: 'Academic CV style', type: 'resume' },
+
+  // Cover Letter Templates
+  { id: 21, name: 'Professional LaTeX CV', isLatex: true, description: 'Formal LaTeX cover letter', type: 'coverletter' },
+  { id: 22, name: 'Executive LaTeX CV', isLatex: true, description: 'Modern executive style', type: 'coverletter' },
+  { id: 24, name: 'Classic CV', description: 'Standard React PDF layout', type: 'coverletter' },
+  { id: 25, name: 'Modern CV', description: 'Modern card-based layout', type: 'coverletter' },
 ];
 
 function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boolean; onClick: () => void }) {
@@ -126,7 +125,7 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
       style={{ ...style, ...(isActive ? { backgroundColor: 'var(--sidebar-hover)' } : {}) }}
       onClick={onClick}
       className={`
-        w-full flex items-center gap-3 px-4 py-3 font-semibold transition-all border-l-4 cursor-pointer
+        w-full flex items-center gap-3 px-4 py-3 font-semibold transition-all border-l-4 cursor-pointer rounded-none
         ${isActive
           ? 'border-white'
           : 'border-transparent'
@@ -144,45 +143,50 @@ function SidebarItem({ tab, isActive, onClick }: { tab: TabItem; isActive: boole
   );
 }
 
-function App() {
+function App() { // Stores
   const {
     resumeData,
-    setTemplate,
-    setSections,
-    loadSampleData,
-    reset,
-    addCustomSection,
-    updateFormatting
+    setTemplate: setResumeTemplate, reset: resetResume, loadSampleData: loadResumeSample,
+    setSections, addCustomSection,
+    updateFormatting: updateResumeFormatting,
+    activeTab, setActiveTab,
+    showResume, setShowResume,
   } = useResumeStore();
-  const { coverLetterData } = useCoverLetterStore()
+
+  const {
+    coverLetterData,
+    updateContent,
+    setTemplate: setCVTemplate, reset: resetCV, loadSampleData: loadCVSample,
+    updateFormatting: updateCVFormatting,
+    resetFormatting: resetCVFormatting,
+    showCoverLetter, setShowCoverLetter
+  } = useCoverLetterStore();
   const { customTemplates, addCustomTemplate, updateCustomTemplate, deleteCustomTemplate } = useCustomTemplateStore()
-  const [activeTab, setActiveTab] = useState<TabKey>(() => loadActiveTab() as TabKey)
   const { themeId, setTheme } = useThemeStore()
   const [documentType, setDocumentType] = useState<DocumentType>('resume')
 
-  const [isPrinting, setIsPrinting] = useState(false);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
-  const [templateFilter, setTemplateFilter] = useState<'all' | 'standard' | 'latex'>('all');
-  const [templateSearch, setTemplateSearch] = useState('');
-  const [templateSort, setTemplateSort] = useState<'default' | 'latex-first' | 'standard-first'>('default');
-  const [templatePage, setTemplatePage] = useState(1);
-  const [templatesPerPage, setTemplatesPerPage] = useState(10);
-  const exportDropdownRef = useRef<HTMLDivElement>(null);
+  const [resumeTemplateFilter, setResumeTemplateFilter] = useState<'all' | 'standard' | 'latex'>('all');
+  const [resumeTemplateSearch, setResumeTemplateSearch] = useState('');
+  const [resumeTemplateSort, setResumeTemplateSort] = useState<'default' | 'latex-first' | 'standard-first'>('default');
+  const [resumeTemplatePage, setResumeTemplatePage] = useState(1);
+  const [resumeTemplatesPerPage, setResumeTemplatesPerPage] = useState(10);
+
+  const [cvTemplateFilter, setCvTemplateFilter] = useState<'all' | 'standard' | 'latex'>('all');
+  const [cvTemplateSearch, setCvTemplateSearch] = useState('');
+  const [cvTemplateSort, setCvTemplateSort] = useState<'default' | 'latex-first' | 'standard-first'>('default');
+  const [cvTemplatePage, setCvTemplatePage] = useState(1);
+  const [cvTemplatesPerPage, setCvTemplatesPerPage] = useState(10);
   const themeDropdownRef = useRef<HTMLDivElement>(null);
 
   // New state for sidebar controls
   const [continuousMode, setContinuousMode] = useState(() => loadContinuousMode());
-  const [showResume, setShowResume] = useState(() => loadShowResume());
-  const [showCoverLetter, setShowCoverLetter] = useState(() => loadShowCoverLetter());
   const [isImporting, setIsImporting] = useState(false);
 
-  // Mobile / responsive state
+  // UI State
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAdvancedMode, setIsAdvancedMode] = useState(false);
   const [mobileView, setMobileView] = useState<'form' | 'preview'>('form');
-
-  // Custom template creation state
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateBase, setNewTemplateBase] = useState<PreloadedTemplateId>(1);
@@ -244,37 +248,32 @@ function App() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the most visible section (highest intersection ratio)
-        let bestEntry: IntersectionObserverEntry | null = null;
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            if (!bestEntry || entry.intersectionRatio > bestEntry.intersectionRatio) {
-              bestEntry = entry;
-            }
-          }
+        // Skip updates while user is typing to prevent jittery preview switching
+        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+          return;
         }
-        if (bestEntry) {
-          const id = bestEntry.target.id; // "continuous-section-{tabKey}"
-          const tabKey = id.replace('continuous-section-', '');
+
+        const visibleEntries = entries.filter(e => e.isIntersecting);
+        if (visibleEntries.length === 0) return;
+
+        const bestEntry = visibleEntries.sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        const tabKey = bestEntry.target.id.replace('continuous-section-', '');
+        if (tabKey) {
           setActiveTab(tabKey as TabKey);
         }
       },
-      { threshold: [0.1, 0.3, 0.5, 0.7], rootMargin: '-10% 0px -60% 0px' }
+      { threshold: [0.2, 0.5, 0.8], rootMargin: '-10% 0px -60% 0px' }
     );
 
-    // Observe all continuous sections
     const sections = document.querySelectorAll('[id^="continuous-section-"]');
     sections.forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-  }, [continuousMode]);
+  }, [continuousMode, setActiveTab]);
 
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (exportDropdownRef.current && !exportDropdownRef.current.contains(e.target as Node)) {
-        setExportDropdownOpen(false);
-      }
       if (themeDropdownRef.current && !themeDropdownRef.current.contains(e.target as Node)) {
         setThemeDropdownOpen(false);
       }
@@ -301,25 +300,10 @@ function App() {
         if (event.data.showResume !== undefined) setShowResume(event.data.showResume);
         if (event.data.showCoverLetter !== undefined) setShowCoverLetter(event.data.showCoverLetter);
         if (event.data.documentType) setDocumentType(event.data.documentType);
-
-        // Immediate broadcast to parent for confirmation/sync
-        setTimeout(() => broadcastSave(), 100);
       }
       if (event.data?.type === 'RESET_DOCUMENT') {
-        reset(); // Clear resume store
-        useCoverLetterStore.setState({
-          coverLetterData: {
-            date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-            recipientName: '',
-            recipientTitle: '',
-            company: '',
-            companyAddress: '',
-            position: '',
-            content: '',
-            signature: '',
-            closing: 'Thank you for considering my application. I look forward to discussing this position further.'
-          }
-        });
+        resetResume(); // Clear resume store
+        resetCV();
         setDocumentType('resume');
         setShowResume(true);
         setShowCoverLetter(false);
@@ -342,7 +326,7 @@ function App() {
 
         // Generate a full cover letter body (same logic as loadPrefillData)
         if (job.title && job.company) {
-          let generatedContent = `Dear Hiring Manager,\n\nI am writing to express my strong interest in the ${job.title} position at ${job.company}.`;
+          let generatedContent = `I am writing to express my strong interest in the ${job.title} position at ${job.company}.`;
           if (job.description) {
             generatedContent += `\n\nAfter reviewing the job description, I am excited about the opportunity to contribute to ${job.company}. My background and skills align well with your requirements.`;
           }
@@ -350,10 +334,9 @@ function App() {
             generatedContent += `\n\nI have extensive experience with ${job.skills.slice(0, 5).join(', ')}, which makes me a strong candidate for this role.`;
           }
           generatedContent += `\n\nI am enthusiastic about the opportunity to bring my expertise to ${job.company} and contribute to your team's success.`;
+          generatedContent += `\n\nThank you for considering my application. I look forward to discussing this position further.`;
           useCoverLetterStore.getState().updateContent(generatedContent);
-          useCoverLetterStore.getState().updateClosing(
-            'Thank you for considering my application. I look forward to discussing this position further.'
-          );
+          useCoverLetterStore.getState().updateClosing('Sincerely');
         }
 
         // Auto-enable cover letter and switch to it
@@ -374,7 +357,7 @@ function App() {
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('message', handleMessage);
     };
-  }, [setTheme, broadcastSave, reset]); // Added broadcastSave and reset to prevent stale closures
+  }, [setTheme, broadcastSave, resetResume, resetCV, setShowResume, setShowCoverLetter, setActiveTab, updateContent]); // Added broadcastSave and reset to prevent stale closures
 
   // Load non-store persisted data on mount; resume store is auto-persisted via Zustand middleware
   useEffect(() => {
@@ -396,7 +379,7 @@ function App() {
     }
 
     // Prefill data overrides localStorage — must run AFTER the above
-    loadPrefillData();
+    loadPrefillData(); // This should still be called to handle URL prefill
   }, [setTheme]);
 
   // Save active tab on change
@@ -409,42 +392,83 @@ function App() {
     applyTheme(themeId);
   }, [themeId]);
 
-
+  // Load sample data for both resume and cover letter
+  const loadAllSampleData = () => {
+    loadResumeSample();
+    loadCVSample();
+    // Immediate sync to parent to prevent stale reverts
+    setTimeout(() => broadcastSave(), 50);
+  };
 
   // Persist new settings
   useEffect(() => { saveContinuousMode(continuousMode); }, [continuousMode]);
   useEffect(() => { saveShowResume(showResume); }, [showResume]);
   useEffect(() => { saveShowCoverLetter(showCoverLetter); }, [showCoverLetter]);
 
-  // Auto-save cover letter & document type every 5 seconds (resume store auto-persists via Zustand middleware)
-  // Also notify parent window so it can persist to cf-documents
+  // Debounced auto-save & sync with parent (1s delay for performance)
   useEffect(() => {
-    const interval = setInterval(() => {
+    const timeout = setTimeout(() => {
       saveCoverLetterData(coverLetterData);
       saveDocumentType(documentType);
       broadcastSave();
-    }, 5000);
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [resumeData, coverLetterData, documentType, showResume, showCoverLetter, broadcastSave]);
+
+  // Periodic safety sync (every 30s)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      broadcastSave();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [coverLetterData, documentType, broadcastSave]);
+  }, [broadcastSave]);
 
   // Sync documentType with toggles and activeTab
   useEffect(() => {
-    if (showCoverLetter && !showResume) {
+    const isCVTab = activeTab === 'cover-letter' || activeTab === 'cv-templates' || activeTab === 'cv-formatting';
+    const isResumeTab = activeTab === 'templates' || activeTab === 'formatting' ||
+      activeTab === 'work' || activeTab === 'education' || activeTab === 'skills' ||
+      activeTab === 'projects' || activeTab === 'awards' || activeTab === 'latex-editor' ||
+      resumeData.sections.includes(activeTab as SectionKey);
+    const isProfileTab = activeTab === 'basics';
+
+    if (isProfileTab) {
+      // Profile is neutral — keep current documentType
+    } else if (showCoverLetter && !showResume) {
       setDocumentType('coverletter');
-    } else if (activeTab === 'cover-letter') {
+    } else if (showResume && !showCoverLetter) {
+      setDocumentType('resume');
+    } else if (isCVTab) {
       setDocumentType('coverletter');
-    } else {
+    } else if (isResumeTab) {
       setDocumentType('resume');
     }
-  }, [activeTab, showResume, showCoverLetter]);
+  }, [activeTab, resumeData.sections, showResume, showCoverLetter]);
+
+  // Sync resume basics to cover letter basics whenever basics change
+  useEffect(() => {
+    if (resumeData.basics) {
+      useCoverLetterStore.getState().autoPopulateFromResume(resumeData.basics);
+    }
+  }, [resumeData.basics]);
+
+  // Redirect if current tab becomes hidden in Simple mode
+  useEffect(() => {
+    if (!isAdvancedMode) {
+      const hiddenTabs = ['formatting', 'cv-formatting', 'latex-editor'];
+      if (hiddenTabs.includes(activeTab)) {
+        setActiveTab('templates');
+      }
+    }
+  }, [isAdvancedMode, activeTab, setActiveTab]);
 
   // If the current tab becomes hidden, switch to the first visible tab
   useEffect(() => {
-    if (!showResume && activeTab !== 'cover-letter' && activeTab !== 'templates' && activeTab !== 'formatting' && activeTab !== 'ai') {
+    if (!showResume && activeTab !== 'basics' && activeTab !== 'cover-letter' && activeTab !== 'cv-templates' && activeTab !== 'cv-formatting' && activeTab !== 'templates' && activeTab !== 'formatting' && activeTab !== 'ai') {
       if (showCoverLetter) {
         setActiveTab('cover-letter');
       } else {
-        setActiveTab('templates');
+        setActiveTab('basics');
       }
     }
     if (!showCoverLetter && activeTab === 'cover-letter') {
@@ -469,34 +493,6 @@ function App() {
     if (showCoverLetter && !showResume) return; // Can't uncheck both
     setShowCoverLetter(!showCoverLetter);
     setTimeout(() => broadcastSave(), 0);
-  };
-
-  // Export JSON
-  const handleExport = () => {
-    const json = exportToJSON(resumeData);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `resume-${resumeData.basics.name || 'data'}.json`.replace(/[^a-z0-9._-]/gi, '_');
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Export .tex source
-  const handleDownloadTex = () => {
-    const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
-    const { customLatexSource } = useResumeStore.getState();
-    const { latexFormatting } = useResumeStore.getState();
-    const texSource = customLatexSource || generateLaTeXFromData(effectiveData, resumeData.selectedTemplate, latexFormatting);
-    const blob = new Blob([texSource], { type: 'application/x-latex' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const name = resumeData.basics.name || 'resume';
-    a.download = `${name.replace(/[^a-z0-9._-]/gi, '_')}.tex`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   // Import — supports JSON, PDF, DOCX, LaTeX, TXT
@@ -558,9 +554,8 @@ function App() {
   };
 
   // Map sections to tabs dynamically
-  const sectionTabs: TabItem[] = resumeData.sections.map(sectionKey => {
+  const sectionTabs: TabItem[] = resumeData.sections.filter(sk => sk !== 'profile').map(sectionKey => {
     const tabMap: Record<string, TabItem> = {
-      profile: { key: 'basics', label: 'Profile', icon: <User size={18} />, draggable: false },
       work: { key: 'work', label: 'Experience', icon: <Briefcase size={18} />, draggable: true, sectionKey: 'work' },
       education: { key: 'education', label: 'Education', icon: <GraduationCap size={18} />, draggable: true, sectionKey: 'education' },
       skills: { key: 'skills', label: 'Skills', icon: <Zap size={18} />, draggable: true, sectionKey: 'skills' },
@@ -588,17 +583,14 @@ function App() {
   // Flat tab list
   const isLatexSelected = isLatexTemplate(resumeData.selectedTemplate);
 
-  // Filtered, searched, sorted templates
-  const filteredTemplates = (() => {
-    let result = templateFilter === 'all'
-      ? [...templates]
-      : templateFilter === 'latex'
-        ? templates.filter(t => t.isLatex)
-        : templates.filter(t => !t.isLatex);
+  // Filtered, searched, sorted templates (RESUME)
+  const filteredResumeTemplates = (() => {
+    let result = templates.filter(t => t.type === 'resume');
+    if (resumeTemplateFilter === 'latex') result = result.filter(t => t.isLatex);
+    else if (resumeTemplateFilter === 'standard') result = result.filter(t => !t.isLatex);
 
-    // Search filter
-    if (templateSearch.trim()) {
-      const q = templateSearch.trim().toLowerCase();
+    if (resumeTemplateSearch.trim()) {
+      const q = resumeTemplateSearch.trim().toLowerCase();
       result = result.filter(t =>
         t.name.toLowerCase().includes(q) ||
         (t.description && t.description.toLowerCase().includes(q)) ||
@@ -606,150 +598,183 @@ function App() {
         (!t.isLatex && 'standard react pdf'.includes(q))
       );
     }
-
-    // Sort
-    if (templateSort === 'latex-first') {
-      result.sort((a, b) => (a.isLatex === b.isLatex ? 0 : a.isLatex ? -1 : 1));
-    } else if (templateSort === 'standard-first') {
-      result.sort((a, b) => (a.isLatex === b.isLatex ? 0 : a.isLatex ? 1 : -1));
-    }
-
+    if (resumeTemplateSort === 'latex-first') result.sort((a, b) => (a.isLatex === b.isLatex ? 0 : a.isLatex ? -1 : 1));
+    else if (resumeTemplateSort === 'standard-first') result.sort((a, b) => (a.isLatex === b.isLatex ? 0 : a.isLatex ? 1 : -1));
     return result;
   })();
 
-  // Pagination
-  const totalTemplatePages = Math.ceil(filteredTemplates.length / templatesPerPage);
-  const paginatedTemplates = filteredTemplates.length > 10
-    ? filteredTemplates.slice((templatePage - 1) * templatesPerPage, templatePage * templatesPerPage)
-    : filteredTemplates;
+  const paginatedResumeTemplates = filteredResumeTemplates.slice((resumeTemplatePage - 1) * resumeTemplatesPerPage, resumeTemplatePage * resumeTemplatesPerPage);
 
-  // Reset page when filter/search/sort/perPage changes
-  useEffect(() => {
-    setTemplatePage(1);
-  }, [templateFilter, templateSearch, templateSort, templatesPerPage]);
+  // Filtered, searched, sorted templates (CV)
+  const filteredCVTemplates = (() => {
+    let result = templates.filter(t => t.type === 'coverletter');
+    if (cvTemplateFilter === 'latex') result = result.filter(t => t.isLatex);
+    else if (cvTemplateFilter === 'standard') result = result.filter(t => !t.isLatex);
 
-  // Per-page options: always show 10, show 20 if total >= 20, show 50 if total >= 50
-  const perPageOptions = [10, ...(filteredTemplates.length >= 20 ? [20] : []), ...(filteredTemplates.length >= 50 ? [50] : [])];
+    if (cvTemplateSearch.trim()) {
+      const q = cvTemplateSearch.trim().toLowerCase();
+      result = result.filter(t =>
+        t.name.toLowerCase().includes(q) ||
+        (t.description && t.description.toLowerCase().includes(q)) ||
+        (t.isLatex && 'latex pdftex'.includes(q)) ||
+        (!t.isLatex && 'standard react pdf'.includes(q))
+      );
+    }
+    if (cvTemplateSort === 'latex-first') result.sort((a, b) => (a.isLatex === b.isLatex ? 0 : a.isLatex ? -1 : 1));
+    else if (cvTemplateSort === 'standard-first') result.sort((a, b) => (a.isLatex === b.isLatex ? 0 : a.isLatex ? 1 : -1));
+    return result;
+  })();
 
-  // Template filter bar JSX (reused in both modes)
-  const templateFilterBar = (
-    <div className="flex flex-wrap items-center gap-3 mb-6">
-      <div className="flex items-baseline gap-2 border-r-2 pr-3 mr-1" style={{ borderColor: 'var(--card-border)' }}>
-        <h3 className="text-lg font-extrabold whitespace-nowrap" style={{ color: 'var(--main-text)' }}>Choose Template</h3>
-        <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest whitespace-nowrap" style={{ color: 'var(--main-text-secondary)' }}>
-          {filteredTemplates.length} Available
+  const paginatedCVTemplates = filteredCVTemplates.slice((cvTemplatePage - 1) * cvTemplatesPerPage, cvTemplatePage * cvTemplatesPerPage);
+
+  // Reset pages
+  useEffect(() => { setResumeTemplatePage(1); }, [resumeTemplateFilter, resumeTemplateSearch, resumeTemplateSort, resumeTemplatesPerPage]);
+  useEffect(() => { setCvTemplatePage(1); }, [cvTemplateFilter, cvTemplateSearch, cvTemplateSort, cvTemplatesPerPage]);
+
+  const renderTemplateFilterBar = (
+    type: 'resume' | 'cv',
+    filteredCount: number,
+    search: string,
+    setSearch: (s: string) => void,
+    filter: string,
+    setFilter: (f: any) => void,
+    sort: string,
+    setSort: (s: any) => void
+  ) => (
+    <div className="flex flex-wrap items-stretch gap-3 mb-6 w-full">
+      <div className="flex flex-col justify-center border-r-2 pr-3 mr-1 shrink-0" style={{ borderColor: 'var(--card-border)' }}>
+        <h3 className="text-sm font-black whitespace-nowrap uppercase tracking-tighter" style={{ color: 'var(--main-text)' }}>
+          {type === 'resume' ? 'Resume' : 'CV'} Templates
+        </h3>
+        <span className="text-[9px] font-bold opacity-40 uppercase tracking-widest whitespace-nowrap">
+          {filteredCount} Found
         </span>
       </div>
 
-      {/* Search bar */}
-      <div className="relative flex-1 min-w-[180px]">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--main-text-secondary)' }} />
+      <div className="relative flex-[2] min-w-[180px]">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={14} />
         <input
           type="text"
-          value={templateSearch}
-          onChange={(e) => setTemplateSearch(e.target.value)}
-          placeholder="Search..."
-          className="w-full pl-9 pr-3 py-2 text-sm border-2 transition-colors outline-none h-[38px]"
-          style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--main-text)' }}
+          placeholder={`Search ${type}...`}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full h-full bg-black/30 border-2 border-white/10 rounded-none pl-9 pr-4 py-2 text-xs focus:border-white/30 transition-all placeholder:text-white/20"
+          style={{ color: 'var(--main-text)' }}
         />
-      </div>
-
-      {/* Filter Options */}
-      <div className="h-[38px]">
-        <select
-          value={templateFilter}
-          onChange={(e) => setTemplateFilter(e.target.value as typeof templateFilter)}
-          className="px-3 h-full text-[10px] font-bold uppercase tracking-wider border-2 outline-none cursor-pointer transition-colors"
-          style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--main-text-secondary)' }}
-        >
-          <option value="all">All Templates</option>
-          <option value="latex">LaTeX Templates</option>
-          <option value="standard">Standard Templates</option>
-        </select>
-      </div>
-
-      {/* Sort dropdown - only show when "all" is selected */}
-      {templateFilter === 'all' && (
-        <div className="h-[38px]">
-          <select
-            value={templateSort}
-            onChange={(e) => setTemplateSort(e.target.value as typeof templateSort)}
-            className="px-3 h-full text-[10px] font-bold uppercase tracking-wider border-2 outline-none cursor-pointer transition-colors"
-            style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--main-text-secondary)' }}
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white"
           >
-            <option value="default">Default Order</option>
-            <option value="latex-first">LaTeX First</option>
-            <option value="standard-first">Standard First</option>
-          </select>
-        </div>
-      )}
+            <X size={12} />
+          </button>
+        )}
+      </div>
 
-      {/* Preview Data Toggle */}
+      <div className="flex-1 min-w-[120px] relative">
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="w-full h-full bg-black/30 border-2 border-white/10 rounded-none px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all focus:border-white/30 cursor-pointer appearance-none"
+          style={{ color: 'var(--main-text)' }}
+        >
+          <option value="all">All Styles</option>
+          <option value="standard">React PDF</option>
+          <option value="latex">pdfTeX</option>
+        </select>
+        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40" />
+      </div>
+
+      <div className="flex-1 min-w-[130px] relative">
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="w-full h-full bg-black/30 border-2 border-white/10 rounded-none px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all focus:border-white/30 cursor-pointer appearance-none"
+          style={{ color: 'var(--main-text)' }}
+        >
+          <option value="default">Sort: Default</option>
+          <option value="latex-first">Latex First</option>
+          <option value="standard-first">Standard First</option>
+        </select>
+        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40" />
+      </div>
+
       <button
         onClick={() => setPreviewDataSource(prev => prev === 'sample' ? 'real' : 'sample')}
-        className={`px-3 h-[38px] text-[10px] font-bold uppercase tracking-wider border-2 transition-colors ${previewDataSource === 'real' ? 'btn-accent' : ''}`}
-        style={previewDataSource !== 'real' ? { backgroundColor: 'transparent', borderColor: 'var(--input-border)', color: 'var(--main-text-secondary)' } : {}}
-        title={previewDataSource === 'sample' ? 'Show how templates look with your own data' : 'Show templates with professional sample data'}
+        className={`px-4 h-[38px] text-[10px] font-black uppercase tracking-widest border-2 transition-all rounded-none ${previewDataSource === 'real' ? 'btn-accent' : 'hover:bg-white/5'}`}
+        style={previewDataSource !== 'real' ? { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'var(--main-text-secondary)' } : {}}
       >
-        {previewDataSource === 'sample' ? 'Show My Data' : 'Show Sample'}
+        {previewDataSource === 'sample' ? 'Your Data' : 'Sample Data'}
       </button>
     </div>
   );
 
-  // Pagination controls JSX (reused in both modes)
-  const templatePaginationControls = filteredTemplates.length > 10 ? (
-    <div className="flex items-center justify-between flex-wrap gap-2 mt-4 pt-4 border-t-2" style={{ borderColor: 'var(--card-border)' }}>
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>
-          Per page:
-        </span>
-        {perPageOptions.map(n => (
-          <button
-            key={n}
-            onClick={() => setTemplatesPerPage(n)}
-            className={`px-2 py-1 text-[10px] font-bold border-2 transition-colors ${templatesPerPage === n ? 'btn-accent' : ''}`}
-            style={templatesPerPage !== n ? { backgroundColor: 'transparent', borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' } : {}}
-          >
-            {n}
-          </button>
-        ))}
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => setTemplatePage(p => Math.max(1, p - 1))}
-          disabled={templatePage <= 1}
-          className="p-1 border-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}
-        >
-          <ChevronLeft size={14} />
-        </button>
-        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>
-          {templatePage} / {totalTemplatePages}
-        </span>
-        <button
-          onClick={() => setTemplatePage(p => Math.min(totalTemplatePages, p + 1))}
-          disabled={templatePage >= totalTemplatePages}
-          className="p-1 border-2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}
-        >
-          <ChevronRight size={14} />
-        </button>
-      </div>
-    </div>
-  ) : null;
+  const renderPagination = (
+    filteredCount: number,
+    perPage: number,
+    setPerPage: (n: number) => void,
+    page: number,
+    setPage: (p: any) => void
+  ) => {
+    if (filteredCount <= perPage) return null;
+    const totalPages = Math.ceil(filteredCount / perPage);
+    const options = [10, 20, 50].filter(n => n <= filteredCount || n === 10);
 
-  const primarySettings: TabItem[] = [
+    return (
+      <div className="flex items-center justify-between flex-wrap gap-2 mt-4 pt-4 border-t-2" style={{ borderColor: 'var(--card-border)' }}>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>Show:</span>
+          {options.map(n => (
+            <button key={n} onClick={() => setPerPage(n)} className={`px-2 py-1 text-[10px] font-bold border-2 transition-colors ${perPage === n ? 'btn-accent' : ''}`}
+              style={perPage !== n ? { backgroundColor: 'transparent', borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' } : {}}>
+              {n}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setPage((p: number) => Math.max(1, p - 1))} disabled={page <= 1} className="p-1 border-2 disabled:opacity-30" style={{ borderColor: 'var(--card-border)' }}>
+            <ChevronLeft size={14} />
+          </button>
+          <span className="text-[10px] font-bold uppercase tracking-wider">{page} / {totalPages}</span>
+          <button onClick={() => setPage((p: number) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="p-1 border-2 disabled:opacity-30" style={{ borderColor: 'var(--card-border)' }}>
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const thickSeparator = (
+    <div className="px-4 py-1 flex items-center gap-2">
+      <div className="h-[2px] w-full" style={{ backgroundColor: 'var(--sidebar-border)', backgroundImage: 'linear-gradient(to right, var(--sidebar-border), var(--sidebar-border) 25%, transparent 25%, transparent 50%, var(--sidebar-border) 50%, var(--sidebar-border) 75%, transparent 75%, transparent)', backgroundSize: '4px 2px' }} />
+    </div>
+  );
+
+  const resumePrimaryTabs: TabItem[] = [
     { key: 'templates', label: 'Template', icon: <LayoutTemplate size={18} />, draggable: false },
     { key: 'formatting', label: isLatexSelected ? 'LaTeX Formatting' : 'Formatting', icon: <Palette size={18} />, draggable: false },
-  ];
+  ].filter(tab => isAdvancedMode || tab.key !== 'formatting');
 
-  const secondarySettings: TabItem[] = [
-    ...(isLatexTemplate(resumeData.selectedTemplate) ? [{ key: 'latex-editor' as TabKey, label: 'LaTeX Editor', icon: <Code2 size={18} />, draggable: false }] : []),
-    ...(showCoverLetter ? [{ key: 'cover-letter' as TabKey, label: 'Cover Letter', icon: <File size={18} />, draggable: false }] : []),
+  const cvTabs: TabItem[] = [
+    { key: 'cv-templates', label: 'Template', icon: <LayoutTemplate size={18} />, draggable: false },
+    { key: 'cv-formatting', label: 'Formatting', icon: <Palette size={18} />, draggable: false },
+    { key: 'cover-letter', label: 'Edit Content', icon: <FileText size={18} />, draggable: false },
+  ].filter(tab => isAdvancedMode || tab.key !== 'cv-formatting');
+
+  const aiTabs: TabItem[] = [
     { key: 'ai', label: 'AI Assistant', icon: <Sparkles size={18} />, draggable: false },
   ];
 
-  const allTabs = [...primarySettings, ...sectionTabs, ...secondarySettings];
+  const profileTab: TabItem = { key: 'basics', label: 'Profile', icon: <User size={18} />, draggable: false };
+
+  const allTabs = [
+    profileTab,
+    ...resumePrimaryTabs,
+    ...sectionTabs,
+    ...cvTabs,
+    ...aiTabs,
+    ...(isLatexTemplate(resumeData.selectedTemplate) ? [{ key: 'latex-editor' as TabKey, label: 'LaTeX Editor', icon: <Code2 size={18} />, draggable: false }] : [])
+  ].filter(tab => isAdvancedMode || tab.key !== 'latex-editor');
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -774,399 +799,323 @@ function App() {
     }
   };
 
-  const handleDownloadPDF = async () => {
-    setIsGeneratingPDF(true);
-    try {
-      const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
-      const namingInput = {
-        userName: resumeData.basics.name || '',
-        documentType,
-        jobTitle: documentType === 'coverletter' ? coverLetterData.position : undefined,
-      };
-      const fileName = generateDocumentFileName(namingInput);
-      const docTitle = generateDocumentTitle(namingInput);
-
-      let blob: Blob;
-
-      if (isLatexTemplate(resumeData.selectedTemplate) && documentType !== 'coverletter') {
-        // Real LaTeX compilation only
-        const { customLatexSource, latexFormatting: lf } = useResumeStore.getState();
-        const texSource = customLatexSource || generateLaTeXFromData(effectiveData, resumeData.selectedTemplate, lf);
-        blob = await compileLatexViaApi(texSource);
-      } else {
-        const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData, docTitle);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        blob = await pdf(templateComponent as any).toBlob();
-      }
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${fileName}.pdf`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('PDF generation error:', error);
-      alert(isLatexTemplate(resumeData.selectedTemplate)
-        ? 'LaTeX compilation failed. Check your LaTeX source or try again.'
-        : 'PDF generation failed. Please try again.');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
-  const handlePrint = async () => {
-    setIsPrinting(true);
-    try {
-      const effectiveData = getEffectiveResumeData(resumeData, customTemplates);
-      const docTitle = generateDocumentTitle({
-        userName: resumeData.basics.name || '',
-        documentType,
-        jobTitle: documentType === 'coverletter' ? coverLetterData.position : undefined,
-      });
-
-      let blob: Blob;
-
-      if (isLatexTemplate(resumeData.selectedTemplate) && documentType !== 'coverletter') {
-        const { customLatexSource, latexFormatting: lf } = useResumeStore.getState();
-        const texSource = customLatexSource || generateLaTeXFromData(effectiveData, resumeData.selectedTemplate, lf);
-        blob = await compileLatexViaApi(texSource);
-      } else {
-        const templateComponent = getPDFTemplateComponent(effectiveData, documentType, coverLetterData, docTitle);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        blob = await pdf(templateComponent as any).toBlob();
-      }
-
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-    } catch (error) {
-      console.error('Print generation error:', error);
-      alert(isLatexTemplate(resumeData.selectedTemplate)
-        ? 'LaTeX compilation failed. Check your LaTeX source or try again.'
-        : 'Print generation failed. Please try again.');
-    } finally {
-      setIsPrinting(false);
-    }
-  };
-
   // Render all forms stacked (continuous mode)
   const renderContinuousMode = () => {
     const sections: React.ReactNode[] = [];
     const dividerClass = 'pb-8 mb-8 border-b-2' as const;
 
-    // Template selector
+    // ━━ PERSISTENT PROFILE ━━
     sections.push(
-      <div key="templates" id="continuous-section-templates" className={dividerClass}>
-        {templateFilterBar}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          {paginatedTemplates.map((template) => {
-            const isSelected = resumeData.selectedTemplate === template.id;
-            return (
-              <button
-                key={template.id}
-                onClick={() => setTemplate(template.id)}
-                className="group relative flex flex-col overflow-hidden border-2 transition-all"
-                style={{
-                  borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
-                  backgroundColor: 'var(--card-bg)',
-                }}
-              >
-                <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
-                  <TemplateThumbnail
-                    templateId={template.id}
-                    previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
-                  />
-                  {isSelected && (
-                    <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
-                  )}
-                  {template.isLatex && (
-                    <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
-                      pdfTeX
-                    </div>
-                  )}
-                </div>
-                <div
-                  className="p-3 text-left transition-colors relative"
+      <div key="basics" id="continuous-section-basics" className={dividerClass}>
+        <BasicsForm />
+      </div>
+    );
+
+    // ━━ RESUME SECTIONS ━━
+    if (showResume) {
+      sections.push(<div key="res-header" className="px-4 py-4 mb-6 text-xs font-black uppercase tracking-[0.2em] text-white/40 bg-white/5 border-y-2 border-white/10">Resume Configuration</div>);
+
+      // Resume Template selector
+      sections.push(
+        <div key="templates" id="continuous-section-templates" className={dividerClass}>
+          {renderTemplateFilterBar('resume', filteredResumeTemplates.length, resumeTemplateSearch, setResumeTemplateSearch, resumeTemplateFilter, setResumeTemplateFilter, resumeTemplateSort, setResumeTemplateSort)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {paginatedResumeTemplates.map((template) => {
+              const isSelected = resumeData.selectedTemplate === template.id;
+              return (
+                <button
+                  key={template.id}
+                  onClick={() => setResumeTemplate(template.id)}
+                  className="group relative flex flex-col overflow-hidden border-2 transition-all rounded-none"
                   style={{
-                    backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
-                    borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
+                    borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
+                    backgroundColor: 'var(--card-bg)',
+                    boxShadow: isSelected ? '0 0 0 3px var(--accent-offset), 0 0 20px rgba(0,0,0,0.3)' : 'none'
                   }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
-                        {template.name}
-                      </div>
-                      <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
-                        {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
-                        <Check size={14} strokeWidth={3} />
+                  <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
+                    <TemplateThumbnail
+                      templateId={template.id}
+                      previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
+                    />
+                    {template.isLatex && (
+                      <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
+                        pdfTeX
                       </div>
                     )}
                   </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-        {templatePaginationControls}
-
-        {/* ── My Templates (Continuous Mode) ── */}
-        <div className="border-t-2 pt-6 mt-6" style={{ borderColor: 'var(--card-border)' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold" style={{ color: 'var(--main-text)' }}>My Templates</h3>
-            <button
-              onClick={() => setShowCreateTemplate(!showCreateTemplate)}
-              className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded"
-            >
-              <Plus size={14} />
-              <span>New Template</span>
-            </button>
-          </div>
-
-          {/* Create template form */}
-          {showCreateTemplate && (
-            <div className="mb-4 p-4 border-2" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
-                    Template Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newTemplateName}
-                    onChange={(e) => setNewTemplateName(e.target.value)}
-                    placeholder="e.g. Software Engineer v1"
-                    className="w-full px-3 py-2 text-sm rounded border-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
-                    Base Template
-                  </label>
-                  <select
-                    value={newTemplateBase}
-                    onChange={(e) => setNewTemplateBase(Number(e.target.value) as PreloadedTemplateId)}
-                    className="w-full px-3 py-2 text-sm rounded border-2"
-                  >
-                    {templates.filter(t => !t.isLatex).map((t) => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      if (!newTemplateName.trim()) return;
-                      const newId = addCustomTemplate(newTemplateName.trim(), newTemplateBase, resumeData.formatting);
-                      setTemplate(newId);
-                      setNewTemplateName('');
-                      setShowCreateTemplate(false);
-                    }}
-                    disabled={!newTemplateName.trim()}
-                    className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${!newTemplateName.trim()
-                      ? 'cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-500 text-white'
-                      }`}
-                    style={!newTemplateName.trim() ? { backgroundColor: 'var(--input-border)', color: 'var(--main-text-secondary)' } : {}}
-                  >
-                    Create
-                  </button>
-                  <button
-                    onClick={() => { setShowCreateTemplate(false); setNewTemplateName(''); }}
-                    className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors"
-                    style={{ backgroundColor: 'var(--card-bg)', color: 'var(--main-text)', border: '1px solid var(--card-border)' }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Custom templates grid */}
-          {customTemplates.length === 0 && !showCreateTemplate ? (
-            <div className="text-center py-8 border-2 border-dashed" style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}>
-              <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-semibold">No custom templates yet</p>
-              <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {customTemplates.map((ct) => {
-                const baseName = templates.find(t => t.id === ct.baseTemplateId)?.name || 'Classic';
-                const isActive = resumeData.selectedTemplate === ct.id;
-                const isEditing = editingTemplateId === ct.id;
-
-                return (
                   <div
-                    key={ct.id}
-                    className="group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer"
+                    className="p-3 text-left transition-colors relative"
                     style={{
-                      borderColor: isActive ? 'var(--accent)' : 'var(--card-border)',
-                      backgroundColor: 'var(--card-bg)',
+                      backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
+                      borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
                     }}
                   >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
+                          {template.name}
+                        </div>
+                        <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
+                          {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div className="w-6 h-6 rounded-none flex items-center justify-center shadow-none text-white" style={{ backgroundColor: 'var(--accent)' }}>
+                          <Check size={14} strokeWidth={3} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {renderPagination(filteredResumeTemplates.length, resumeTemplatesPerPage, setResumeTemplatesPerPage, resumeTemplatePage, setResumeTemplatePage)}
+
+          {/* ── My Templates (Resume) ── */}
+          <div className="border-t-2 pt-6 mt-6" style={{ borderColor: 'var(--card-border)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold" style={{ color: 'var(--main-text)' }}>My Resume Templates</h3>
+              <button
+                onClick={() => setShowCreateTemplate(!showCreateTemplate)}
+                className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded-none"
+              >
+                <Plus size={14} />
+                <span>New Template</span>
+              </button>
+            </div>
+
+            {showCreateTemplate && (
+              <div className="mb-4 p-4 border-2" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>Template Name</label>
+                    <input
+                      type="text"
+                      value={newTemplateName}
+                      onChange={(e) => setNewTemplateName(e.target.value)}
+                      placeholder="e.g. Software Engineer v1"
+                      className="w-full px-3 py-2 text-sm rounded-none border-2 bg-transparent text-white"
+                      style={{ borderColor: 'var(--card-border)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>Base Template</label>
+                    <select
+                      value={newTemplateBase}
+                      onChange={(e) => setNewTemplateBase(Number(e.target.value) as PreloadedTemplateId)}
+                      className="w-full px-3 py-2 text-sm rounded-none border-2 bg-transparent text-white"
+                      style={{ borderColor: 'var(--card-border)' }}
+                    >
+                      {templates.filter(t => !t.isLatex && t.type === 'resume').map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
                     <button
                       onClick={() => {
-                        setTemplate(ct.id);
-                        updateFormatting(ct.formatting);
+                        if (!newTemplateName.trim()) return;
+                        const newId = addCustomTemplate(newTemplateName.trim(), newTemplateBase, resumeData.formatting);
+                        setResumeTemplate(newId);
+                        setNewTemplateName('');
+                        setShowCreateTemplate(false);
                       }}
-                      className="overflow-hidden bg-white pdf-paper w-full"
-                      style={{ borderBottom: '2px solid var(--card-border)' }}
+                      className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-none transition-colors ${!newTemplateName.trim()
+                        ? 'cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-500 text-white'
+                        }`}
+                      style={!newTemplateName.trim() ? { backgroundColor: 'var(--input-border)', color: 'var(--main-text-secondary)' } : {}}
                     >
-                      <TemplateThumbnail
-                        templateId={ct.baseTemplateId}
-                        previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
-                      />
-                      {isActive && (
-                        <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.3 }}></div>
-                      )}
+                      Create
                     </button>
+                    <button
+                      onClick={() => { setShowCreateTemplate(false); setNewTemplateName(''); }}
+                      className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-none transition-colors"
+                      style={{ backgroundColor: 'var(--card-bg)', color: 'var(--main-text)', border: '1px solid var(--card-border)' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
+            {/* Custom templates grid */}
+            {customTemplates.length === 0 && !showCreateTemplate ? (
+              <div className="text-center py-8 border-2 border-dashed" style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}>
+                <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
+                <p className="text-sm font-semibold">No custom templates yet</p>
+                <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4">
+                {customTemplates.map((ct) => {
+                  const baseName = templates.find(t => t.id === ct.baseTemplateId)?.name || 'Classic';
+                  const isActive = resumeData.selectedTemplate === ct.id;
+                  const isEditing = editingTemplateId === ct.id;
+
+                  return (
                     <div
-                      className="p-3 text-left transition-colors relative"
+                      key={ct.id}
+                      className="group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer rounded-none"
                       style={{
-                        backgroundColor: isActive ? 'var(--main-bg)' : 'var(--card-bg)',
-                        borderTop: isActive ? '1px solid var(--accent)' : 'none',
+                        borderColor: isActive ? 'var(--accent)' : 'var(--card-border)',
+                        backgroundColor: 'var(--card-bg)',
                       }}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={editingTemplateName}
-                              onChange={(e) => setEditingTemplateName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && editingTemplateName.trim()) {
-                                  updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
-                                  setEditingTemplateId(null);
-                                }
-                                if (e.key === 'Escape') setEditingTemplateId(null);
-                              }}
-                              onBlur={() => {
-                                if (editingTemplateName.trim()) {
-                                  updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
-                                }
-                                setEditingTemplateId(null);
-                              }}
-                              autoFocus
-                              className="w-full px-1.5 py-0.5 text-sm font-bold rounded border"
-                            />
-                          ) : (
-                            <div className="font-bold text-sm leading-tight truncate" style={{ color: isActive ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
-                              {ct.name}
-                            </div>
-                          )}
-                          <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isActive ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
-                            Based on {baseName}
-                          </div>
-                        </div>
+                      <button
+                        onClick={() => {
+                          setResumeTemplate(ct.id);
+                          updateResumeFormatting(ct.formatting);
+                        }}
+                        className="overflow-hidden bg-white pdf-paper w-full"
+                        style={{ borderBottom: '2px solid var(--card-border)' }}
+                      >
+                        <TemplateThumbnail
+                          templateId={ct.baseTemplateId}
+                          previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
+                        />
+                        {isActive && (
+                          <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.3 }}></div>
+                        )}
+                      </button>
 
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          {isActive && (
-                            <div className="text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: 'var(--accent)' }}>
-                              <Check size={12} strokeWidth={3} />
+                      <div
+                        className="p-3 text-left transition-colors relative"
+                        style={{
+                          backgroundColor: isActive ? 'var(--main-bg)' : 'var(--card-bg)',
+                          borderTop: isActive ? '1px solid var(--accent)' : 'none',
+                        }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={editingTemplateName}
+                                onChange={(e) => setEditingTemplateName(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && editingTemplateName.trim()) {
+                                    updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
+                                    setEditingTemplateId(null);
+                                  }
+                                  if (e.key === 'Escape') setEditingTemplateId(null);
+                                }}
+                                onBlur={() => {
+                                  if (editingTemplateName.trim()) {
+                                    updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
+                                  }
+                                  setEditingTemplateId(null);
+                                }}
+                                autoFocus
+                                className="w-full px-1.5 py-0.5 text-sm font-bold rounded border"
+                              />
+                            ) : (
+                              <div className="font-bold text-sm leading-tight truncate" style={{ color: isActive ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
+                                {ct.name}
+                              </div>
+                            )}
+                            <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isActive ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
+                              Based on {baseName}
                             </div>
-                          )}
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setEditingTemplateId(ct.id); setEditingTemplateName(ct.name); }}
-                            title="Rename"
-                            className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
-                            style={{ color: 'var(--main-text-secondary)' }}
-                          >
-                            <Pencil size={12} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const newId = addCustomTemplate(`${ct.name} (Copy)`, ct.baseTemplateId, ct.formatting);
-                              setTemplate(newId);
-                              updateFormatting(ct.formatting);
-                            }}
-                            title="Duplicate"
-                            className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
-                            style={{ color: 'var(--main-text-secondary)' }}
-                          >
-                            <Copy size={12} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm(`Delete "${ct.name}"?`)) {
-                                deleteCustomTemplate(ct.id);
-                                if (resumeData.selectedTemplate === ct.id) setTemplate(1);
-                              }
-                            }}
-                            title="Delete"
-                            className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          </div>
+
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {isActive && (
+                              <div className="text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: 'var(--accent)' }}>
+                                <Check size={12} strokeWidth={3} />
+                              </div>
+                            )}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditingTemplateId(ct.id); setEditingTemplateName(ct.name); }}
+                              title="Rename"
+                              className="p-1 rounded-none transition-colors opacity-0 group-hover:opacity-100"
+                              style={{ color: 'var(--main-text-secondary)' }}
+                            >
+                              <Pencil size={12} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const newId = addCustomTemplate(`${ct.name} (Copy)`, ct.baseTemplateId, ct.formatting);
+                                setResumeTemplate(newId);
+                                updateResumeFormatting(ct.formatting);
+                              }}
+                              title="Duplicate"
+                              className="p-1 rounded-none transition-colors opacity-0 group-hover:opacity-100"
+                              style={{ color: 'var(--main-text-secondary)' }}
+                            >
+                              <Copy size={12} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Delete "${ct.name}"?`)) {
+                                  deleteCustomTemplate(ct.id);
+                                  if (resumeData.selectedTemplate === ct.id) setResumeTemplate(1);
+                                }
+                              }}
+                              title="Delete"
+                              className="p-1 rounded-none transition-colors opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-
-    // Formatting options
-    sections.push(
-      <div key="formatting" id="continuous-section-formatting" className={dividerClass}>
-        {isLatexSelected ? <LaTeXFormattingForm /> : <FormattingForm />}
-      </div>
-    );
-
-    if (showResume) {
-      sections.push(
-        <div key="basics" id="continuous-section-basics" className={dividerClass}>
-          <BasicsForm />
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       );
 
-      // Render section tabs in order (respects drag-and-drop ordering)
-      for (const sKey of resumeData.sections) {
-        if (sKey === 'profile') continue; // Already rendered basics
+      // Resume Formatting
+      if (isAdvancedMode) {
+        sections.push(
+          <div key="formatting" id="continuous-section-formatting" className={dividerClass}>
+            {isLatexTemplate(resumeData.selectedTemplate) ? <LaTeXFormattingForm /> : <FormattingForm />}
+          </div>
+        );
+      }
 
-        if (sKey === 'work') {
-          sections.push(<div key="work" id="continuous-section-work" className={dividerClass}><WorkForm /></div>);
-        } else if (sKey === 'education') {
-          sections.push(<div key="education" id="continuous-section-education" className={dividerClass}><EducationForm /></div>);
-        } else if (sKey === 'skills') {
-          sections.push(<div key="skills" id="continuous-section-skills" className={dividerClass}><SkillsForm /></div>);
-        } else if (sKey === 'projects') {
-          sections.push(<div key="projects" id="continuous-section-projects" className={dividerClass}><ProjectsForm /></div>);
-        } else if (sKey === 'awards') {
-          sections.push(<div key="awards" id="continuous-section-awards" className={dividerClass}><AwardsForm /></div>);
-        } else {
-          // Custom section — always render if found
+      // Resume Content Forms
+      sectionTabs.map(tab => {
+        // 'templates' and 'formatting' are handled above
+        if (tab.key === 'templates' || tab.key === 'formatting') return;
+
+        sections.push(
+          <div key={tab.key} id={`continuous-section-${tab.key}`} className={dividerClass}>
+            {tab.key === 'education' && <EducationForm />}
+            {tab.key === 'work' && <WorkForm />}
+            {tab.key === 'skills' && <SkillsForm />}
+            {tab.key === 'projects' && <ProjectsForm />}
+            {tab.key === 'awards' && <AwardsForm />}
+          </div>
+        );
+      });
+
+      // Render custom sections
+      for (const sKey of resumeData.sections) {
+        if (!['basics', 'education', 'work', 'skills', 'projects', 'awards', 'profile'].includes(sKey)) {
           const cs = resumeData.customSections.find(c => c.id === sKey);
           if (cs) {
-            sections.push(<div key={sKey} id={`continuous-section-${sKey}`} className={dividerClass}><CustomSectionForm sectionId={sKey} /></div>);
+            sections.push(
+              <div key={sKey} id={`continuous-section-${sKey}`} className={dividerClass}>
+                <CustomSectionForm sectionId={sKey} />
+              </div>
+            );
           }
         }
       }
     }
 
-    if (showCoverLetter) {
-      sections.push(
-        <div key="cover-letter" id="continuous-section-cover-letter" className={dividerClass}>
-          <CoverLetterForm />
-        </div>
-      );
-    }
-
-    // LaTeX Editor (if LaTeX template is selected)
-    if (isLatexTemplate(resumeData.selectedTemplate)) {
+    // LaTeX Editor (if LaTeX template is selected) — Matched to Sidebar order (part of Resume cluster)
+    if (isAdvancedMode && isLatexTemplate(resumeData.selectedTemplate)) {
       sections.push(
         <div key="latex-editor" id="continuous-section-latex-editor" className={dividerClass}>
           <Suspense fallback={
@@ -1180,6 +1129,80 @@ function App() {
       );
     }
 
+    // ━━ COVER LETTER SECTIONS ━━
+    if (showCoverLetter) {
+      sections.push(<div key="cv-header" className="px-4 py-4 mb-6 text-xs font-black uppercase tracking-[0.2em] text-white/40 bg-white/5 border-y-2 border-white/10 mt-12">Cover Letter Configuration</div>);
+
+      // CV Template selector
+      sections.push(
+        <div key="cv-templates" id="continuous-section-cv-templates" className={dividerClass}>
+          {renderTemplateFilterBar('cv', filteredCVTemplates.length, cvTemplateSearch, setCvTemplateSearch, cvTemplateFilter, setCvTemplateFilter, cvTemplateSort, setCvTemplateSort)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {paginatedCVTemplates.map((template) => {
+              const isSelected = coverLetterData.selectedTemplate === template.id;
+              return (
+                <button
+                  key={template.id}
+                  onClick={() => setCVTemplate(template.id)}
+                  className="group relative flex flex-col overflow-hidden border-2 transition-all rounded-none"
+                  style={{
+                    borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
+                    backgroundColor: 'var(--card-bg)',
+                    boxShadow: isSelected ? '0 0 0 3px var(--accent-offset), 0 0 20px rgba(0,0,0,0.3)' : 'none'
+                  }}
+                >
+                  <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
+                    <TemplateThumbnail
+                      templateId={template.id}
+                      isCoverLetter={true}
+                      previewData={previewDataSource === 'sample' ? SAMPLE_COVER_LETTER_DATA : undefined}
+                    />
+                    {template.isLatex && (
+                      <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
+                        pdfTeX
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 text-left relative" style={{ backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)' }}>
+                    <div className="flex items-center justify-between">
+                      <div className="font-bold text-sm" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>{template.name}</div>
+                      {isSelected && (
+                        <div className="w-6 h-6 rounded-none flex items-center justify-center shadow-none text-white" style={{ backgroundColor: 'var(--accent)' }}>
+                          <Check size={14} strokeWidth={3} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {renderPagination(filteredCVTemplates.length, cvTemplatesPerPage, setCvTemplatesPerPage, cvTemplatePage, setCvTemplatePage)}
+        </div>
+      );
+
+      // CV Formatting
+      if (isAdvancedMode) {
+        sections.push(
+          <div key="cv-formatting" id="continuous-section-cv-formatting" className={dividerClass}>
+            <CoverLetterFormattingForm
+              data={coverLetterData.formatting}
+              update={updateCVFormatting}
+              reset={resetCVFormatting}
+            />
+          </div>
+        );
+      }
+
+      // CV Content
+      sections.push(
+        <div key="cover-letter" id="continuous-section-cover-letter" className={dividerClass}>
+          <CoverLetterForm />
+        </div>
+      );
+    }
+
+
     // AI Assistant at the end
     sections.push(
       <div key="ai" id="continuous-section-ai" className={dividerClass}>
@@ -1191,7 +1214,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--main-bg)' }}>
+    <div className="h-screen flex flex-col lg:flex-row overflow-hidden" style={{ backgroundColor: 'var(--main-bg)' }}>
       {/* ━━ Mobile Header ━━ */}
       <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b-2 flex-shrink-0 z-40 sticky top-0 shadow-sm"
         style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
@@ -1199,7 +1222,7 @@ function App() {
           style={{ color: 'var(--sidebar-text)' }}>
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        <span className="text-sm font-black tracking-tighter uppercase italic" style={{ color: 'var(--sidebar-text)' }}>Resume Builder</span>
+        <span className="text-sm font-black tracking-tighter uppercase italic" style={{ color: 'var(--sidebar-text)' }}>Career Studio</span>
         <div className="w-10"></div> {/* Spacer for symmetry */}
       </div>
 
@@ -1216,7 +1239,7 @@ function App() {
         </button>
         <button
           onClick={() => setMobileView('preview')}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${mobileView === 'preview' ? 'bg-white/10' : 'opacity-40 hover:opacity-100'}`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-none ${mobileView === 'preview' ? 'bg-white/10' : 'opacity-40 hover:opacity-100'}`}
           style={{ color: 'var(--sidebar-text)' }}
         >
           <Eye size={20} />
@@ -1228,7 +1251,7 @@ function App() {
             handleSidebarClick('templates');
             setSidebarOpen(false);
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl opacity-40 hover:opacity-100`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-none opacity-40 hover:opacity-100`}
           style={{ color: 'var(--sidebar-text)' }}
         >
           <LayoutTemplate size={20} />
@@ -1236,7 +1259,7 @@ function App() {
         </button>
         <button
           onClick={() => setSidebarOpen(true)}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl opacity-40 hover:opacity-100`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-none opacity-40 hover:opacity-100`}
           style={{ color: 'var(--sidebar-text)' }}
         >
           <Plus size={20} />
@@ -1249,65 +1272,38 @@ function App() {
         <div className="lg:hidden fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <div className="flex-1 flex w-full">
+      <div className="flex-1 flex w-full h-screen overflow-hidden">
         {/* ━━ Sidebar ━━
             Desktop: always visible, w-56
             Mobile: slide-out drawer (fixed, overlays content) */}
         <aside className={`
-          w-64 flex-shrink-0 border-r-2 z-[80]
-          fixed lg:relative top-0 left-0 h-full
+      w-64 flex-shrink-0 border-r-2 z-[80]
+          fixed lg:sticky lg:top-0 left-0 h-full lg:h-screen
           transform transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `} style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)', borderColor: 'var(--sidebar-border)' }}>
-          <div className="sticky top-0 h-screen flex flex-col overflow-y-auto">
-            {/* Document Type Toggles */}
-            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
-              <div className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-2">Document Type</div>
-              <label className="flex items-center gap-2.5 cursor-pointer mb-2 group">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={showResume}
-                    onChange={handleToggleResume}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-4 h-4 border-2 rounded-sm flex items-center justify-center transition-all ${!showResume ? 'border-white/40 group-hover:border-white/60' : ''}`}
-                    style={showResume ? { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
-                  >
-                    {showResume && <Check size={10} strokeWidth={3} className="text-white" />}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FileCheck size={14} className="text-white/70" />
-                  <span className="text-sm font-semibold text-white/90">Resume</span>
-                </div>
-              </label>
-              <label className="flex items-center gap-2.5 cursor-pointer group">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={showCoverLetter}
-                    onChange={handleToggleCoverLetter}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-4 h-4 border-2 rounded-sm flex items-center justify-center transition-all ${!showCoverLetter ? 'border-white/40 group-hover:border-white/60' : ''}`}
-                    style={showCoverLetter ? { backgroundColor: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}
-                  >
-                    {showCoverLetter && <Check size={10} strokeWidth={3} className="text-white" />}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail size={14} className="text-white/70" />
-                  <span className="text-sm font-semibold text-white/90">Cover Letter</span>
-                </div>
-              </label>
-            </div>
+      `} style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)', borderColor: 'var(--sidebar-border)' }}>
+          <div className="h-full flex flex-col overflow-hidden">
+            {/* Document Type Pill Toggles */}
+            <div className="px-4 py-4 space-y-3">
+              <div className="flex p-1 bg-black/40 rounded-none border-2 border-white/20 shadow-none overflow-hidden gap-0.5">
+                <button
+                  onClick={handleToggleResume}
+                  className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-1 rounded-none text-[11px] font-black uppercase tracking-tighter border transition-all duration-200 ${showResume ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-white border-white/40 hover:text-white hover:bg-white/5'}`}
+                >
+                  <FileCheck size={14} className={showResume ? "text-black" : "text-white"} />
+                  <span>Resume</span>
+                </button>
+                <button
+                  onClick={handleToggleCoverLetter}
+                  className={`flex-1 flex items-center justify-center gap-1 py-2.5 px-1 rounded-none text-[11px] font-black uppercase tracking-tighter border transition-all duration-200 ${showCoverLetter ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-white border-white/40 hover:text-white hover:bg-white/5'}`}
+                >
+                  <Mail size={14} className={showCoverLetter ? "text-black" : "text-white"} />
+                  <span>Cover Letter</span>
+                </button>
+              </div>
 
-            {/* Continuous Page Toggle */}
-            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
-              <label className="flex items-center gap-2.5 cursor-pointer group">
+              {/* Continuous Page Toggle */}
+              <label className="flex items-center gap-2.5 cursor-pointer group px-1">
                 <div className="relative">
                   <input
                     type="checkbox"
@@ -1315,22 +1311,23 @@ function App() {
                     onChange={() => setContinuousMode(!continuousMode)}
                     className="sr-only"
                   />
-                  <div className="w-9 h-5 rounded-full transition-all"
-                    style={{ backgroundColor: continuousMode ? 'var(--accent)' : 'var(--input-border)' }}
+                  <div className="w-8 h-4 rounded-none transition-all ring-2 ring-white/40"
+                    style={{ backgroundColor: continuousMode ? 'var(--accent)' : 'rgba(0,0,0,0.5)' }}
                   >
-                    <div className={`w-3.5 h-3.5 bg-white rounded-full shadow-sm transition-transform absolute top-[3px] ${continuousMode ? 'translate-x-[18px]' : 'translate-x-[3px]'
-                      }`} />
+                    <div className={`w-3 h-3 bg-white rounded-none shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-transform absolute top-[2px] ${continuousMode ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Layers size={14} className="text-white/70" />
-                  <span className="text-xs font-semibold text-white/90">Continuous Page</span>
+                  <Layers size={13} className="text-white/40 group-hover:text-white/70 transition-colors" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 group-hover:text-white/90 transition-colors">Continuous Page</span>
                 </div>
               </label>
             </div>
 
+            {thickSeparator}
+
             {/* Sidebar Navigation */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto pb-6">
               <DndContext
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
@@ -1338,122 +1335,111 @@ function App() {
               >
                 <SortableContext items={allTabs.map(t => t.key)} strategy={verticalListSortingStrategy}>
                   <div className="flex flex-col">
-                    {/* Primary Settings */}
-                    {primarySettings.map((tab) => (
-                      <SidebarItem
-                        key={tab.key}
-                        tab={tab}
-                        isActive={activeTab === tab.key}
-                        onClick={() => handleSidebarClick(tab.key)}
-                      />
-                    ))}
 
-                    {/* Sortable Sections (only if resume is enabled) */}
-                    {showResume && sectionTabs.map((tab) => (
-                      <SidebarItem
-                        key={tab.key}
-                        tab={tab}
-                        isActive={activeTab === tab.key}
-                        onClick={() => handleSidebarClick(tab.key)}
-                      />
-                    ))}
+                    {/* ━━ Persistent Profile ━━ */}
+                    <SidebarItem
+                      tab={profileTab}
+                      isActive={activeTab === 'basics'}
+                      onClick={() => handleSidebarClick('basics')}
+                    />
+                    {thickSeparator}
 
-                    {/* Add Custom Section Button (only if resume is enabled) */}
+                    {/* ━━ Resume Section ━━ */}
                     {showResume && (
-                      <button
-                        onClick={() => {
-                          const newId = addCustomSection();
-                          if (!continuousMode) {
-                            setActiveTab(newId);
-                          }
-                          // In continuous mode, the new section appears automatically
-                          // via the reactive resumeData.sections loop
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 transition-colors border-l-4 border-transparent"
-                        style={{ color: 'var(--sidebar-text)' }}
-                      >
-                        <Plus size={16} />
-                        <span className="text-sm font-semibold !text-white">Add Custom Section</span>
-                      </button>
+                      <>
+                        <div className="px-4 pt-2 pb-1 text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Resume</div>
+                        {resumePrimaryTabs.map((tab) => (
+                          <SidebarItem
+                            key={tab.key}
+                            tab={tab}
+                            isActive={activeTab === tab.key}
+                            onClick={() => handleSidebarClick(tab.key)}
+                          />
+                        ))}
+                        {sectionTabs.map((tab) => (
+                          <SidebarItem
+                            key={tab.key}
+                            tab={tab}
+                            isActive={activeTab === tab.key}
+                            onClick={() => handleSidebarClick(tab.key)}
+                          />
+                        ))}
+                        <button
+                          onClick={() => {
+                            const newId = addCustomSection();
+                            if (!continuousMode) setActiveTab(newId);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 transition-colors border-l-4 border-transparent hover:bg-white/5 rounded-none"
+                          style={{ color: 'var(--sidebar-text)' }}
+                        >
+                          <Plus size={16} className="text-white/40" />
+                          <span className="text-sm font-semibold !text-white/60">Add Custom Section</span>
+                        </button>
+                        {isAdvancedMode && isLatexTemplate(resumeData.selectedTemplate) && (
+                          <SidebarItem
+                            tab={{ key: 'latex-editor', label: 'LaTeX Editor', icon: <Code2 size={18} /> }}
+                            isActive={activeTab === 'latex-editor'}
+                            onClick={() => handleSidebarClick('latex-editor')}
+                          />
+                        )}
+                        {thickSeparator}
+                      </>
                     )}
 
-                    {/* Secondary Settings */}
-                    {secondarySettings.map((tab) => (
-                      <SidebarItem
-                        key={tab.key}
-                        tab={tab}
-                        isActive={activeTab === tab.key}
-                        onClick={() => handleSidebarClick(tab.key)}
-                      />
-                    ))}
+                    {/* ━━ Cover Letter Section ━━ */}
+                    {showCoverLetter && (
+                      <>
+                        <div className="px-4 pt-4 pb-1 text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Cover Letter</div>
+                        {cvTabs.map((tab) => (
+                          <SidebarItem
+                            key={tab.key}
+                            tab={tab}
+                            isActive={activeTab === tab.key}
+                            onClick={() => handleSidebarClick(tab.key)}
+                          />
+                        ))}
+                        {thickSeparator}
+                      </>
+                    )}
+
+                    <div className="mt-2 text-white">
+                      {aiTabs.map((tab) => (
+                        <SidebarItem
+                          key={tab.key}
+                          tab={tab}
+                          isActive={activeTab === tab.key}
+                          onClick={() => handleSidebarClick(tab.key)}
+                        />
+                      ))}
+                    </div>
+
                   </div>
                 </SortableContext>
               </DndContext>
             </div>
 
             {/* Bottom Controls: Export, Import, Sample, Theme, Reset */}
-            <div className="border-t p-3 space-y-2" style={{ borderColor: 'var(--sidebar-border)' }}>
-              {/* Export button */}
-              <div ref={exportDropdownRef} className="relative">
+            <div className="border-t-2 p-3 space-y-3 shrink-0 mt-auto bg-[#0a0a14]/80 backdrop-blur-md" style={{ borderColor: 'var(--sidebar-border)' }}>
+              {/* Simple/Advanced Toggle */}
+              <div className="flex p-0.5 bg-black/40 rounded-none border border-white/10 shadow-none overflow-hidden gap-0.5">
                 <button
-                  onClick={() => setExportDropdownOpen(prev => !prev)}
-                  disabled={isGeneratingPDF || isPrinting}
-                  className={`w-full flex items-center justify-center gap-2 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded btn-accent ${(isGeneratingPDF || isPrinting) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() => setIsAdvancedMode(false)}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded-none text-[9px] font-black uppercase tracking-tighter border transition-all duration-200 ${!isAdvancedMode ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-white border-white/20 hover:text-white hover:bg-white/5'}`}
                 >
-                  <FileDown size={14} />
-                  <span>{isGeneratingPDF ? 'Generating...' : isPrinting ? 'Preparing...' : 'Export'}</span>
-                  <ChevronDown size={10} className={`transition-transform ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+                  <span>Simple</span>
                 </button>
-                {exportDropdownOpen && (
-                  <div className="absolute left-0 bottom-full mb-1 w-full shadow-xl border-2 z-50 overflow-hidden" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
-                    <button
-                      onClick={() => { setExportDropdownOpen(false); handleDownloadPDF(); }}
-                      disabled={isGeneratingPDF}
-                      className={`w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${isGeneratingPDF ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      style={{ color: 'var(--sidebar-text)' }}
-                    >
-                      <FileDown size={12} className="text-teal-400" />
-                      Download PDF
-                    </button>
-                    <button
-                      onClick={() => { setExportDropdownOpen(false); handlePrint(); }}
-                      disabled={isPrinting}
-                      className={`w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      style={{ color: 'var(--sidebar-text)' }}
-                    >
-                      <Printer size={12} className="text-blue-400" />
-                      Print / Preview
-                    </button>
-                    {isLatexSelected && (
-                      <>
-                        <div style={{ borderTop: '1px solid var(--sidebar-border)' }} />
-                        <button
-                          onClick={() => { setExportDropdownOpen(false); handleDownloadTex(); }}
-                          className="w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors"
-                          style={{ color: 'var(--sidebar-text)' }}
-                        >
-                          <Code2 size={12} className="text-emerald-400" />
-                          Download .tex
-                        </button>
-                      </>
-                    )}
-                    <div style={{ borderTop: '1px solid var(--sidebar-border)' }} />
-                    <button
-                      onClick={() => { setExportDropdownOpen(false); handleExport(); }}
-                      className="w-full text-left px-3 py-2.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors"
-                      style={{ color: 'var(--sidebar-text)' }}
-                    >
-                      <Download size={12} className="text-amber-400" />
-                      Export JSON
-                    </button>
-                  </div>
-                )}
+                <button
+                  onClick={() => setIsAdvancedMode(true)}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded-none text-[9px] font-black uppercase tracking-tighter border transition-all duration-200 ${isAdvancedMode ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-white border-white/20 hover:text-white hover:bg-white/5'}`}
+                >
+                  <span>Advanced</span>
+                </button>
               </div>
 
               <button
                 onClick={handleImport}
                 disabled={isImporting}
-                className={`w-full flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-all rounded hover:brightness-125 active:opacity-70 ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-all !rounded-none hover:brightness-125 active:opacity-70 ${isImporting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 style={{ backgroundColor: 'var(--sidebar-hover)', color: 'var(--sidebar-text)' }}
               >
                 <Upload size={12} />
@@ -1465,7 +1451,7 @@ function App() {
                 <div ref={themeDropdownRef} className="relative">
                   <button
                     onClick={() => setThemeDropdownOpen(prev => !prev)}
-                    className="w-full flex items-center justify-center gap-2 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors rounded"
+                    className="w-full flex items-center justify-center gap-2 px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-colors !rounded-none"
                     style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
                   >
                     <Palette size={14} />
@@ -1499,16 +1485,24 @@ function App() {
 
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={loadSampleData}
-                  className="flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-all rounded hover:brightness-125 active:opacity-70"
+                  onClick={loadAllSampleData}
+                  className="flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-all !rounded-none hover:brightness-125 active:opacity-70"
                   style={{ backgroundColor: 'var(--sidebar-hover)', color: 'var(--sidebar-text)' }}
                 >
                   <FileText size={12} />
                   <span>Sample</span>
                 </button>
                 <button
-                  onClick={reset}
-                  className="flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors rounded bg-red-700 hover:bg-red-800 text-white"
+                  onClick={() => {
+                    resetResume();
+                    resetCV();
+                    // Immediate sync to parent to prevent stale reverts
+                    setTimeout(() => broadcastSave(), 50);
+                  }}
+                  className="flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors !rounded-none text-white"
+                  style={{ backgroundColor: '#7f1d1d' }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#991b1b')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#7f1d1d')}
                 >
                   <RotateCcw size={12} />
                   <span>Reset</span>
@@ -1518,18 +1512,15 @@ function App() {
           </div>
         </aside>
 
-        {/* ━━ Main Content ━━
-            Mobile: full-width, hidden when preview is active
-            Tablet: w-[450px]
-            Desktop: w-[900px] */}
-        <main className={`flex-1 px-2 py-3 sm:p-4 lg:p-6 overflow-y-auto pb-32 lg:pb-6 ${mobileView !== 'form' ? 'hidden lg:block' : ''}`}
+        {/* ━━ Main Content Area ━━ */}
+        <main className={`flex-1 flex flex-col h-full overflow-y-auto ${mobileView !== 'form' ? 'hidden lg:flex' : 'flex'}`}
           style={{ backgroundColor: 'var(--main-bg)', color: 'var(--main-text)' }}>
-          <div className="w-full max-w-5xl mx-auto">
+          <div className="w-full px-2 py-3 sm:p-4 lg:p-6">
             {continuousMode ? (
               renderContinuousMode()
             ) : (
-              <>
-                {activeTab === 'basics' && showResume && <BasicsForm />}
+              <div className="w-full">
+                {activeTab === 'basics' && <BasicsForm />}
                 {activeTab === 'work' && showResume && <WorkForm />}
                 {activeTab === 'education' && showResume && <EducationForm />}
                 {activeTab === 'skills' && showResume && <SkillsForm />}
@@ -1537,7 +1528,7 @@ function App() {
                 {activeTab === 'awards' && showResume && <AwardsForm />}
                 {activeTab.startsWith('custom-') && showResume && <CustomSectionForm sectionId={activeTab} />}
                 {activeTab === 'cover-letter' && showCoverLetter && <CoverLetterForm />}
-                {activeTab === 'latex-editor' && isLatexTemplate(resumeData.selectedTemplate) && (
+                {activeTab === 'latex-editor' && isAdvancedMode && isLatexTemplate(resumeData.selectedTemplate) && (
                   <Suspense fallback={
                     <div className="flex items-center justify-center py-16">
                       <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" />
@@ -1547,292 +1538,314 @@ function App() {
                   </Suspense>
                 )}
                 {activeTab === 'ai' && <AITab documentType={documentType} />}
-                {activeTab === 'formatting' && (isLatexSelected ? <LaTeXFormattingForm /> : <FormattingForm />)}
-                {activeTab === 'templates' && (
+                {isAdvancedMode && (activeTab === 'formatting' || activeTab === 'cv-formatting') && (
+                  activeTab === 'cv-formatting'
+                    ? <CoverLetterFormattingForm
+                      data={coverLetterData.formatting}
+                      update={updateCVFormatting}
+                      reset={resetCVFormatting}
+                    />
+                    : (isLatexSelected ? <LaTeXFormattingForm /> : <FormattingForm />)
+                )}
+                {(activeTab === 'templates' || activeTab === 'cv-templates') && (
                   <div className="space-y-6">
-                    {templateFilterBar}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {paginatedTemplates.map((template) => {
-                        const isSelected = resumeData.selectedTemplate === template.id;
-                        return (
-                          <button
-                            key={template.id}
-                            onClick={() => setTemplate(template.id)}
-                            className="group relative flex flex-col overflow-hidden border-2 transition-all"
-                            style={{
-                              borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
-                              backgroundColor: 'var(--card-bg)',
-                            }}
-                          >
-                            <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
-                              <TemplateThumbnail
-                                templateId={template.id}
-                                previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
-                              />
-                              {isSelected && (
-                                <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
-                              )}
-                              {template.isLatex && (
-                                <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
-                                  pdfTeX
-                                </div>
-                              )}
-                            </div>
+                    {activeTab === 'cv-templates'
+                      ? renderTemplateFilterBar('cv', filteredCVTemplates.length, cvTemplateSearch, setCvTemplateSearch, cvTemplateFilter, setCvTemplateFilter, cvTemplateSort, setCvTemplateSort)
+                      : renderTemplateFilterBar('resume', filteredResumeTemplates.length, resumeTemplateSearch, setResumeTemplateSearch, resumeTemplateFilter, setResumeTemplateFilter, resumeTemplateSort, setResumeTemplateSort)}
 
-                            <div
-                              className="p-3 text-left transition-colors relative"
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {(activeTab === 'cv-templates' ? paginatedCVTemplates : paginatedResumeTemplates)
+                        .map((template) => {
+                          const isCV = activeTab === 'cv-templates';
+                          const isSelected = isCV
+                            ? coverLetterData.selectedTemplate === template.id
+                            : resumeData.selectedTemplate === template.id;
+
+                          return (
+                            <button
+                              key={template.id}
+                              onClick={() => isCV ? setCVTemplate(template.id) : setResumeTemplate(template.id)}
+                              className="group relative flex flex-col overflow-hidden border-2 transition-all rounded-none"
                               style={{
-                                backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
-                                borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
+                                borderColor: isSelected ? 'var(--accent)' : 'var(--card-border)',
+                                backgroundColor: 'var(--card-bg)',
+                                boxShadow: isSelected ? '0 0 0 3px var(--accent-offset), 0 0 20px rgba(0,0,0,0.3)' : 'none'
                               }}
                             >
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
-                                    {template.name}
-                                  </div>
-                                  <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
-                                    {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
-                                  </div>
-                                </div>
+                              <div className="overflow-hidden bg-white pdf-paper relative" style={{ borderBottom: '2px solid var(--card-border)' }}>
+                                <TemplateThumbnail
+                                  templateId={template.id}
+                                  previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
+                                  isCoverLetter={isCV}
+                                />
                                 {isSelected && (
-                                  <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm text-white" style={{ backgroundColor: 'var(--accent)' }}>
-                                    <Check size={14} strokeWidth={3} />
+                                  <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.4 }}></div>
+                                )}
+                                {template.isLatex && (
+                                  <div className="absolute top-2 right-2 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 shadow-lg z-10" style={{ backgroundColor: '#1e293b' }}>
+                                    pdfTeX
                                   </div>
                                 )}
                               </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {templatePaginationControls}
 
-                    {/* ── My Templates ── */}
-                    <div className="border-t-2 pt-6" style={{ borderColor: 'var(--card-border)' }}>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-bold" style={{ color: 'var(--main-text)' }}>My Templates</h3>
-                        <button
-                          onClick={() => setShowCreateTemplate(!showCreateTemplate)}
-                          className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded"
-                        >
-                          <Plus size={14} />
-                          <span>New Template</span>
-                        </button>
-                      </div>
-
-                      {/* Create template form */}
-                      {showCreateTemplate && (
-                        <div className="mb-4 p-4 border-2" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
-                                Template Name
-                              </label>
-                              <input
-                                type="text"
-                                value={newTemplateName}
-                                onChange={(e) => setNewTemplateName(e.target.value)}
-                                placeholder="e.g. Software Engineer v1"
-                                className="w-full px-3 py-2 text-sm rounded border-2"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
-                                Base Template
-                              </label>
-                              <select
-                                value={newTemplateBase}
-                                onChange={(e) => setNewTemplateBase(Number(e.target.value) as PreloadedTemplateId)}
-                                className="w-full px-3 py-2 text-sm rounded border-2"
-                              >
-                                {templates.filter(t => !t.isLatex).map((t) => (
-                                  <option key={t.id} value={t.id}>{t.name}</option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => {
-                                  if (!newTemplateName.trim()) return;
-                                  const newId = addCustomTemplate(newTemplateName.trim(), newTemplateBase, resumeData.formatting);
-                                  setTemplate(newId);
-                                  setNewTemplateName('');
-                                  setShowCreateTemplate(false);
-                                }}
-                                disabled={!newTemplateName.trim()}
-                                className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors ${!newTemplateName.trim()
-                                  ? 'cursor-not-allowed'
-                                  : 'bg-green-600 hover:bg-green-500 text-white'
-                                  }`}
-                                style={!newTemplateName.trim() ? { backgroundColor: 'var(--input-border)', color: 'var(--main-text-secondary)' } : {}}
-                              >
-                                Create
-                              </button>
-                              <button
-                                onClick={() => { setShowCreateTemplate(false); setNewTemplateName(''); }}
-                                className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded transition-colors"
-                                style={{ backgroundColor: 'var(--card-bg)', color: 'var(--main-text)', border: '1px solid var(--card-border)' }}
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Custom templates grid */}
-                      {customTemplates.length === 0 && !showCreateTemplate ? (
-                        <div className="text-center py-8 border-2 border-dashed" style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}>
-                          <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
-                          <p className="text-sm font-semibold">No custom templates yet</p>
-                          <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                          {customTemplates.map((ct) => {
-                            const baseName = templates.find(t => t.id === ct.baseTemplateId)?.name || 'Classic';
-                            const isActive = resumeData.selectedTemplate === ct.id;
-                            const isEditing = editingTemplateId === ct.id;
-
-                            return (
                               <div
-                                key={ct.id}
-                                className="group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer"
+                                className="p-3 text-left transition-colors relative"
                                 style={{
-                                  borderColor: isActive ? 'var(--accent)' : 'var(--card-border)',
-                                  backgroundColor: 'var(--card-bg)',
+                                  backgroundColor: isSelected ? 'var(--main-bg)' : 'var(--card-bg)',
+                                  borderTop: isSelected ? '1px solid var(--card-border)' : 'none',
                                 }}
                               >
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <div className="font-bold text-sm leading-tight" style={{ color: isSelected ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
+                                      {template.name}
+                                    </div>
+                                    <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isSelected ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
+                                      {template.description || (template.isLatex ? 'pdfTeX' : 'React PDF')}
+                                    </div>
+                                  </div>
+                                  {isSelected && (
+                                    <div className="w-6 h-6 rounded-none flex items-center justify-center shadow-none text-white" style={{ backgroundColor: 'var(--accent)' }}>
+                                      <Check size={14} strokeWidth={3} />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                    </div>
+
+                    {activeTab === 'cv-templates'
+                      ? renderPagination(filteredCVTemplates.length, cvTemplatesPerPage, setCvTemplatesPerPage, cvTemplatePage, setCvTemplatePage)
+                      : renderPagination(filteredResumeTemplates.length, resumeTemplatesPerPage, setResumeTemplatesPerPage, resumeTemplatePage, setResumeTemplatePage)}
+
+                    {/* ━━ My Templates ━━ */}
+                    {activeTab === 'templates' && (
+                      <div className="border-t-2 pt-6" style={{ borderColor: 'var(--card-border)' }}>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-bold" style={{ color: 'var(--main-text)' }}>My Templates</h3>
+                          <button
+                            onClick={() => setShowCreateTemplate(!showCreateTemplate)}
+                            className="btn-accent flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors rounded"
+                          >
+                            <Plus size={14} />
+                            <span>New Template</span>
+                          </button>
+                        </div>
+
+                        {/* Create template form */}
+                        {showCreateTemplate && (
+                          <div className="mb-4 p-4 border-2" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
+                                  Template Name
+                                </label>
+                                <input
+                                  type="text"
+                                  value={newTemplateName}
+                                  onChange={(e) => setNewTemplateName(e.target.value)}
+                                  placeholder="e.g. Software Engineer v1"
+                                  className="w-full px-3 py-2 text-sm rounded border-2"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--main-text-secondary)' }}>
+                                  Base Template
+                                </label>
+                                <select
+                                  value={newTemplateBase}
+                                  onChange={(e) => setNewTemplateBase(Number(e.target.value) as PreloadedTemplateId)}
+                                  className="w-full px-3 py-2 text-sm rounded border-2"
+                                >
+                                  {templates.filter(t => !t.isLatex && t.type === 'resume').map((t) => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex gap-2">
                                 <button
                                   onClick={() => {
-                                    setTemplate(ct.id);
-                                    updateFormatting(ct.formatting);
+                                    if (!newTemplateName.trim()) return;
+                                    const newId = addCustomTemplate(newTemplateName.trim(), newTemplateBase, resumeData.formatting);
+                                    setResumeTemplate(newId);
+                                    setNewTemplateName('');
+                                    setShowCreateTemplate(false);
                                   }}
-                                  className="overflow-hidden bg-white pdf-paper w-full"
-                                  style={{ borderBottom: '2px solid var(--card-border)' }}
+                                  disabled={!newTemplateName.trim()}
+                                  className={`flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-none transition-colors ${!newTemplateName.trim()
+                                    ? 'cursor-not-allowed opacity-50'
+                                    : 'bg-green-600 hover:bg-green-500 text-white'
+                                    }`}
+                                  style={!newTemplateName.trim() ? { backgroundColor: 'var(--input-border)', color: 'var(--main-text-secondary)' } : {}}
                                 >
-                                  <TemplateThumbnail
-                                    templateId={ct.baseTemplateId}
-                                    previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
-                                  />
-                                  {isActive && (
-                                    <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.3 }}></div>
-                                  )}
+                                  Create
                                 </button>
+                                <button
+                                  onClick={() => { setShowCreateTemplate(false); setNewTemplateName(''); }}
+                                  className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-none transition-colors"
+                                  style={{ backgroundColor: 'var(--card-bg)', color: 'var(--main-text)', border: '2px solid var(--card-border)' }}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
+                        {/* Custom templates grid */}
+                        {customTemplates.length === 0 && !showCreateTemplate ? (
+                          <div className="text-center py-8 border-2 border-dashed" style={{ borderColor: 'var(--card-border)', color: 'var(--main-text-secondary)' }}>
+                            <LayoutTemplate size={32} className="mx-auto mb-2 opacity-50" />
+                            <p className="text-sm font-semibold">No custom templates yet</p>
+                            <p className="text-xs mt-1">Click "New Template" to create one with your own formatting</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            {customTemplates.map((ct) => {
+                              const bName = templates.find(t => t.id === ct.baseTemplateId)?.name || 'Classic';
+                              const isActive = resumeData.selectedTemplate === ct.id;
+                              const isEditing = editingTemplateId === ct.id;
+
+                              return (
                                 <div
-                                  className="p-3 text-left transition-colors relative"
+                                  key={ct.id}
+                                  className="group relative flex flex-col overflow-hidden border-2 transition-all cursor-pointer"
                                   style={{
-                                    backgroundColor: isActive ? 'var(--main-bg)' : 'var(--card-bg)',
-                                    borderTop: isActive ? '1px solid var(--accent)' : 'none',
+                                    borderColor: isActive ? 'var(--accent)' : 'var(--card-border)',
+                                    backgroundColor: 'var(--card-bg)',
                                   }}
                                 >
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div className="flex-1 min-w-0">
-                                      {isEditing ? (
-                                        <input
-                                          type="text"
-                                          value={editingTemplateName}
-                                          onChange={(e) => setEditingTemplateName(e.target.value)}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && editingTemplateName.trim()) {
-                                              updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
-                                              setEditingTemplateId(null);
-                                            }
-                                            if (e.key === 'Escape') setEditingTemplateId(null);
-                                          }}
-                                          onBlur={() => {
-                                            if (editingTemplateName.trim()) {
-                                              updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
-                                            }
-                                            setEditingTemplateId(null);
-                                          }}
-                                          autoFocus
-                                          className="w-full px-1.5 py-0.5 text-sm font-bold rounded border"
-                                        />
-                                      ) : (
-                                        <div className="font-bold text-sm leading-tight truncate" style={{ color: isActive ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
-                                          {ct.name}
-                                        </div>
-                                      )}
-                                      <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isActive ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
-                                        Based on {baseName}
-                                      </div>
-                                    </div>
+                                  <button
+                                    onClick={() => {
+                                      setResumeTemplate(ct.id);
+                                      updateResumeFormatting(ct.formatting);
+                                    }}
+                                    className="overflow-hidden bg-white pdf-paper w-full"
+                                    style={{ borderBottom: '2px solid var(--card-border)' }}
+                                  >
+                                    <TemplateThumbnail
+                                      templateId={ct.baseTemplateId}
+                                      previewData={previewDataSource === 'sample' ? SAMPLE_RESUME_DATA : undefined}
+                                    />
+                                    {isActive && (
+                                      <div className="absolute inset-0 pointer-events-none" style={{ border: '4px solid var(--accent)', opacity: 0.3 }}></div>
+                                    )}
+                                  </button>
 
-                                    <div className="flex items-center gap-1 flex-shrink-0">
-                                      {isActive && (
-                                        <div className="text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: 'var(--accent)' }}>
-                                          <Check size={12} strokeWidth={3} />
+                                  <div
+                                    className="p-3 text-left transition-colors relative"
+                                    style={{
+                                      backgroundColor: isActive ? 'var(--main-bg)' : 'var(--card-bg)',
+                                      borderTop: isActive ? '1px solid var(--accent)' : 'none',
+                                    }}
+                                  >
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1 min-w-0">
+                                        {isEditing ? (
+                                          <input
+                                            type="text"
+                                            value={editingTemplateName}
+                                            onChange={(e) => setEditingTemplateName(e.target.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter' && editingTemplateName.trim()) {
+                                                updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
+                                                setEditingTemplateId(null);
+                                              }
+                                              if (e.key === 'Escape') setEditingTemplateId(null);
+                                            }}
+                                            onBlur={() => {
+                                              if (editingTemplateName.trim()) {
+                                                updateCustomTemplate(ct.id, { name: editingTemplateName.trim() });
+                                              }
+                                              setEditingTemplateId(null);
+                                            }}
+                                            autoFocus
+                                            className="w-full px-1.5 py-0.5 text-sm font-bold rounded border"
+                                          />
+                                        ) : (
+                                          <div className="font-bold text-sm leading-tight truncate" style={{ color: isActive ? 'var(--main-text)' : 'var(--main-text-secondary)' }}>
+                                            {ct.name}
+                                          </div>
+                                        )}
+                                        <div className="text-[10px] font-semibold mt-0.5 uppercase tracking-wider" style={{ color: isActive ? 'var(--accent)' : 'var(--main-text-secondary)' }}>
+                                          Based on {bName}
                                         </div>
-                                      )}
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); setEditingTemplateId(ct.id); setEditingTemplateName(ct.name); }}
-                                        title="Rename"
-                                        className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
-                                        style={{ color: 'var(--main-text-secondary)' }}
-                                      >
-                                        <Pencil size={12} />
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          const newId = addCustomTemplate(`${ct.name} (Copy)`, ct.baseTemplateId, ct.formatting);
-                                          setTemplate(newId);
-                                          updateFormatting(ct.formatting);
-                                        }}
-                                        title="Duplicate"
-                                        className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
-                                        style={{ color: 'var(--main-text-secondary)' }}
-                                      >
-                                        <Copy size={12} />
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (confirm(`Delete "${ct.name}"?`)) {
-                                            deleteCustomTemplate(ct.id);
-                                            if (resumeData.selectedTemplate === ct.id) setTemplate(1);
-                                          }
-                                        }}
-                                        title="Delete"
-                                        className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500"
-                                      >
-                                        <Trash2 size={12} />
-                                      </button>
+                                      </div>
+
+                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                        {isActive && (
+                                          <div className="text-white w-5 h-5 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: 'var(--accent)' }}>
+                                            <Check size={12} strokeWidth={3} />
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); setEditingTemplateId(ct.id); setEditingTemplateName(ct.name); }}
+                                          title="Rename"
+                                          className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                          style={{ color: 'var(--main-text-secondary)' }}
+                                        >
+                                          <Pencil size={12} />
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const newId = addCustomTemplate(`${ct.name} (Copy)`, ct.baseTemplateId, ct.formatting);
+                                            setResumeTemplate(newId);
+                                            updateResumeFormatting(ct.formatting);
+                                          }}
+                                          title="Duplicate"
+                                          className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                          style={{ color: 'var(--main-text-secondary)' }}
+                                        >
+                                          <Copy size={12} />
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm(`Delete "${ct.name}"?`)) {
+                                              deleteCustomTemplate(ct.id);
+                                              if (resumeData.selectedTemplate === ct.id) setResumeTemplate(1);
+                                            }
+                                          }}
+                                          title="Delete"
+                                          className="p-1 rounded transition-colors opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500"
+                                        >
+                                          <Trash2 size={12} />
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
-              </>
+              </div>
             )}
           </div>
         </main>
 
-        {/* ━━ PDF Preview Panel ━━
-            Mobile: full-width, shown only when mobileView='preview'
-            Tablet: w-[450px]
-            Desktop: w-[900px] */}
+        {/* ━━ PDF Preview Panel ━━ */}
         <aside className={`
           flex-shrink-0
           w-full lg:w-[900px] md:w-[450px]
-          pb-20 lg:pb-0
           ${mobileView !== 'preview' ? 'hidden lg:block md:block' : ''}
-        `} style={{ backgroundColor: 'var(--card-bg)' }}>
-          <div className="sticky top-0 h-[calc(100vh-48px)] lg:h-screen">
-            <PDFPreview templateId={resumeData.selectedTemplate} documentType={documentType} />
+          `} style={{ backgroundColor: 'var(--card-bg)' }}>
+          <div className="sticky top-0 h-screen">
+            <PDFPreview
+              templateId={documentType === 'coverletter' ? coverLetterData.selectedTemplate : resumeData.selectedTemplate}
+              documentType={documentType}
+            />
           </div>
         </aside>
-      </div >
-    </div >
+      </div>
+    </div>
   )
 }
 

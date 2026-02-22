@@ -26,7 +26,7 @@ export function BasicsForm() {
             <header className="space-y-1">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white">Profile Information</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Your personal details and contact information.
+                    Your personal details and contact information — used across your resume and cover letter.
                 </p>
             </header>
 
@@ -132,7 +132,7 @@ export function BasicsForm() {
                                 </div>
                                 <button
                                     onClick={() => removeWebsite(index)}
-                                    className="w-9 h-9 flex-shrink-0 bg-red-700 text-white hover:bg-red-600 font-black transition-colors flex items-center justify-center rounded-sm"
+                                    className="w-9 h-9 flex-shrink-0 bg-[#7f1d1d] hover:bg-[#991b1b] text-white font-black transition-colors flex items-center justify-center rounded-none"
                                     title="Remove Link"
                                 >
                                     <X size={16} strokeWidth={3} />
