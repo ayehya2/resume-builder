@@ -118,6 +118,26 @@ export const useCoverLetterStore = create<CoverLetterStore>()(
         }),
         {
             name: 'resume-builder-cover-letter',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            merge: (persistedState: any, currentState: CoverLetterStore) => {
+                const data = persistedState as Partial<CoverLetterStore>;
+                if (!data) return currentState;
+
+                const mergedCoverLetterData = {
+                    ...currentState.coverLetterData,
+                    ...(data.coverLetterData || {}),
+                    formatting: {
+                        ...getDefaultFormatting(),
+                        ...(data.coverLetterData?.formatting || {})
+                    }
+                };
+
+                return {
+                    ...currentState,
+                    ...(data || {}),
+                    coverLetterData: mergedCoverLetterData
+                };
+            },
         }
     )
 );

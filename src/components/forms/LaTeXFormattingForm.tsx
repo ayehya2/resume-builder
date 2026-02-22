@@ -9,22 +9,22 @@ import type { LaTeXFormattingOptions } from '../../types';
 
 export function LaTeXFormattingForm() {
     const { resumeData, latexFormatting, updateLatexFormatting, resetLatexFormatting } = useResumeStore();
-    const templateId = resumeData.selectedTemplate;
+    const templateId = resumeData?.selectedTemplate || 11;
 
     // Get resolved config: template defaults merged with user overrides
     const defaults = getLatexConfig(templateId);
 
     // Current values (user overrides or template defaults)
     const current: LaTeXFormattingOptions = {
-        fontSize: (latexFormatting?.fontSize || defaults.fontSize) as LaTeXFormattingOptions['fontSize'],
-        margins: latexFormatting?.margins || defaults.margins,
-        lineSpacing: latexFormatting?.lineSpacing || (defaults.extraPreamble?.match(/linespread\{([^}]+)\}/)?.[1] || '1.15'),
-        sectionSpaceBefore: latexFormatting?.sectionSpaceBefore || defaults.sectionSpaceBefore,
-        sectionSpaceAfter: latexFormatting?.sectionSpaceAfter || defaults.sectionSpaceAfter,
-        itemSep: latexFormatting?.itemSep || defaults.itemSep,
-        bulletItemSep: latexFormatting?.bulletItemSep || defaults.bulletItemSep,
-        headerSize: (latexFormatting?.headerSize || defaults.headerSize.replace('\\', '')) as LaTeXFormattingOptions['headerSize'],
-        sectionTitleSize: (latexFormatting?.sectionTitleSize || defaults.sectionTitleSize.replace('\\', '')) as LaTeXFormattingOptions['sectionTitleSize'],
+        fontSize: (latexFormatting?.fontSize || defaults?.fontSize || '11pt') as LaTeXFormattingOptions['fontSize'],
+        margins: latexFormatting?.margins || defaults?.margins || '0.75in',
+        lineSpacing: latexFormatting?.lineSpacing || (defaults?.extraPreamble?.match(/linespread\{([^}]+)\}/)?.[1] || '1.15'),
+        sectionSpaceBefore: latexFormatting?.sectionSpaceBefore || defaults?.sectionSpaceBefore || '12pt',
+        sectionSpaceAfter: latexFormatting?.sectionSpaceAfter || defaults?.sectionSpaceAfter || '6pt',
+        itemSep: latexFormatting?.itemSep || defaults?.itemSep || '6pt',
+        bulletItemSep: latexFormatting?.bulletItemSep || defaults?.bulletItemSep || '0pt',
+        headerSize: (latexFormatting?.headerSize || defaults?.headerSize?.replace('\\', '') || 'Huge') as LaTeXFormattingOptions['headerSize'],
+        sectionTitleSize: (latexFormatting?.sectionTitleSize || defaults?.sectionTitleSize?.replace('\\', '') || 'large') as LaTeXFormattingOptions['sectionTitleSize'],
     };
 
     const selectClass = "w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all text-sm";

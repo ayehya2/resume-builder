@@ -6,23 +6,54 @@ import type { ReactElement } from 'react';
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getPdfjsLib(): Promise<any> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfjsLib = await import('pdfjs-dist') as any;
+    if (typeof window === 'undefined') return null;
 
-    try {
-        const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url);
-        pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl.href;
-    } catch {
+    // Check window cache
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((window as any).pdfjsLib) return (window as any).pdfjsLib;
+
+    const version = '5.4.624';
+    // Prioritize JSDelivr and Unpkg for modern npm versions
+    const urls = [
+        `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.min.mjs`,
+        `https://unpkg.com/pdfjs-dist@${version}/build/pdf.min.mjs`
+    ];
+
+    for (const url of urls) {
         try {
-            const version = pdfjsLib.version || '5.4.624';
-            pdfjsLib.GlobalWorkerOptions.workerSrc =
-                `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.mjs`;
-        } catch {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const lib = await import(/* webpackIgnore: true */ url);
+            const finalLib = lib.default || lib;
+
+            if (finalLib && finalLib.GlobalWorkerOptions) {
+                // Match the worker to the same CDN that succeeded
+                finalLib.GlobalWorkerOptions.workerSrc = url.replace('pdf.min.mjs', 'pdf.worker.min.mjs');
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (window as any).pdfjsLib = finalLib;
+                return finalLib;
+            }
+        } catch (err) {
+            console.warn(`[pdfToImage] CDN Load failed for ${url}:`, err);
         }
     }
 
-    return pdfjsLib;
+    // fallback to local import if CDNs fail (requires transpilePackages: ['pdfjs-dist'] in next.config)
+    try {
+        const lib = await import('pdfjs-dist');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const finalLib = (lib as any).default || lib;
+        if (finalLib && finalLib.GlobalWorkerOptions) {
+            finalLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (window as any).pdfjsLib = finalLib;
+            return finalLib;
+        }
+    } catch (err) {
+        console.error('[pdfToImage] All loaders failed:', err);
+    }
+
+    return null;
 }
 
 /**
@@ -30,15 +61,27 @@ async function getPdfjsLib(): Promise<any> {
  */
 async function renderPdfPageToImage(arrayBuffer: ArrayBuffer, scale: number): Promise<string | null> {
     const pdfjsLib = await getPdfjsLib();
+    if (!pdfjsLib) {
+        console.error('[pdfToImage] pdfjsLib is null, cannot render PDF.');
+        return null;
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let pdfDoc: any;
     try {
         pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    } catch {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-        pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    } catch (err) {
+        console.warn('[pdfToImage] Initial getDocument failed, retrying without workerSrc...', err);
+        try {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+            pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        } catch (err2) {
+            console.error('[pdfToImage] Secondary getDocument failed:', err2);
+            return null;
+        }
     }
+
+    if (!pdfDoc) return null;
 
     const page = await pdfDoc.getPage(1);
     const viewport = page.getViewport({ scale });

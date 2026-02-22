@@ -39,10 +39,10 @@ export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData
     const baseEffectiveData = getEffectiveResumeData(docData as any, customTemplates);
     const effectiveData = { ...baseEffectiveData, selectedTemplate: templateId };
 
-    const formattingFingerprint = JSON.stringify(effectiveData.formatting);
+    const formattingFingerprint = JSON.stringify(effectiveData?.formatting || {});
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const doc = docData as any;
-    const fingerprint = `${isCoverLetter ? 'cv' : 'resume'}-${templateId}-${formattingFingerprint}-${doc.basics?.name || doc.company || ''}-${effectiveData.sections?.join(',') || ''}-${doc.work?.length || 0}-${customLatexSource ? 'custom' : 'auto'}`;
+    const fingerprint = `${isCoverLetter ? 'cv' : 'resume'}-${templateId}-${formattingFingerprint}-${doc?.basics?.name || doc?.company || ''}-${effectiveData?.sections?.join(',') || ''}-${doc?.work?.length || 0}-${customLatexSource ? 'custom' : 'auto'}`;
 
     useEffect(() => {
         const currentId = ++generationId.current;
@@ -90,7 +90,11 @@ export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData
                 }
             } catch (err) {
                 if (currentId !== generationId.current) return;
-                console.error('[PDFThumbnail] Generation failed:', err);
+                console.error(`[PDFThumbnail] Generation failed for template ${templateId}:`, err, {
+                    isCoverLetter,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    dataTitle: (docData as any)?.basics?.name || (docData as any)?.company || 'Unknown'
+                });
                 setHasError(true);
             } finally {
                 if (currentId === generationId.current) {
@@ -105,10 +109,10 @@ export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData
 
     if (isLoading && !imageUrl) {
         return (
-            <div className="w-full flex items-center justify-center py-16" style={{ backgroundColor: 'var(--card-bg)' }}>
+            <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: 'white' }}>
                 <div className="flex flex-col items-center gap-2">
-                    <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--card-border)', borderTopColor: 'var(--accent)' }} />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--main-text-secondary)' }}>
+                    <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: '#e5e7eb', borderTopColor: 'var(--accent, #3b82f6)' }} />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#9ca3af' }}>
                         {isLatexTemplate(templateId) ? 'Compiling...' : 'Generating...'}
                     </span>
                 </div>
@@ -118,7 +122,7 @@ export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData
 
     if (hasError && !imageUrl) {
         return (
-            <div className="w-full flex items-center justify-center py-16" style={{ backgroundColor: 'var(--card-bg)' }}>
+            <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: 'white' }}>
                 <div className="flex flex-col items-center gap-2 px-4 text-center">
                     <span className="text-[10px] text-red-500 font-semibold uppercase tracking-wider">
                         {isLatexTemplate(templateId) ? 'LaTeX compilation failed' : 'Preview unavailable'}
@@ -129,18 +133,18 @@ export const PDFThumbnail = memo(function PDFThumbnail({ templateId, previewData
     }
 
     return (
-        <div className="w-full relative bg-white">
+        <div className="w-full h-full relative bg-white">
             {imageUrl && (
                 <img
                     src={imageUrl}
                     alt={`Template ${templateId} preview`}
-                    className="w-full block"
+                    className="w-full h-full object-contain object-top block"
                     draggable={false}
                 />
             )}
             {isLoading && (
                 <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-                    <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--card-border)', borderTopColor: 'var(--accent)' }} />
+                    <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: '#e5e7eb', borderTopColor: 'var(--accent, #3b82f6)' }} />
                 </div>
             )}
         </div>

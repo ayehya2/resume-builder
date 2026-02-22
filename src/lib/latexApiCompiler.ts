@@ -5,10 +5,26 @@
  * (https://github.com/YtoTech/latex-on-http).
  *
  * This produces REAL pdfTeX output — identical to running pdflatex locally.
- * Requests are proxied through Vite dev server to avoid CORS issues.
+ * When running under the Vite dev server, requests are proxied to avoid CORS.
+ * When running under Next.js (dashboard), calls the API directly.
  */
 
-const API_URL = '/api/latex';
+// The Vite dev server proxies /api/latex → latex.ytotech.com/builds/sync
+// Next.js (static export) has no API routes, so we call the external API directly
+const VITE_PROXY_URL = '/api/latex';
+const DIRECT_API_URL = 'https://latex.ytotech.com/builds/sync';
+
+function getApiUrl(): string {
+    if (typeof window !== 'undefined') {
+        // If running on the Vite dev server port, use the proxy
+        const port = window.location.port;
+        if (port === '5173' || port === '5174') {
+            return VITE_PROXY_URL;
+        }
+    }
+    // Otherwise call the external API directly
+    return DIRECT_API_URL;
+}
 
 interface CompileOptions {
     compiler?: 'pdflatex' | 'xelatex' | 'lualatex';
@@ -29,7 +45,7 @@ export async function compileLatexViaApi(
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(getApiUrl(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -84,7 +100,7 @@ export async function compileLatexViaApi(
  */
 export async function isLatexApiAvailable(): Promise<boolean> {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(getApiUrl(), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

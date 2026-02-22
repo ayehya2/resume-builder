@@ -564,7 +564,20 @@ export const useResumeStore = create<ResumeStore>()(
                     );
                 }
 
-                return { ...currentState, ...persisted, resumeData: { ...currentState.resumeData, ...data, formatting: { ...currentState.resumeData.formatting, ...(data?.formatting || {}) } } };
+                const mergedResumeData = {
+                    ...currentState.resumeData,
+                    ...(data || {}),
+                    formatting: {
+                        ...getDefaultFormatting(),
+                        ...(data?.formatting || {})
+                    }
+                };
+
+                return {
+                    ...currentState,
+                    ...persisted,
+                    resumeData: mergedResumeData
+                };
             },
         },
     ),

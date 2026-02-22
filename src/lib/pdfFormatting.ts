@@ -36,8 +36,9 @@ Font.registerHyphenationCallback((word) => [word]);
  * PDF Font Family Mapping
  * Uses registered custom fonts with full Unicode support.
  */
-export function getPDFFontFamily(fontFamily: FontFamily): string {
-    const fontMap: Record<FontFamily, string> = {
+export function getPDFFontFamily(fontFamily: FontFamily | undefined): string {
+    if (!fontFamily) return 'NotoSerif';
+    const fontMap: Record<string, string> = {
         default: 'NotoSerif',
         times: 'NotoSerif',
         arial: 'NotoSans',
@@ -100,13 +101,15 @@ export function getPDFColorValue(theme: ColorTheme, customColor: string): string
  * Get page padding from margin settings
  */
 export function getPDFPagePadding(formatting: FormattingOptions): string {
-    return `${formatting.marginTop}in ${formatting.marginRight}in ${formatting.marginBottom}in ${formatting.marginLeft}in`;
+    if (!formatting) return "0.6in 0.6in 0.6in 0.6in";
+    return `${formatting.marginTop || '0.6'}in ${formatting.marginRight || '0.6'}in ${formatting.marginBottom || '0.6'}in ${formatting.marginLeft || '0.6'}in`;
 }
 
 /**
  * Get font size from baseFontSize (convert 11pt -> 11)
  */
-export function getPDFFontSize(baseFontSize: string): number {
+export function getPDFFontSize(baseFontSize: string | undefined): number {
+    if (!baseFontSize) return 11;
     return parseInt(baseFontSize.replace('pt', '')) || 11;
 }
 
@@ -138,7 +141,8 @@ export function getPDFSectionTitleSize(size: SectionTitleSize): number {
 /**
  * Get line height from spacing
  */
-export function getPDFLineHeight(lineSpacing: string): number {
+export function getPDFLineHeight(lineSpacing: string | undefined): number {
+    if (!lineSpacing) return 1.2;
     return parseFloat(lineSpacing) || 1.2;
 }
 
@@ -171,7 +175,8 @@ export function getPDFEntrySpacing(spacing: Spacing): number {
 /**
  * Get gap between bullet and text in points
  */
-export function getPDFBulletGap(gap: string): number {
+export function getPDFBulletGap(gap: string | undefined): number {
+    if (!gap) return 4;
     return parseInt(gap.replace('pt', '')) || 4;
 }
 

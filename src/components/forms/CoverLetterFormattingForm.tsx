@@ -31,7 +31,7 @@ export function CoverLetterFormattingForm({
                         <div>
                             <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Font Family</label>
                             <select
-                                value={formatting.fontFamily}
+                                value={formatting?.fontFamily || 'default'}
                                 onChange={(e) => updateFormatting({ fontFamily: e.target.value as FontFamily })}
                                 className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                             >
@@ -51,7 +51,7 @@ export function CoverLetterFormattingForm({
                             <div>
                                 <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Text Size</label>
                                 <select
-                                    value={formatting.baseFontSize}
+                                    value={formatting?.baseFontSize || '11pt'}
                                     onChange={(e) => updateFormatting({ baseFontSize: e.target.value })}
                                     className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
@@ -65,7 +65,7 @@ export function CoverLetterFormattingForm({
                             <div>
                                 <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Name Size</label>
                                 <select
-                                    value={formatting.nameSize}
+                                    value={formatting?.nameSize || 'large'}
                                     onChange={(e) => updateFormatting({ nameSize: e.target.value as NameSize })}
                                     className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
@@ -81,7 +81,7 @@ export function CoverLetterFormattingForm({
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Name Weight</label>
                                 <select
-                                    value={formatting.fontWeightName}
+                                    value={formatting?.fontWeightName || 'BOLD'}
                                     onChange={(e) => updateFormatting({ fontWeightName: e.target.value })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
@@ -93,7 +93,7 @@ export function CoverLetterFormattingForm({
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Body Weight</label>
                                 <select
-                                    value={formatting.bodyTextWeight}
+                                    value={formatting?.bodyTextWeight || 'normal'}
                                     onChange={(e) => updateFormatting({ bodyTextWeight: e.target.value as BodyTextWeight })}
                                     className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                                 >
@@ -116,7 +116,7 @@ export function CoverLetterFormattingForm({
                             <div>
                                 <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Page Format</label>
                                 <select
-                                    value={formatting.pageFormat}
+                                    value={formatting?.pageFormat || 'Letter'}
                                     onChange={(e) => updateFormatting({ pageFormat: e.target.value as 'Letter' | 'A4' })}
                                     className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
@@ -127,7 +127,7 @@ export function CoverLetterFormattingForm({
                             <div>
                                 <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Line Spacing</label>
                                 <select
-                                    value={formatting.lineSpacing}
+                                    value={formatting?.lineSpacing || '1.2'}
                                     onChange={(e) => updateFormatting({ lineSpacing: e.target.value })}
                                     className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-xs sm:text-sm"
                                 >
@@ -142,7 +142,7 @@ export function CoverLetterFormattingForm({
                         <div>
                             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Paragraph Spacing</label>
                             <select
-                                value={formatting.paragraphSpacing}
+                                value={formatting?.paragraphSpacing || 'normal'}
                                 onChange={(e) => updateFormatting({ paragraphSpacing: e.target.value as Spacing })}
                                 className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-semibold transition-all"
                             >
@@ -168,7 +168,7 @@ export function CoverLetterFormattingForm({
                                             min="0.5"
                                             max="1.5"
                                             step="0.05"
-                                            value={String(formatting[key as keyof typeof formatting])}
+                                            value={String(formatting?.[key as keyof typeof formatting] || '0.6')}
                                             onChange={(e) => updateFormatting({ [key]: e.target.value })}
                                             className="w-full px-2 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all text-center text-[10px] sm:text-xs"
                                             title={label}
@@ -200,13 +200,13 @@ export function CoverLetterFormattingForm({
                                     <button
                                         key={theme}
                                         onClick={() => updateFormatting({ colorTheme: theme })}
-                                        className={`flex flex-col items-center p-2 border-2 transition-all group ${formatting.colorTheme === theme
+                                        className={`flex flex-col items-center p-2 border-2 transition-all group ${formatting?.colorTheme === theme
                                             ? 'border-slate-800 bg-slate-100 dark:bg-slate-800'
                                             : 'border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                                             }`}
                                     >
                                         <div className="w-full h-3 mb-1 shadow-inner" style={{ backgroundColor: color }} />
-                                        <span className={`text-[9px] font-semibold uppercase tracking-widest ${formatting.colorTheme === theme ? 'text-slate-800 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400'}`}>
+                                        <span className={`text-[9px] font-semibold uppercase tracking-widest ${formatting?.colorTheme === theme ? 'text-slate-800 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400'}`}>
                                             {theme}
                                         </span>
                                     </button>
@@ -220,7 +220,7 @@ export function CoverLetterFormattingForm({
                                     <button
                                         key={align}
                                         onClick={() => updateFormatting({ headerAlignment: align })}
-                                        className={`flex-1 py-2 px-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${formatting.headerAlignment === align
+                                        className={`flex-1 py-2 px-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${formatting?.headerAlignment === align
                                             ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white'
                                             : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                             }`}
