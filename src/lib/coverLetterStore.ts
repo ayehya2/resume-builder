@@ -49,12 +49,12 @@ export const useCoverLetterStore = create<CoverLetterStore>()(
         (set, get) => ({
             coverLetterData: getDefaultCoverLetterData(),
             showCoverLetter: false,
-            past: [] as CoverLetterData[],
-            future: [] as CoverLetterData[],
-
+            past: [],
+            future: [],
             saveToHistory: () => {
                 const { coverLetterData, past } = get();
-                const newPast = [JSON.parse(JSON.stringify(coverLetterData)), ...past].slice(0, 50);
+                // Reduce history depth to keep memory light
+                const newPast = [JSON.parse(JSON.stringify(coverLetterData)), ...past].slice(0, 20);
                 set({ past: newPast, future: [] });
             },
 
@@ -91,56 +91,56 @@ export const useCoverLetterStore = create<CoverLetterStore>()(
             setShowCoverLetter: (show: boolean) => set({ showCoverLetter: show }),
 
             updateRecipient: (recipient: Partial<Pick<CoverLetterData, 'recipientName' | 'recipientTitle' | 'company' | 'companyAddress'>>) => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, ...recipient },
                 }));
             },
 
             updatePosition: (position: string) => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, position },
                 }));
             },
 
             updateDate: (date: string) => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, date },
                 }));
             },
 
             updateContent: (content: string) => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, content },
                 }));
             },
 
             updateClosing: (closing: string) => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, closing },
                 }));
             },
 
             updateSignature: (signature: string) => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, signature },
                 }));
             },
 
             setTemplate: (templateId: number) => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, selectedTemplate: templateId },
                 }));
             },
 
             updateFormatting: (formatting: Partial<import('../types').FormattingOptions>) => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: {
                         ...state.coverLetterData,
@@ -150,7 +150,7 @@ export const useCoverLetterStore = create<CoverLetterStore>()(
             },
 
             resetFormatting: () => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: {
                         ...state.coverLetterData,
@@ -160,7 +160,7 @@ export const useCoverLetterStore = create<CoverLetterStore>()(
             },
 
             loadSampleData: () => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: {
                         ...state.coverLetterData,
@@ -170,7 +170,7 @@ export const useCoverLetterStore = create<CoverLetterStore>()(
             },
 
             autoPopulateFromResume: (basics: import('../types').Basics) => {
-                (get() as any).saveToHistory();
+                get().saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: {
                         ...state.coverLetterData,
@@ -206,6 +206,11 @@ export const useCoverLetterStore = create<CoverLetterStore>()(
                     future: []
                 };
             },
+            // Exclude history from localStorage to prevent QuotaExceededError
+            partialize: (state) => ({
+                coverLetterData: state.coverLetterData,
+                showCoverLetter: state.showCoverLetter
+            }),
         }
     )
 );

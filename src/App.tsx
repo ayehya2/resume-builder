@@ -14,6 +14,7 @@ import { AITab } from './components/forms/AITab'
 import { FormattingForm } from './components/forms/FormattingForm'
 import { CoverLetterFormattingForm } from './components/forms/CoverLetterFormattingForm'
 import { LaTeXFormattingForm } from './components/forms/LaTeXFormattingForm'
+import { ProofreadingView } from './components/forms/ProofreadingView'
 import { TemplateThumbnail } from './components/preview/TemplateThumbnail'
 import { PDFPreview } from './components/preview/PDFPreview'
 import type { TemplateId, SectionKey, DocumentType, PreloadedTemplateId } from './types'
@@ -1685,6 +1686,9 @@ function App() { // Stores
                 </button>
               </div>
 
+              {/* Writing Assistant Dropdown / Widget */}
+              <ProofreadingView />
+
               {/* Dropdown Popups (Moved to container level for perfect full-width alignment) */}
               {docDropdownOpen && (
                 <div className="absolute left-0 bottom-full w-full shadow-2xl border-t-2 z-[100] overflow-hidden" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)', transform: 'translateX(0)' }}>
@@ -2105,8 +2109,8 @@ function App() { // Stores
             />
           </div>
         </aside>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }
 

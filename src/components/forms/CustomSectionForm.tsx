@@ -1,5 +1,7 @@
 import { useResumeStore } from '../../store';
+import { useProofreadingStore } from '../../lib/proofreadingStore';
 import { BulletList } from './BulletList';
+import { useEffect } from 'react';
 import { Plus, ExternalLink } from 'lucide-react';
 import type { CustomSection, CustomSectionEntry } from '../../types';
 import { SmartDateInput } from './SmartDateInput';
@@ -17,11 +19,24 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
         updateCustomSectionItem,
         removeCustomSectionItem
     } = useResumeStore();
+    const checkContent = useProofreadingStore(state => state.checkContent);
 
     // Find the sections to render
     const sectionsToRender = sectionId
         ? resumeData.customSections.filter((s: CustomSection) => s.id === sectionId)
         : resumeData.customSections;
+
+    // Check all text-based custom sections
+    useEffect(() => {
+        const textContent = sectionsToRender
+            .filter(s => s.type === 'text')
+            .flatMap(s => s.items.flatMap(i => i.bullets))
+            .join(' ');
+
+        if (textContent.trim()) {
+            checkContent(textContent, 'custom-sections-text');
+        }
+    }, [sectionsToRender, checkContent]);
 
     if (sectionsToRender.length === 0 && sectionId) {
         return <div className="p-8 text-center text-slate-500 italic">Section not found</div>;
@@ -73,7 +88,7 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                             </div>
                             <button
                                 onClick={() => handleRemoveSection(section.id)}
-                                className="text-red-500 hover:text-red-600 font-black text-[10px] uppercase tracking-widest px-2 sm:px-3 py-1.5 sm:py-2 transition-all active:scale-90 border-2 border-transparent h-[40px] sm:h-[46px]"
+                                className="text-red-400/80 hover:text-red-500 font-black text-[10px] uppercase tracking-widest px-3 py-1.5 transition-all bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 active:scale-95 h-[40px] sm:h-[46px]"
                                 title="Delete Entire Section"
                             >
                                 <span className="hidden sm:inline">Remove Section</span>
@@ -90,7 +105,7 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                                     <h4 className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[10px]">Entry #{index + 1}</h4>
                                     <button
                                         onClick={() => removeCustomSectionItem(section.id, index)}
-                                        className="text-red-500 hover:text-red-600 font-bold text-[10px] uppercase tracking-widest px-2 py-1 transition-all active:scale-90"
+                                        className="text-red-400/80 hover:text-red-500 font-black text-[10px] uppercase tracking-widest px-3 py-1.5 transition-all bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 active:scale-95"
                                         title="Remove Entry"
                                     >
                                         Remove
@@ -171,10 +186,11 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                                         {section.type === 'bullets' && (
                                             <button
                                                 onClick={() => updateCustomSectionItem(section.id, index, { bullets: [...item.bullets, ''] })}
-                                                className="px-2 py-1 btn-accent font-bold text-[10px] uppercase tracking-wider transition-all active:scale-95 shadow-sm rounded-sm"
+                                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 shadow-md flex items-center gap-1.5"
                                                 type="button"
                                             >
-                                                + Add Point
+                                                <Plus size={12} strokeWidth={3} />
+                                                Add Point
                                             </button>
                                         )}
                                     </div>
@@ -188,6 +204,7 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
                                         <textarea
                                             value={item.bullets[0] || ''}
                                             onChange={(e) => updateCustomSectionItem(section.id, index, { bullets: [e.target.value] })}
+                                            spellCheck={true}
                                             rows={3}
                                             className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                                             placeholder="Describe your achievements..."
@@ -199,9 +216,9 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
 
                         <button
                             onClick={() => addCustomSectionItem(section.id)}
-                            className="w-full py-2.5 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-slate-500 dark:hover:border-slate-500 text-slate-500 dark:text-slate-400 font-semibold transition-all bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center gap-2 rounded-none"
+                            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 rounded-none shadow-md active:scale-[0.99]"
                         >
-                            <Plus size={18} />
+                            <Plus size={16} strokeWidth={3} />
                             <span>Add New Entry to {section.title}</span>
                         </button>
                     </div>

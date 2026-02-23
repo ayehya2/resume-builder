@@ -12,6 +12,7 @@ A professional-grade **resume & cover letter builder** with pixel-perfect PDF ou
 - ✍️ **LaTeX Support** — Monaco editor integration for direct LaTeX template editing and compilation
 - 🎯 **Deep Formatting Controls** — Typography, line heights, section spacing, margins, and decorative elements
 - ⏳ **Undo/Redo History** — Full edit history for both resumes and cover letters with keyboard shortcuts (Ctrl+Z/Y)
+- ✅ **Writing Assistant** — Inline spell check, grammar analysis, and style suggestions powered by LanguageTool
 - 💾 **Persistence** — Auto-save to local storage, JSON import/export, and DOCX import
 - 🌓 **Premium Theming** — 10+ built-in themes with full dark mode support
 - 📋 **Template Gallery** — Browse, preview, and select templates with filtering and pagination
@@ -55,7 +56,7 @@ CVStack is embedded as a **Git submodule** inside [JobMint](https://github.com/a
 
 ## 📋 Roadmap
 
-- [ ] **AI Assistance** — Smart bullet point suggestions and grammar analysis
+- [ ] **AI Assistance** — Smart bullet point suggestions and content generation
 - [ ] **Rich Text** — Inline bold/italic support within descriptions
 - [ ] **ATS Scoring** — Compatibility analysis for job applications
 - [ ] **Cloud Sync** — Cross-device access via cloud storage providers

@@ -1,4 +1,6 @@
-import { X } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
+import { useEffect } from 'react';
+import { useProofreadingStore } from '../../lib/proofreadingStore';
 
 interface BulletListProps {
     bullets: string[];
@@ -8,6 +10,15 @@ interface BulletListProps {
 }
 
 export function BulletList({ bullets, onChange, placeholder, showAddButton = true }: BulletListProps) {
+    const checkContent = useProofreadingStore(state => state.checkContent);
+
+    // Deep check of all bullets combined
+    useEffect(() => {
+        const consolidated = bullets.join(' ');
+        if (consolidated.trim()) {
+            checkContent(consolidated, 'bullets-list');
+        }
+    }, [bullets, checkContent]);
     const addBullet = () => {
         onChange([...bullets, '']);
     };
@@ -37,6 +48,7 @@ export function BulletList({ bullets, onChange, placeholder, showAddButton = tru
                         type="text"
                         value={bullet}
                         onChange={(e) => updateBullet(idx, e.target.value)}
+                        spellCheck={true}
                         className={`
                             flex-1 px-2 py-1 sm:py-1.5 border-2
                             focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500
@@ -49,7 +61,7 @@ export function BulletList({ bullets, onChange, placeholder, showAddButton = tru
                     {bullets.length > 1 && (
                         <button
                             onClick={() => removeBullet(idx)}
-                            className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 bg-[#7f1d1d] text-white hover:bg-[#991b1b] font-black transition-colors flex items-center justify-center rounded-none"
+                            className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 bg-red-500/5 hover:bg-red-500/10 text-red-500/80 hover:text-red-500 border border-red-500/20 transition-all flex items-center justify-center rounded-none active:scale-95"
                             type="button"
                             title="Remove point"
                         >
@@ -63,10 +75,11 @@ export function BulletList({ bullets, onChange, placeholder, showAddButton = tru
                 {showAddButton && (
                     <button
                         onClick={addBullet}
-                        className="px-2 py-1 sm:px-3 sm:py-1.5 btn-accent font-bold text-[10px] sm:text-xs uppercase tracking-wider transition-all active:scale-95 shadow-sm rounded-sm"
+                        className="w-full py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-md flex items-center justify-center gap-2"
                         type="button"
                     >
-                        + Add Point
+                        <Plus size={12} strokeWidth={3} />
+                        Add Point
                     </button>
                 )}
                 <p className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 italic leading-tight ml-auto">

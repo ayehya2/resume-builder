@@ -1,11 +1,20 @@
+import React, { useState, useEffect } from 'react';
 import { useCoverLetterStore } from '../../lib/coverLetterStore';
+import { useProofreadingStore } from '../../lib/proofreadingStore';
 import { useResumeStore } from '../../store';
 import { Sparkles } from 'lucide-react';
 import { SmartDateInput } from './SmartDateInput';
 
 export function CoverLetterForm() {
     const { coverLetterData, updateRecipient, updatePosition, updateDate, updateContent } = useCoverLetterStore();
+    const checkContent = useProofreadingStore(state => state.checkContent);
     useResumeStore();
+
+    useEffect(() => {
+        if (coverLetterData.content) {
+            checkContent(coverLetterData.content, 'cover-letter-content');
+        }
+    }, [coverLetterData.content, checkContent]);
 
     return (
         <div className="space-y-6">
@@ -113,7 +122,7 @@ export function CoverLetterForm() {
                     onChange={(e) => updateContent(e.target.value)}
                     rows={15}
                     className="w-full px-4 py-3 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all resize-vertical leading-relaxed"
-                    placeholder={`Dear Hiring Manager,\n\nI am writing to express my interest...\n\nSincerely,\n\n[Your Name]`}
+                    placeholder={`Dear Hiring Manager, \n\nI am writing to express my interest...\n\nSincerely, \n\n[Your Name]`}
                 />
             </div>
 

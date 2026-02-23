@@ -1,14 +1,18 @@
 import { useResumeStore } from '../../store'
-import { X } from 'lucide-react'
+import { useProofreadingStore } from '../../lib/proofreadingStore';
+import { useEffect } from 'react'
+import { X, Plus } from 'lucide-react'
 
 export function BasicsForm() {
     const { resumeData, updateBasics } = useResumeStore();
     const { basics } = resumeData;
+    const checkContent = useProofreadingStore(state => state.checkContent);
 
-    const addWebsite = () => {
-        const newWebsites = [...basics.websites, { name: '', url: '' }];
-        updateBasics({ websites: newWebsites });
-    };
+    useEffect(() => {
+        if (basics.summary) {
+            checkContent(basics.summary, 'basics-summary');
+        }
+    }, [basics.summary, checkContent]);
 
     const updateWebsite = (index: number, field: 'name' | 'url', value: string) => {
         const newWebsites = [...basics.websites];
@@ -84,6 +88,7 @@ export function BasicsForm() {
                     <textarea
                         value={basics.summary}
                         onChange={(e) => updateBasics({ summary: e.target.value })}
+                        spellCheck={true}
                         rows={3}
                         className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all resize-y"
                         placeholder="A brief 2-3 sentence summary of your professional background, key skills, and career goals..."
@@ -97,10 +102,11 @@ export function BasicsForm() {
                     <div className="flex justify-between items-center mb-3">
                         <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Websites &amp; Links</h4>
                         <button
-                            onClick={addWebsite}
-                            className="px-3 py-1.5 btn-accent font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-sm rounded-sm"
+                            onClick={() => updateBasics({ websites: [...(basics.websites || []), { name: '', url: '' }] })}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-md flex items-center gap-1.5"
                         >
-                            + Add Link
+                            <Plus size={12} strokeWidth={3} />
+                            Add Link
                         </button>
                     </div>
 
@@ -129,7 +135,7 @@ export function BasicsForm() {
                                 </div>
                                 <button
                                     onClick={() => removeWebsite(index)}
-                                    className="w-9 h-9 flex-shrink-0 bg-[#7f1d1d] hover:bg-[#991b1b] text-white font-black transition-colors flex items-center justify-center rounded-none"
+                                    className="w-9 h-9 flex-shrink-0 bg-red-500/5 hover:bg-red-500/10 text-red-500/80 hover:text-red-500 border border-red-500/20 transition-all flex items-center justify-center rounded-none active:scale-95"
                                     title="Remove Link"
                                 >
                                     <X size={16} strokeWidth={3} />

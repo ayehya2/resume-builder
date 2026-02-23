@@ -1,10 +1,21 @@
 import { useResumeStore } from '../../store'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useProofreadingStore } from '../../lib/proofreadingStore';
+import { Plus, X } from 'lucide-react';
 
 export function SkillsForm() {
     const { resumeData, addSkill, updateSkill, removeSkill } = useResumeStore();
     const { skills } = resumeData;
     const [newSkillInput, setNewSkillInput] = useState<{ [key: number]: string }>({});
+    const checkContent = useProofreadingStore(state => state.checkContent);
+
+    // Monitor skills content
+    useEffect(() => {
+        const textToContent = skills.map(s => `${s.category}: ${s.items.join(', ')}`).join('. ');
+        if (textToContent.trim()) {
+            checkContent(textToContent, 'skills-all');
+        }
+    }, [skills, checkContent]);
 
     const addSkillItem = (index: number) => {
         const skill = skills[index];
@@ -29,9 +40,10 @@ export function SkillsForm() {
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-white">Skills</h3>
                 <button
                     onClick={addSkill}
-                    className="px-3 py-1.5 btn-accent font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-sm rounded-none"
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-md flex items-center gap-1.5"
                 >
-                    + Add Category
+                    <Plus size={12} strokeWidth={3} />
+                    Add Category
                 </button>
             </div>
 
@@ -48,7 +60,7 @@ export function SkillsForm() {
                             <h4 className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[10px]">Category #{index + 1}</h4>
                             <button
                                 onClick={() => removeSkill(index)}
-                                className="text-red-500 hover:text-red-600 font-bold text-[10px] uppercase tracking-widest px-2 py-1 transition-all active:scale-90"
+                                className="text-red-400/80 hover:text-red-500 font-black text-[10px] uppercase tracking-widest px-3 py-1.5 transition-all bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 active:scale-95"
                             >
                                 Remove
                             </button>
@@ -62,6 +74,7 @@ export function SkillsForm() {
                                 onChange={(e) => updateSkill(index, { category: e.target.value })}
                                 className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                                 placeholder="Programming Languages"
+                                spellCheck={true}
                             />
                         </div>
 
@@ -71,14 +84,14 @@ export function SkillsForm() {
                                 {skill.items.map((item, itemIndex) => (
                                     <span
                                         key={itemIndex}
-                                        className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium border border-slate-200 dark:border-slate-700"
+                                        className="inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm font-bold border border-slate-200 dark:border-slate-700 shadow-sm"
                                     >
                                         {item}
                                         <button
                                             onClick={() => removeSkillItem(index, itemIndex)}
-                                            className="hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                            className="text-red-400 hover:text-red-600 dark:hover:text-red-500 transition-colors"
                                         >
-                                            X
+                                            <X size={12} strokeWidth={3} />
                                         </button>
                                     </span>
                                 ))}
@@ -97,13 +110,15 @@ export function SkillsForm() {
                                             addSkillItem(index);
                                         }
                                     }}
-                                    className="flex-1 px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
+                                    className="flex-1 px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-bold transition-all"
                                     placeholder="Type a skill..."
+                                    spellCheck={true}
                                 />
                                 <button
                                     onClick={() => addSkillItem(index)}
-                                    className="px-4 py-1.5 sm:py-2 bg-slate-700 text-white hover:bg-slate-600 font-bold text-xs uppercase transition-colors shadow-sm rounded-none"
+                                    className="px-6 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-md flex items-center gap-2"
                                 >
+                                    <Plus size={14} strokeWidth={3} />
                                     Add
                                 </button>
                             </div>

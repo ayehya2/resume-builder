@@ -1,9 +1,20 @@
+import { Plus } from 'lucide-react';
 import { useResumeStore } from '../../store'
 import { SmartDateInput } from './SmartDateInput';
+import { useProofreadingStore } from '../../lib/proofreadingStore';
+import { useEffect } from 'react';
 
 export function EducationForm() {
     const { resumeData, addEducation, updateEducation, removeEducation } = useResumeStore();
     const { education } = resumeData;
+    const checkContent = useProofreadingStore(state => state.checkContent);
+
+    useEffect(() => {
+        const textToContent = education.map(e => `${e.institution} ${e.degree} ${e.field}`).join('. ');
+        if (textToContent.trim()) {
+            checkContent(textToContent, 'education-all');
+        }
+    }, [education, checkContent]);
 
     return (
         <div className="space-y-6">
@@ -11,9 +22,10 @@ export function EducationForm() {
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-white">Education</h3>
                 <button
                     onClick={addEducation}
-                    className="px-3 py-1.5 btn-accent font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-sm rounded-none"
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-md flex items-center gap-1.5"
                 >
-                    + Add Edu
+                    <Plus size={12} strokeWidth={3} />
+                    Add Edu
                 </button>
             </div>
 
@@ -30,7 +42,7 @@ export function EducationForm() {
                             <h4 className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[10px]">Education #{index + 1}</h4>
                             <button
                                 onClick={() => removeEducation(index)}
-                                className="text-red-500 hover:text-red-600 font-bold text-[10px] uppercase tracking-widest px-2 py-1 transition-all active:scale-90"
+                                className="text-red-400/80 hover:text-red-500 font-black text-[10px] uppercase tracking-widest px-3 py-1.5 transition-all bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 active:scale-95"
                             >
                                 Remove
                             </button>
