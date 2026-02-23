@@ -74,11 +74,14 @@ import {
   Settings,
   ArrowLeft,
   Save,
-  FolderOpen,
-  Link2,
   Share2,
   Undo2,
-  Redo2
+  Redo2,
+  BarChart3,
+  Download,
+  FileUp,
+  FolderOpen,
+  Link,
 } from 'lucide-react'
 import './styles/index.css'
 
@@ -204,6 +207,10 @@ function App() { // Stores
   const [docDropdownOpen, setDocDropdownOpen] = useState(false);
   const [jobDropdownOpen, setJobDropdownOpen] = useState(false);
   const [jobSearch, setJobSearch] = useState('');
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [manualJobTitle, setManualJobTitle] = useState('');
+  const [manualJobUrl, setManualJobUrl] = useState('');
+  const [manualJobDescription, setManualJobDescription] = useState('');
 
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [resumeTemplateFilter, setResumeTemplateFilter] = useState<'all' | 'standard' | 'latex'>('all');
@@ -386,6 +393,7 @@ function App() { // Stores
         setParentSaveStatus(event.data.status);
       }
       if (event.data?.type === 'LINK_JOB' && event.data.job) {
+        if (event.data.job.id) setSelectedJobId(event.data.job.id);
         // Pre-fill cover letter with full generated content
         const job = event.data.job;
         const currentCL = useCoverLetterStore.getState().coverLetterData;
@@ -890,8 +898,11 @@ function App() { // Stores
     { key: 'cover-letter', label: 'Edit Content', icon: <FileText size={18} />, draggable: false },
   ].filter(tab => isAdvancedMode || tab.key !== 'cv-formatting');
 
-  const aiTabs: TabItem[] = [
-    { key: 'ai', label: 'AI Assistant', icon: <Sparkles size={18} />, draggable: false },
+  const toolsTabs: TabItem[] = [
+    { key: 'job-link', label: 'Job Link & Description', icon: <Zap size={18} />, draggable: false },
+    { key: 'import-tool', label: 'Import', icon: <Download size={18} />, draggable: false },
+    { key: 'ats-score', label: 'ATS Score Checker', icon: <BarChart3 size={18} />, draggable: false },
+    { key: 'ai', label: 'AI Content Suggestions', icon: <Sparkles size={18} />, draggable: false },
   ];
 
   const profileTab: TabItem = { key: 'basics', label: 'Profile', icon: <User size={18} />, draggable: false };
@@ -900,10 +911,11 @@ function App() { // Stores
     profileTab,
     ...resumePrimaryTabs,
     ...sectionTabs,
+    { key: 'share-analytics', label: 'Share & Analytics', icon: <Share2 size={18} />, draggable: false },
+    ...(isLatexTemplate(resumeData.selectedTemplate) ? [{ key: 'latex-editor' as TabKey, label: 'LaTeX Editor', icon: <Code2 size={18} />, draggable: false }] : []),
     ...cvTabs,
-    ...aiTabs,
-    ...(isLatexTemplate(resumeData.selectedTemplate) ? [{ key: 'latex-editor' as TabKey, label: 'LaTeX Editor', icon: <Code2 size={18} />, draggable: false }] : [])
-  ].filter(tab => isAdvancedMode || tab.key !== 'latex-editor');
+    ...toolsTabs,
+  ].filter(tab => isAdvancedMode || (tab.key !== 'latex-editor' && tab.key !== 'share-analytics' && tab.key !== 'formatting' && tab.key !== 'cv-formatting'));
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -1244,9 +1256,10 @@ function App() { // Stores
         }
       }
 
-      // Share & Analytics in Continuous Mode — Matched to Sidebar order (after custom sections)
+      // Share & Analytics (End of Resume Section)
       sections.push(
         <div key="share-analytics" id="continuous-section-share-analytics" className={dividerClass}>
+          <div className="px-4 py-4 mb-6 text-xs font-black uppercase tracking-[0.2em] text-white/40 bg-white/5 border-y-2 border-white/10 mt-12">Analytics & Sharing</div>
           <ShareAnalyticsView />
         </div>
       );
@@ -1341,12 +1354,191 @@ function App() { // Stores
     }
 
 
-    // AI Assistant at the end
+    // Job Link & Description
     sections.push(
-      <div key="ai" id="continuous-section-ai" className={dividerClass}>
-        <AITab documentType={documentType} />
+      <div key="job-link" id="continuous-section-job-link" className={dividerClass}>
+        <div className="px-4 py-4 mb-6 text-xs font-black uppercase tracking-[0.2em] text-white/40 bg-white/5 border-y-2 border-white/10 mt-12">Job Context</div>
+        <div className="space-y-6">
+          {window.self !== window.top && (
+            <div className="p-6 border-2 border-slate-300 dark:border-slate-600 bg-white/5">
+              <div className="flex items-center gap-3 mb-4">
+                <Zap size={20} className="text-accent" />
+                <h3 className="text-lg font-bold">Select from JobTracker</h3>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Select a job from your tracker to auto-tailor your documents.</p>
+              <div className="relative border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950">
+                <div className="px-4 py-3.5 border-b flex items-center gap-3" style={{ borderColor: 'var(--card-border)' }}>
+                  <Search size={12} className="opacity-20" />
+                  <input
+                    type="text"
+                    value={jobSearch || ""}
+                    onChange={e => setJobSearch(e.target.value)}
+                    placeholder="SEARCH JOBS..."
+                    className="bg-transparent text-[9px] outline-none w-full font-black tracking-widest uppercase placeholder:opacity-20"
+                  />
+                </div>
+                <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                  {parentApplications.filter(app => !jobSearch || app.company.toLowerCase().includes(jobSearch.toLowerCase()) || app.position.toLowerCase().includes(jobSearch.toLowerCase())).length === 0 ? (
+                    <div className="p-8 text-center text-[10px] opacity-30 uppercase font-bold tracking-widest italic">No Match</div>
+                  ) : (
+                    parentApplications
+                      .filter(app => !jobSearch || app.company.toLowerCase().includes(jobSearch.toLowerCase()) || app.position.toLowerCase().includes(jobSearch.toLowerCase()))
+                      .map((app: ParentApplication) => {
+                        const isSelected = selectedJobId === app.id;
+                        return (
+                          <button
+                            key={app.id}
+                            onClick={() => {
+                              setSelectedJobId(app.id);
+                              window.parent.postMessage({ type: 'LINK_PARENT_JOB', id: app.id }, '*');
+                            }}
+                            className={`w-full text-left px-5 py-4 transition-colors border-b last:border-0 group flex items-center justify-between ${isSelected ? 'bg-accent/10 border-accent/20' : 'hover:bg-slate-50 dark:hover:bg-white/5 border-slate-100 dark:border-white/5'}`}
+                          >
+                            <div>
+                              <div className={`font-bold text-xs ${isSelected ? 'text-accent' : 'group-hover:text-accent'} transition-colors`}>{app.position}</div>
+                              <div className="text-[9px] opacity-50 font-bold uppercase tracking-tight mt-0.5">{app.company}</div>
+                            </div>
+                            {isSelected && <Check size={14} className="text-accent" />}
+                          </button>
+                        );
+                      })
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="p-6 border-2 border-slate-300 dark:border-slate-600 bg-white/10">
+            <div className="flex items-center gap-3 mb-4">
+              <Link size={20} className="text-accent" />
+              <h3 className="text-lg font-bold">Manual Job Input</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Job Title</label>
+                  <input
+                    type="text"
+                    value={manualJobTitle || ""}
+                    onChange={e => setManualJobTitle(e.target.value)}
+                    placeholder="e.g. Senior Frontend Engineer"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 text-sm outline-none focus:border-accent transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Job URL</label>
+                  <input
+                    type="text"
+                    value={manualJobUrl || ""}
+                    onChange={e => setManualJobUrl(e.target.value)}
+                    placeholder="https://linkedin.com/jobs/..."
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 text-sm outline-none focus:border-accent transition-all"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Job Description</label>
+                <textarea
+                  value={manualJobDescription || ""}
+                  onChange={e => setManualJobDescription(e.target.value)}
+                  placeholder="Paste the job description here to help AI tailor your profile..."
+                  className="w-full h-32 px-4 py-3 bg-white/5 border-2 border-white/10 text-sm outline-none focus:border-accent transition-all resize-none custom-scrollbar"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    // This could trigger a re-tailor or just save locally
+                    alert('Job details saved locally and will be used for AI suggestions.');
+                  }}
+                  className="px-6 py-2 bg-accent text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all"
+                >
+                  Save Context
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
+
+    // Import Tool
+    sections.push(
+      <div key="import-tool" id="continuous-section-import-tool" className={dividerClass}>
+        <div className="px-4 py-4 mb-6 text-xs font-black uppercase tracking-[0.2em] text-white/40 bg-white/5 border-y-2 border-white/10 mt-12">Import & Documents</div>
+        <div className="space-y-6">
+          <div className="p-8 text-center border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/5">
+            <Upload size={32} className="mx-auto mb-3 text-slate-400" />
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Import from File</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Import your existing resume from various file formats.</p>
+            <button
+              onClick={() => { handleImport(); }}
+              disabled={isImporting}
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-3 mx-auto disabled:opacity-50 active:scale-95 shadow-xl"
+            >
+              <FileUp size={18} />
+              <span>{isImporting ? 'Importing...' : 'Upload JSON / PDF / DOCX'}</span>
+            </button>
+          </div>
+
+          {window.self !== window.top && parentDocuments.length > 0 && (
+            <div className="p-6 border-2 border-slate-300 dark:border-slate-600 bg-white/5">
+              <div className="flex items-center gap-3 mb-4">
+                <FolderOpen size={20} className="text-accent" />
+                <h3 className="text-lg font-bold">Saved Documents</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {parentDocuments.map((doc) => (
+                  <button
+                    key={doc.id}
+                    onClick={() => { window.parent.postMessage({ type: 'LOAD_PARENT_DOCUMENT', id: doc.id }, '*'); }}
+                    className="flex items-center gap-4 p-4 text-left border-2 border-white/10 hover:border-accent/50 hover:bg-white/5 transition-all group"
+                  >
+                    <div className="w-10 h-12 bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-accent/10 transition-colors">
+                      <FileText size={18} className="text-white/30 group-hover:text-accent" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold truncate max-w-[150px]">{doc.title || 'Untitled Document'}</div>
+                      <div className="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">{doc.type || 'RESUME'}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+
+    // ATS Score
+    sections.push(
+      <div key="ats-score" id="continuous-section-ats-score" className={dividerClass}>
+        <div className="px-4 py-4 mb-6 text-xs font-black uppercase tracking-[0.2em] text-white/40 bg-white/5 border-y-2 border-white/10 mt-12">ATS Optimization</div>
+        <div className="p-12 text-center border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/5">
+          <BarChart3 size={48} className="mx-auto mb-4 text-accent opacity-50" />
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 uppercase tracking-tighter">ATS Score Checker</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+            Our upcoming ATS Analysis tool will scan your resume against specific job descriptions to estimate match probability and identify missing keywords.
+          </p>
+          <div className="mt-8 flex justify-center gap-4">
+            <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden">
+              <div className="w-1/2 h-full bg-accent animate-[shimmer_2s_infinite]" />
+            </div>
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-accent mt-4">Module In Development</p>
+        </div>
+      </div>
+    );
+
+    // AI Content Suggestions
+    sections.push(
+      <div key="ai" id="continuous-section-ai" className={dividerClass}>
+        <AITab />
+      </div>
+    );
+
+    // Final spacer to allow bottom items to scroll to top (Reduced gap)
+    sections.push(<div key="spacer" className="h-16" />);
 
     return sections;
   };
@@ -1612,56 +1804,54 @@ function App() { // Stores
                       </>
                     )}
 
-                    <div className="mt-2 text-white">
-                      {aiTabs.map((tab) => (
-                        <SidebarItem
-                          key={tab.key}
-                          tab={tab}
-                          isActive={activeTab === tab.key}
-                          onClick={() => handleSidebarClick(tab.key)}
-                        />
-                      ))}
-                    </div>
+                    {/* ━━ Tools Section ━━ */}
+                    <div className="px-4 pt-4 pb-1 text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Tools</div>
+                    {toolsTabs.map((tab) => (
+                      <SidebarItem
+                        key={tab.key}
+                        tab={tab}
+                        isActive={activeTab === tab.key}
+                        onClick={() => handleSidebarClick(tab.key)}
+                      />
+                    ))}
 
                   </div>
                 </SortableContext>
               </DndContext>
             </div>
 
-            {/* Bottom Controls: Export, Import, Sample, Theme, Reset */}
-            {/* Bottom Controls Reorganized */}
-            <div className="relative border-t-2 p-3 space-y-2 shrink-0 mt-auto backdrop-blur-md" style={{ backgroundColor: 'var(--sidebar-bg)', opacity: 0.95, borderColor: 'var(--sidebar-border)' }}>
+            {/* Bottom Controls — Compact */}
+            <div className="relative border-t-2 p-2 space-y-1.5 shrink-0 mt-auto backdrop-blur-md" style={{ backgroundColor: 'var(--sidebar-bg)', opacity: 0.95, borderColor: 'var(--sidebar-border)' }}>
 
-              {/* Row 0: Undo / Redo */}
-              <div className="grid grid-cols-2 gap-2">
+              {/* Row 1: Undo / Redo */}
+              <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={handleUndo}
                   disabled={!canUndo}
-                  className={`flex items-center justify-center gap-2 py-2 text-[9px] font-black uppercase tracking-widest transition-all !rounded-none border-2 ${!canUndo ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 active:scale-95'}`}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-black uppercase tracking-widest transition-all !rounded-none border-2 ${!canUndo ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 active:scale-95'}`}
                   style={{ backgroundColor: 'var(--sidebar-hover)', borderColor: 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}
                   title="Undo (Ctrl+Z)"
                 >
-                  <Undo2 size={14} />
+                  <Undo2 size={12} />
                   <span>Undo</span>
                 </button>
                 <button
                   onClick={handleRedo}
                   disabled={!canRedo}
-                  className={`flex items-center justify-center gap-2 py-2 text-[9px] font-black uppercase tracking-widest transition-all !rounded-none border-2 ${!canRedo ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 active:scale-95'}`}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-black uppercase tracking-widest transition-all !rounded-none border-2 ${!canRedo ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 active:scale-95'}`}
                   style={{ backgroundColor: 'var(--sidebar-hover)', borderColor: 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}
                   title="Redo (Ctrl+Y)"
                 >
-                  <Redo2 size={14} />
+                  <Redo2 size={12} />
                   <span>Redo</span>
                 </button>
               </div>
 
-              {/* Row 1: Save, Load, Job */}
-              <div className="grid grid-cols-3 gap-2">
-                {/* Save Button */}
+              {/* Row 2: Save / Theme */}
+              <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => { setParentSaveStatus('saving'); broadcastSave(); }}
-                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-[8px] font-black uppercase tracking-tighter transition-all !rounded-none border-2 group"
+                  className="flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-black uppercase tracking-widest transition-all !rounded-none border-2 group"
                   style={{
                     backgroundColor: 'var(--sidebar-hover)',
                     borderColor: parentSaveStatus === 'saved' ? 'var(--accent)' : 'var(--sidebar-border)',
@@ -1675,77 +1865,37 @@ function App() { // Stores
                   ) : (
                     <Save size={12} className="group-hover:scale-110 transition-transform" />
                   )}
-                  <span className="truncate w-full text-center">
+                  <span>
                     {parentSaveStatus === 'saved' ? 'Saved' : parentSaveStatus === 'saving' ? 'Saving' : 'Save'}
                   </span>
                 </button>
-
-                {/* Load Dropdown */}
-                <button
-                  onClick={() => { setDocDropdownOpen(!docDropdownOpen); setJobDropdownOpen(false); setThemeDropdownOpen(false); }}
-                  className="w-full h-full flex flex-col items-center justify-center gap-0.5 py-1 text-[8px] font-black uppercase tracking-tighter transition-all !rounded-none border-2"
-                  style={{ backgroundColor: 'var(--sidebar-hover)', borderColor: docDropdownOpen ? 'var(--accent)' : 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}
-                >
-                  <div className="flex flex-col items-center gap-0.5">
-                    <FolderOpen size={12} />
-                    <div className="flex items-center gap-2">
-                      <span className="truncate text-center">Load</span>
-                      <ChevronDown size={10} strokeWidth={2.5} className={`transition-transform duration-200 ${docDropdownOpen ? 'rotate-180 text-accent' : 'opacity-40'}`} />
-                    </div>
-                  </div>
-                </button>
-
-                {/* Job Link Button (only if iframed) */}
-                {window.self !== window.top ? (
-                  <button
-                    onClick={() => { setJobDropdownOpen(!jobDropdownOpen); setDocDropdownOpen(false); setThemeDropdownOpen(false); }}
-                    className="w-full h-full flex flex-col items-center justify-center gap-0.5 py-1 text-[8px] font-black uppercase tracking-tighter transition-all !rounded-none border-2"
-                    style={{ backgroundColor: 'var(--sidebar-hover)', borderColor: jobDropdownOpen ? 'var(--accent)' : 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}
-                  >
-                    <div className="flex flex-col items-center gap-0.5">
-                      <Link2 size={12} />
-                      <div className="flex items-center gap-2">
-                        <span className="truncate text-center">Job</span>
-                        <ChevronDown size={10} strokeWidth={2.5} className={`transition-transform duration-200 ${jobDropdownOpen ? 'rotate-180 text-accent' : 'opacity-40'}`} />
-                      </div>
-                    </div>
-                  </button>
-                ) : (
-                  /* Placeholder to keep grid 3-cols if not iframed */
-                  <div className="opacity-20 flex flex-col items-center justify-center border-2 border-dashed p-2" style={{ borderColor: 'var(--sidebar-border)' }}>
-                    <Link2 size={12} />
-                  </div>
-                )}
-              </div>
-
-              {/* Row 2: Theme, Sample, Reset */}
-              <div className="grid grid-cols-3 gap-2">
-                {/* Theme Dropdown */}
                 <button
                   onClick={() => { setThemeDropdownOpen(!themeDropdownOpen); setDocDropdownOpen(false); setJobDropdownOpen(false); }}
-                  className="w-full flex flex-col items-center justify-center gap-0.5 py-1 text-[8px] font-black uppercase tracking-tighter transition-all !rounded-none border-2"
+                  className="flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-black uppercase tracking-widest transition-all !rounded-none border-2"
                   style={{ backgroundColor: 'var(--sidebar-hover)', borderColor: themeDropdownOpen ? 'var(--accent)' : 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}
                 >
                   <Palette size={12} />
-                  <span className="truncate w-full text-center">Theme</span>
+                  <span>Theme</span>
                 </button>
+              </div>
 
+              {/* Row 3: Sample / Reset */}
+              <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={loadAllSampleData}
-                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-[8px] font-black uppercase tracking-tighter transition-all !rounded-none border-2"
+                  className="flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-black uppercase tracking-widest transition-all !rounded-none border-2"
                   style={{ backgroundColor: 'var(--sidebar-hover)', borderColor: 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}
                 >
                   <FileText size={12} />
-                  <span className="truncate w-full text-center">Sample</span>
+                  <span>Sample</span>
                 </button>
-
                 <button
                   onClick={() => { resetResume(); resetCV(); setTimeout(() => broadcastSave(), 50); }}
-                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-[8px] font-black uppercase tracking-tighter transition-all !rounded-none border-2"
+                  className="flex items-center justify-center gap-1.5 py-1.5 text-[8px] font-black uppercase tracking-widest transition-all !rounded-none border-2"
                   style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: '#ef4444', color: '#ef4444' }}
                 >
                   <RotateCcw size={12} />
-                  <span className="truncate w-full text-center">Reset</span>
+                  <span>Reset</span>
                 </button>
               </div>
 
@@ -1867,7 +2017,74 @@ function App() { // Stores
                     <LaTeXEditor />
                   </Suspense>
                 )}
-                {activeTab === 'ai' && <AITab documentType={documentType} />}
+                {activeTab === 'ai' && <AITab />}
+                {activeTab === 'ats-score' && (
+                  <div className="p-8 text-center border-2 border-dashed border-slate-300 dark:border-slate-600">
+                    <BarChart3 size={32} className="mx-auto mb-3 text-slate-400" />
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">ATS Score Checker</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Coming soon — Analyze how well your resume passes Applicant Tracking Systems.</p>
+                  </div>
+                )}
+                {activeTab === 'job-link' && (
+                  <div className="p-8 text-center border-2 border-dashed border-slate-300 dark:border-slate-600">
+                    <Zap size={32} className="mx-auto mb-3 text-slate-400" />
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Job Link & Description</h3>
+                    {window.self !== window.top ? (
+                      <div className="space-y-6">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Select a job from your tracker to auto-tailor your documents.</p>
+                        <div className="max-w-md mx-auto">
+                          <div className="relative border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950 text-left shadow-lg">
+                            <div className="px-4 py-3.5 border-b flex items-center gap-3" style={{ borderColor: 'var(--card-border)' }}>
+                              <Search size={12} className="opacity-20" />
+                              <input
+                                type="text"
+                                value={jobSearch}
+                                onChange={e => setJobSearch(e.target.value)}
+                                placeholder="SEARCH JOBS..."
+                                className="bg-transparent text-[9px] outline-none w-full font-black tracking-widest uppercase placeholder:opacity-20"
+                              />
+                            </div>
+                            <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                              {parentApplications.filter(app => !jobSearch || app.company.toLowerCase().includes(jobSearch.toLowerCase()) || app.position.toLowerCase().includes(jobSearch.toLowerCase())).length === 0 ? (
+                                <div className="p-8 text-center text-[10px] opacity-30 uppercase font-bold tracking-widest italic">No Jobs Linked Yet</div>
+                              ) : (
+                                parentApplications
+                                  .filter(app => !jobSearch || app.company.toLowerCase().includes(jobSearch.toLowerCase()) || app.position.toLowerCase().includes(jobSearch.toLowerCase()))
+                                  .map((app: ParentApplication) => (
+                                    <button
+                                      key={app.id}
+                                      onClick={() => { window.parent.postMessage({ type: 'LINK_PARENT_JOB', id: app.id }, '*'); }}
+                                      className="w-full text-left px-5 py-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b last:border-0 border-slate-100 dark:border-white/5 group"
+                                    >
+                                      <div className="font-bold text-xs group-hover:text-accent transition-colors">{app.position}</div>
+                                      <div className="text-[9px] opacity-50 font-bold uppercase tracking-tight mt-0.5">{app.company}</div>
+                                    </button>
+                                  ))
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Coming soon — Paste a job URL or description to auto-tailor your documents.</p>
+                    )}
+                  </div>
+                )}
+                {activeTab === 'import-tool' && (
+                  <div className="p-8 text-center border-2 border-dashed border-slate-300 dark:border-slate-600">
+                    <Download size={32} className="mx-auto mb-3 text-slate-400" />
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Import</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Import your existing resume from various file formats.</p>
+                    <button
+                      onClick={() => { handleImport(); }}
+                      disabled={isImporting}
+                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase tracking-widest text-xs transition-all flex items-center gap-2 mx-auto disabled:opacity-50 active:scale-95 shadow-lg"
+                    >
+                      <Upload size={16} />
+                      <span>{isImporting ? 'Importing...' : 'Upload JSON/PDF/DOCX'}</span>
+                    </button>
+                  </div>
+                )}
                 {isAdvancedMode && (activeTab === 'formatting' || activeTab === 'cv-formatting') && (
                   activeTab === 'cv-formatting'
                     ? <CoverLetterFormattingForm

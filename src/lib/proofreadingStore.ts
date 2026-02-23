@@ -96,6 +96,7 @@ export const useProofreadingStore = create<ProofreadingState>((set, get) => {
 
                     if (response.ok) {
                         const data = await response.json();
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         data.matches.forEach((match: any, index: number) => {
                             const issueText = match.context.text.substring(match.context.offset, match.context.offset + match.length);
                             const id = `grammar-${fieldId}-${index}`;
@@ -110,6 +111,7 @@ export const useProofreadingStore = create<ProofreadingState>((set, get) => {
                                     message: match.message,
                                     ruleId: match.rule.id,
                                     shortMessage: match.shortMessage,
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     suggestions: match.replacements.map((r: any) => r.value).slice(0, 3),
                                     type: match.rule.category.id === 'TYPOS' ? 'spelling' : 'grammar'
                                 });

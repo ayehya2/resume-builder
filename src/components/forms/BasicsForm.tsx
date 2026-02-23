@@ -37,7 +37,7 @@ export function BasicsForm() {
                         <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Full Name</label>
                         <input
                             type="text"
-                            value={basics.name}
+                            value={basics.name || ""}
                             onChange={(e) => updateBasics({ name: e.target.value })}
                             className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                             placeholder="John Doe"
@@ -48,7 +48,7 @@ export function BasicsForm() {
                         <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Email</label>
                         <input
                             type="email"
-                            value={basics.email}
+                            value={basics.email || ""}
                             onChange={(e) => updateBasics({ email: e.target.value })}
                             className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                             placeholder="john@example.com"
@@ -61,7 +61,7 @@ export function BasicsForm() {
                         <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Phone</label>
                         <input
                             type="tel"
-                            value={basics.phone}
+                            value={basics.phone || ""}
                             onChange={(e) => updateBasics({ phone: e.target.value })}
                             className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                             placeholder="(555) 000-0000"
@@ -72,7 +72,7 @@ export function BasicsForm() {
                         <label className="block text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Address</label>
                         <input
                             type="text"
-                            value={basics.address}
+                            value={basics.address || ""}
                             onChange={(e) => updateBasics({ address: e.target.value })}
                             className="w-full px-3 py-1.5 sm:py-2 border-2 border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400/20 focus:border-slate-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-medium transition-all"
                             placeholder="City, State"
@@ -86,7 +86,7 @@ export function BasicsForm() {
                         Professional Summary <span className="font-normal text-slate-400 dark:text-slate-500">(Optional)</span>
                     </label>
                     <textarea
-                        value={basics.summary}
+                        value={basics.summary || ""}
                         onChange={(e) => updateBasics({ summary: e.target.value })}
                         spellCheck={true}
                         rows={3}

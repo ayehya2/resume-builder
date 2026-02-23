@@ -208,7 +208,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Basics
             updateBasics: (basics) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -219,7 +219,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Work Experience
             addWork: () => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -241,7 +241,7 @@ export const useResumeStore = create<ResumeStore>()(
             updateWork: (index: number, work: Partial<import('./types').WorkExperience>) => {
                 // For nested fields like bullets, we might want to debounce history
                 // but for now simple 1-1 history is fine.
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -253,7 +253,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             removeWork: (index: number) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -264,7 +264,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Education
             addEducation: () => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -283,7 +283,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             updateEducation: (index: number, education: Partial<import('./types').Education>) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -295,7 +295,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             removeEducation: (index: number) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -306,7 +306,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Skills
             addSkill: () => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -319,7 +319,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             updateSkill: (index: number, skill: Partial<import('./types').Skill>) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -331,7 +331,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             removeSkill: (index: number) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -342,7 +342,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Projects
             addProject: () => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -359,7 +359,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             updateProject: (index: number, project: Partial<import('./types').Project>) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -371,7 +371,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             removeProject: (index: number) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -382,7 +382,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Awards
             addAward: () => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -399,7 +399,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             updateAward: (index: number, award: Partial<import('./types').Award>) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -411,7 +411,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             removeAward: (index: number) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -422,7 +422,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Custom Sections
             addCustomSection: (id?: string) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 const newId = id || `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 const newSection: import('./types').CustomSection = {
                     id: newId,
@@ -450,7 +450,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             updateCustomSection: (id: string, section: Partial<import('./types').CustomSection>) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -462,7 +462,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             removeCustomSection: (id: string) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -473,7 +473,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             addCustomSectionItem: (sectionId: string) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -500,7 +500,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             updateCustomSectionItem: (sectionId: string, index: number, item: Partial<import('./types').CustomSectionEntry>) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -519,7 +519,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             removeCustomSectionItem: (sectionId: string, index: number) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -537,7 +537,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Sections
             setSections: (sections: string[]) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state: ResumeStore) => {
                     // Allow standard sections and custom section IDs
                     const standardSections = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
@@ -558,7 +558,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Template
             setTemplate: (templateId: import('./types').TemplateId) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -569,7 +569,7 @@ export const useResumeStore = create<ResumeStore>()(
 
             // Formatting
             updateFormatting: (formatting: Partial<import('./types').FormattingOptions>) => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -579,7 +579,7 @@ export const useResumeStore = create<ResumeStore>()(
             },
 
             resetFormatting: () => {
-                (get() as any).saveToHistory();
+                (get() as ResumeStore).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,

@@ -1,4 +1,4 @@
-import { useProofreadingStore } from '../../lib/proofreadingStore';
+import { useProofreadingStore, type ProofreadingSuggestion } from '../../lib/proofreadingStore';
 import { AlertCircle, CheckCircle2, Info, X, Zap } from 'lucide-react';
 
 export function ProofreadingView() {
@@ -56,7 +56,7 @@ export function ProofreadingView() {
                                 <span className="text-[8px] font-bold uppercase tracking-widest">No issues found!</span>
                             </div>
                         ) : (
-                            suggestions.map((s: any) => (
+                            suggestions.map((s: ProofreadingSuggestion) => (
                                 <div key={s.id} className={`p-3 border-l-4 ${s.type === 'style' ? 'border-blue-500/40 bg-blue-500/5' : 'border-orange-500/40 bg-orange-500/5'} space-y-2 group/item relative`}>
                                     <div className="flex items-start gap-2">
                                         {s.type === 'style' ? <Info size={12} className="text-blue-400 mt-0.5" /> : <AlertCircle size={12} className="text-orange-400 mt-0.5" />}
