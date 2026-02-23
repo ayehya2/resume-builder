@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useModal } from '../ThemedModal';
 import { useAIStore } from '../../lib/aiStore';
 import { useResumeStore } from '../../store';
 import { useCoverLetterStore } from '../../lib/coverLetterStore';
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 
 export function AITab() {
+    const modal = useModal();
     const { apiKey, isConfigured, setAPIKey, clearAPIKey, loadAPIKey } = useAIStore();
     const { resumeData } = useResumeStore();
     const showResume = useResumeStore(s => s.showResume);
@@ -68,8 +70,8 @@ export function AITab() {
         }
     };
 
-    const handleClearKey = () => {
-        if (confirm('Are you sure you want to remove your API key?')) {
+    const handleClearKey = async () => {
+        if (await modal.confirm('Remove API Key', 'Are you sure you want to remove your API key?', { destructive: true })) {
             clearAPIKey();
             setKeyInput('');
         }

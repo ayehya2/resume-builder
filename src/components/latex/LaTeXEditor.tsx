@@ -15,6 +15,7 @@ import { useResumeStore } from '../../store';
 import { generateLaTeXFromData } from '../../lib/latexGenerator';
 import { getEffectiveResumeData } from '../../lib/templateResolver';
 import { useCustomTemplateStore } from '../../lib/customTemplateStore';
+import { useModal } from '../ThemedModal';
 import { Download, Copy, RotateCcw } from 'lucide-react';
 
 // Lazy-load Monaco Editor — it's large (~2MB) and only needed in Advanced Mode
@@ -23,6 +24,7 @@ const Editor = lazy(() => import('@monaco-editor/react'));
 type EditorMode = 'form' | 'advanced';
 
 export function LaTeXEditor() {
+    const modal = useModal();
     const { resumeData, customLatexSource, setCustomLatex, clearCustomLatex, latexFormatting } = useResumeStore();
     const { customTemplates } = useCustomTemplateStore();
 
@@ -50,11 +52,12 @@ export function LaTeXEditor() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode, selectedTemplate, ...(mode === 'form' ? [effectiveData] : [])]);
 
-    const handleModeSwitch = useCallback((newMode: EditorMode) => {
+    const handleModeSwitch = useCallback(async (newMode: EditorMode) => {
         if (newMode === mode) return;
 
         if (newMode === 'form' && mode === 'advanced' && customLatexSource) {
-            const confirmed = window.confirm(
+            const confirmed = await modal.confirm(
+                'Switch to Form Mode',
                 'Switching to Form Mode will discard your manual LaTeX edits. Continue?'
             );
             if (!confirmed) return;
@@ -68,7 +71,7 @@ export function LaTeXEditor() {
         }
 
         setMode(newMode);
-    }, [mode, customLatexSource, effectiveData, clearCustomLatex, setCustomLatex, latexFormatting, selectedTemplate]);
+    }, [mode, customLatexSource, effectiveData, clearCustomLatex, setCustomLatex, latexFormatting, selectedTemplate, modal]);
 
     const handleLatexChange = useCallback((value: string | undefined) => {
         if (value === undefined) return;
@@ -82,16 +85,18 @@ export function LaTeXEditor() {
         }, 800);
     }, [mode, setCustomLatex]);
 
-    const handleReset = useCallback(() => {
-        const confirmed = window.confirm(
-            'Reset to auto-generated LaTeX? This will discard all custom edits.'
+    const handleReset = useCallback(async () => {
+        const confirmed = await modal.confirm(
+            'Reset LaTeX',
+            'Reset to auto-generated LaTeX? This will discard all custom edits.',
+            { destructive: true }
         );
         if (!confirmed) return;
 
         const freshSource = generateLaTeXFromData(effectiveData, selectedTemplate, latexFormatting);
         setTexSource(freshSource);
         setCustomLatex(freshSource);
-    }, [effectiveData, selectedTemplate, setCustomLatex, latexFormatting]);
+    }, [effectiveData, selectedTemplate, setCustomLatex, latexFormatting, modal]);
 
     const handleDownloadTex = useCallback(() => {
         const source = mode === 'advanced' && customLatexSource ? customLatexSource : texSource;

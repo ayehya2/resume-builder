@@ -18,6 +18,7 @@ import { LaTeXFormattingForm } from './components/forms/LaTeXFormattingForm'
 import { ProofreadingView } from './components/forms/ProofreadingView'
 import { JobLinkTab } from './components/forms/JobLinkTab'
 import { ImportTab } from './components/forms/ImportTab'
+import { ModalProvider, useModal } from './components/ThemedModal'
 import { useJobStore } from './lib/jobStore'
 import { TemplateThumbnail } from './components/preview/TemplateThumbnail'
 import { PDFPreview } from './components/preview/PDFPreview'
@@ -170,6 +171,7 @@ interface ParentApplication {
 }
 
 function App() { // Stores
+  const modal = useModal();
   const {
     resumeData,
     setTemplate: setResumeTemplate, reset: resetResume, loadSampleData: loadResumeSample,
@@ -272,7 +274,11 @@ function App() { // Stores
           showResume,
           showCoverLetter,
           title,
-          data: { resumeData: currentResumeData },
+          data: {
+            resumeData: currentResumeData,
+            customLatexSource: useResumeStore.getState().customLatexSource,
+            latexFormatting: useResumeStore.getState().latexFormatting
+          },
           coverLetterData: currentCL,
         }, '*');
       } catch { /* ignore serialization errors */ }
@@ -369,7 +375,11 @@ function App() { // Stores
         const data = event.data.data;
         if (data) {
           if (data.resumeData) {
-            useResumeStore.setState({ resumeData: data.resumeData });
+            useResumeStore.setState({
+              resumeData: data.resumeData,
+              customLatexSource: data.customLatexSource || null,
+              latexFormatting: data.latexFormatting || null
+            });
           } else if (data.basics || data.work || data.education || data.skills) {
             useResumeStore.setState({ resumeData: { ...useResumeStore.getState().resumeData, ...data } });
           }
@@ -606,7 +616,7 @@ function App() { // Stores
           const text = await file.text();
           const data = importFromJSON(text);
           useResumeStore.setState({ resumeData: data });
-          alert('Resume data imported successfully from JSON!');
+          modal.alert('Import Successful', 'Resume data imported successfully from JSON!');
         } else {
           // Parse other formats
           const parsed = await parseResumeFile(file);
@@ -633,12 +643,12 @@ function App() { // Stores
               awards: parsed.awards && parsed.awards.length > 0 ? parsed.awards : current.awards,
             }
           });
-          alert(`Resume data imported from ${ext.toUpperCase()} file! Please review and adjust the parsed content.`);
+          modal.alert('Import Successful', `Resume data imported from ${ext.toUpperCase()} file! Please review and adjust the parsed content.`);
         }
       } catch (error) {
         console.error('Import error:', error);
         const msg = error instanceof Error ? error.message : 'Unknown error';
-        alert(`Failed to import file: ${msg}`);
+        modal.alert('Import Failed', `Failed to import file: ${msg}`);
       } finally {
         setIsImporting(false);
       }
@@ -1174,9 +1184,9 @@ function App() { // Stores
                                 <Copy size={12} />
                               </button>
                               <button
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
-                                  if (confirm(`Delete "${ct.name}"?`)) {
+                                  if (await modal.confirm('Delete Template', `Delete "${ct.name}"?`, { destructive: true })) {
                                     deleteCustomTemplate(ct.id);
                                     if (resumeData.selectedTemplate === ct.id) setResumeTemplate(1);
                                   }
@@ -2206,9 +2216,9 @@ function App() { // Stores
                                           <Copy size={12} />
                                         </button>
                                         <button
-                                          onClick={(e) => {
+                                          onClick={async (e) => {
                                             e.stopPropagation();
-                                            if (confirm(`Delete "${ct.name}"?`)) {
+                                            if (await modal.confirm('Delete Template', `Delete "${ct.name}"?`, { destructive: true })) {
                                               deleteCustomTemplate(ct.id);
                                               if (resumeData.selectedTemplate === ct.id) setResumeTemplate(1);
                                             }
@@ -2253,4 +2263,12 @@ function App() { // Stores
   );
 }
 
-export default App;
+function AppWithProvider() {
+  return (
+    <ModalProvider>
+      <App />
+    </ModalProvider>
+  );
+}
+
+export default AppWithProvider;

@@ -1,4 +1,5 @@
 import { useResumeStore } from '../../store';
+import { useModal } from '../ThemedModal';
 import { useProofreadingStore } from '../../lib/proofreadingStore';
 import { BulletList } from './BulletList';
 import { useEffect } from 'react';
@@ -19,6 +20,7 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
         updateCustomSectionItem,
         removeCustomSectionItem
     } = useResumeStore();
+    const modal = useModal();
     const checkContent = useProofreadingStore(state => state.checkContent);
 
     // Find the sections to render
@@ -50,8 +52,8 @@ export function CustomSectionForm({ sectionId }: CustomSectionFormProps) {
         updateCustomSection(id, { type });
     };
 
-    const handleRemoveSection = (id: string) => {
-        if (confirm('Are you sure you want to remove this entire custom section?')) {
+    const handleRemoveSection = async (id: string) => {
+        if (await modal.confirm('Remove Section', 'Are you sure you want to remove this entire custom section?', { destructive: true })) {
             removeCustomSection(id);
         }
     };

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useModal } from '../ThemedModal';
 import { Upload, FolderOpen, Linkedin, Check, AlertTriangle, FileText, X } from 'lucide-react';
 import { useResumeStore } from '../../store';
 import { parseResumeFile } from '../../lib/resumeParser';
@@ -21,6 +22,7 @@ export const ImportTab: React.FC<ImportTabProps> = ({
     onLoadParentDoc
 }) => {
     const isIntegrated = typeof window !== 'undefined' && window.self !== window.top;
+    const modal = useModal();
 
     const [isImporting, setIsImporting] = useState(false);
     const [liText, setLiText] = useState('');
@@ -50,7 +52,7 @@ export const ImportTab: React.FC<ImportTabProps> = ({
             }
         } catch (err) {
             console.error('Import error:', err);
-            alert('Failed to parse file. Please ensure it is a valid resume document.');
+            modal.alert('Import Failed', 'Failed to parse file. Please ensure it is a valid resume document.');
         } finally {
             setIsImporting(false);
             if (e.target) e.target.value = '';
@@ -124,7 +126,7 @@ export const ImportTab: React.FC<ImportTabProps> = ({
         useResumeStore.setState({ resumeData: merged });
         setPendingData(null);
         setLiText('');
-        alert('Resume imported successfully!');
+        modal.alert('Import Successful', 'Resume imported successfully!');
     };
 
     return (
