@@ -72,7 +72,9 @@ import {
   ArrowLeft,
   Save,
   FolderOpen,
-  Link2
+  Link2,
+  Undo2,
+  Redo2
 } from 'lucide-react'
 import './styles/index.css'
 
@@ -168,6 +170,7 @@ function App() { // Stores
     updateFormatting: updateResumeFormatting,
     activeTab, setActiveTab,
     showResume, setShowResume,
+    undo: undoResume, redo: redoResume, past: resumePast, future: resumeFuture
   } = useResumeStore();
 
   const {
@@ -176,7 +179,8 @@ function App() { // Stores
     setTemplate: setCVTemplate, reset: resetCV, loadSampleData: loadCVSample,
     updateFormatting: updateCVFormatting,
     resetFormatting: resetCVFormatting,
-    showCoverLetter, setShowCoverLetter
+    showCoverLetter, setShowCoverLetter,
+    undo: undoCV, redo: redoCV, past: cvPast, future: cvFuture
   } = useCoverLetterStore();
   const { customTemplates, addCustomTemplate, updateCustomTemplate, deleteCustomTemplate } = useCustomTemplateStore()
   const { themeId, setTheme } = useThemeStore()
@@ -210,6 +214,19 @@ function App() { // Stores
   const [cvTemplatePage, setCvTemplatePage] = useState(1);
   const [cvTemplatesPerPage, setCvTemplatesPerPage] = useState(6);
   const themeDropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleUndo = useCallback(() => {
+    if (documentType === 'resume') undoResume();
+    else undoCV();
+  }, [documentType, undoResume, undoCV]);
+
+  const handleRedo = useCallback(() => {
+    if (documentType === 'resume') redoResume();
+    else redoCV();
+  }, [documentType, redoResume, redoCV]);
+
+  const canUndo = documentType === 'resume' ? resumePast.length > 0 : cvPast.length > 0;
+  const canRedo = documentType === 'resume' ? resumeFuture.length > 0 : cvFuture.length > 0;
 
   // New state for sidebar controls
   const [continuousMode, setContinuousMode] = useState(() => loadContinuousMode());
@@ -298,10 +315,30 @@ function App() { // Stores
     );
 
     const sections = document.querySelectorAll('[id^="continuous-section-"]');
-    sections.forEach((el) => observer.observe(el));
-
+    sections.forEach(s => observer.observe(s));
     return () => observer.disconnect();
   }, [continuousMode, setActiveTab]);
+
+  // Keyboard Shortcuts for Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) {
+          e.preventDefault();
+          handleRedo();
+        } else {
+          e.preventDefault();
+          handleUndo();
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -442,10 +479,8 @@ function App() { // Stores
 
   // Debounced auto-save & sync with parent (1s delay for performance)
   useEffect(() => {
-    // When data changes, if we were in 'saved' state, go back to 'idle' (unsaved)
-    if (parentSaveStatus === 'saved') {
-      setParentSaveStatus('idle');
-    }
+    // When data changes, clear any previous 'saved' status to show it's dirty again
+    // but DON'T add parentSaveStatus to dependencies to avoid infinite loops
 
     const timeout = setTimeout(() => {
       saveCoverLetterData(coverLetterData);
@@ -453,13 +488,23 @@ function App() { // Stores
       broadcastSave();
     }, 1000);
     return () => clearTimeout(timeout);
-  }, [resumeData, coverLetterData, documentType, showResume, showCoverLetter, broadcastSave, parentSaveStatus]);
+  }, [resumeData, coverLetterData, documentType, showResume, showCoverLetter, broadcastSave]);
 
-  // Periodic safety sync (every 30s)
+  // Handle 'saved' status auto-reset (Quieter feedback)
+  useEffect(() => {
+    if (parentSaveStatus === 'saved') {
+      const timeout = setTimeout(() => {
+        setParentSaveStatus('idle');
+      }, 3000); // Reset to 'idle' after 3 seconds
+      return () => clearTimeout(timeout);
+    }
+  }, [parentSaveStatus]);
+
+  // Periodic safety sync (every 2 minutes - reduced frequency)
   useEffect(() => {
     const interval = setInterval(() => {
       broadcastSave();
-    }, 30000);
+    }, 120000);
     return () => clearInterval(interval);
   }, [broadcastSave]);
 
@@ -1523,20 +1568,52 @@ function App() { // Stores
             {/* Bottom Controls Reorganized */}
             <div className="relative border-t-2 p-3 space-y-2 shrink-0 mt-auto bg-[#0a0a14]/80 backdrop-blur-md" style={{ borderColor: 'var(--sidebar-border)' }}>
 
+              {/* Row 0: Undo / Redo */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={handleUndo}
+                  disabled={!canUndo}
+                  className={`flex items-center justify-center gap-2 py-2 text-[9px] font-black uppercase tracking-widest transition-all !rounded-none border-2 ${!canUndo ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 active:scale-95'}`}
+                  style={{ backgroundColor: 'var(--sidebar-hover)', borderColor: 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}
+                  title="Undo (Ctrl+Z)"
+                >
+                  <Undo2 size={14} />
+                  <span>Undo</span>
+                </button>
+                <button
+                  onClick={handleRedo}
+                  disabled={!canRedo}
+                  className={`flex items-center justify-center gap-2 py-2 text-[9px] font-black uppercase tracking-widest transition-all !rounded-none border-2 ${!canRedo ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5 active:scale-95'}`}
+                  style={{ backgroundColor: 'var(--sidebar-hover)', borderColor: 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}
+                  title="Redo (Ctrl+Y)"
+                >
+                  <Redo2 size={14} />
+                  <span>Redo</span>
+                </button>
+              </div>
+
               {/* Row 1: Save, Load, Job */}
               <div className="grid grid-cols-3 gap-2">
                 {/* Save Button */}
                 <button
                   onClick={() => { setParentSaveStatus('saving'); broadcastSave(); }}
-                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-[8px] font-black uppercase tracking-tighter transition-all !rounded-none border-2"
+                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-[8px] font-black uppercase tracking-tighter transition-all !rounded-none border-2 group"
                   style={{
-                    backgroundColor: parentSaveStatus === 'saved' ? '#166534' : 'var(--sidebar-hover)',
-                    borderColor: parentSaveStatus === 'saved' ? '#22c55e' : 'var(--sidebar-border)',
-                    color: '#fff'
+                    backgroundColor: 'var(--sidebar-hover)',
+                    borderColor: parentSaveStatus === 'saved' ? 'var(--accent)' : 'var(--sidebar-border)',
+                    color: parentSaveStatus === 'saved' ? 'var(--accent)' : '#fff'
                   }}
                 >
-                  {parentSaveStatus === 'saved' ? <Check size={12} /> : <Save size={12} />}
-                  <span className="truncate w-full text-center">{parentSaveStatus === 'saved' ? 'Saved' : parentSaveStatus === 'saving' ? 'Saving' : 'Save'}</span>
+                  {parentSaveStatus === 'saved' ? (
+                    <FileCheck size={12} className="animate-in fade-in zoom-in duration-300" />
+                  ) : parentSaveStatus === 'saving' ? (
+                    <Save size={12} className="opacity-50 animate-pulse" />
+                  ) : (
+                    <Save size={12} className="group-hover:scale-110 transition-transform" />
+                  )}
+                  <span className="truncate w-full text-center">
+                    {parentSaveStatus === 'saved' ? 'Saved' : parentSaveStatus === 'saving' ? 'Saving' : 'Save'}
+                  </span>
                 </button>
 
                 {/* Load Dropdown */}

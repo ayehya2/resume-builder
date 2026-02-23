@@ -143,6 +143,13 @@ interface ResumeStore {
     updateLatexFormatting: (formatting: Partial<LaTeXFormattingOptions>) => void;
     resetLatexFormatting: () => void;
 
+    // History
+    undo: () => void;
+    redo: () => void;
+    past: ResumeData[];
+    future: ResumeData[];
+    saveToHistory: () => void;
+
     // Utility
     loadSampleData: () => void;
     reset: () => void;
@@ -150,27 +157,69 @@ interface ResumeStore {
 
 export const useResumeStore = create<ResumeStore>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             resumeData: getDefaultResumeData(),
             showResume: true,
             activeTab: 'basics',
             customLatexSource: null,
             latexFormatting: null,
+            past: [] as ResumeData[],
+            future: [] as ResumeData[],
+
+            saveToHistory: () => {
+                const { resumeData, past } = get();
+                // Limit history to 50 steps
+                const newPast = [JSON.parse(JSON.stringify(resumeData)), ...past].slice(0, 50);
+                set({ past: newPast, future: [] });
+            },
+
+            undo: () => {
+                const { resumeData, past, future } = get();
+                if (past.length === 0) return;
+
+                const previous = past[0];
+                const newPast = past.slice(1);
+                const newFuture = [JSON.parse(JSON.stringify(resumeData)), ...future];
+
+                set({
+                    resumeData: previous,
+                    past: newPast,
+                    future: newFuture
+                });
+            },
+
+            redo: () => {
+                const { resumeData, past, future } = get();
+                if (future.length === 0) return;
+
+                const next = future[0];
+                const newFuture = future.slice(1);
+                const newPast = [JSON.parse(JSON.stringify(resumeData)), ...past];
+
+                set({
+                    resumeData: next,
+                    past: newPast,
+                    future: newFuture
+                });
+            },
 
             setShowResume: (show) => set({ showResume: show }),
             setActiveTab: (tab) => set({ activeTab: tab }),
 
             // Basics
-            updateBasics: (basics) =>
+            updateBasics: (basics) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         basics: { ...state.resumeData.basics, ...basics },
                     },
-                })),
+                }));
+            },
 
             // Work Experience
-            addWork: () =>
+            addWork: () => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -186,9 +235,13 @@ export const useResumeStore = create<ResumeStore>()(
                             },
                         ],
                     },
-                })),
+                }));
+            },
 
-            updateWork: (index, work) =>
+            updateWork: (index: number, work: Partial<import('./types').WorkExperience>) => {
+                // For nested fields like bullets, we might want to debounce history
+                // but for now simple 1-1 history is fine.
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -196,18 +249,22 @@ export const useResumeStore = create<ResumeStore>()(
                             i === index ? { ...item, ...work } : item
                         ),
                     },
-                })),
+                }));
+            },
 
-            removeWork: (index) =>
+            removeWork: (index: number) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         work: state.resumeData.work.filter((_, i) => i !== index),
                     },
-                })),
+                }));
+            },
 
             // Education
-            addEducation: () =>
+            addEducation: () => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -222,9 +279,11 @@ export const useResumeStore = create<ResumeStore>()(
                             },
                         ],
                     },
-                })),
+                }));
+            },
 
-            updateEducation: (index, education) =>
+            updateEducation: (index: number, education: Partial<import('./types').Education>) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -232,18 +291,22 @@ export const useResumeStore = create<ResumeStore>()(
                             i === index ? { ...item, ...education } : item
                         ),
                     },
-                })),
+                }));
+            },
 
-            removeEducation: (index) =>
+            removeEducation: (index: number) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         education: state.resumeData.education.filter((_, i) => i !== index),
                     },
-                })),
+                }));
+            },
 
             // Skills
-            addSkill: () =>
+            addSkill: () => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -252,9 +315,11 @@ export const useResumeStore = create<ResumeStore>()(
                             { category: '', items: [] },
                         ],
                     },
-                })),
+                }));
+            },
 
-            updateSkill: (index, skill) =>
+            updateSkill: (index: number, skill: Partial<import('./types').Skill>) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -262,18 +327,22 @@ export const useResumeStore = create<ResumeStore>()(
                             i === index ? { ...item, ...skill } : item
                         ),
                     },
-                })),
+                }));
+            },
 
-            removeSkill: (index) =>
+            removeSkill: (index: number) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         skills: state.resumeData.skills.filter((_, i) => i !== index),
                     },
-                })),
+                }));
+            },
 
             // Projects
-            addProject: () =>
+            addProject: () => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -286,9 +355,11 @@ export const useResumeStore = create<ResumeStore>()(
                             },
                         ],
                     },
-                })),
+                }));
+            },
 
-            updateProject: (index, project) =>
+            updateProject: (index: number, project: Partial<import('./types').Project>) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -296,18 +367,22 @@ export const useResumeStore = create<ResumeStore>()(
                             i === index ? { ...item, ...project } : item
                         ),
                     },
-                })),
+                }));
+            },
 
-            removeProject: (index) =>
+            removeProject: (index: number) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         projects: state.resumeData.projects.filter((_, i) => i !== index),
                     },
-                })),
+                }));
+            },
 
             // Awards
-            addAward: () =>
+            addAward: () => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -320,9 +395,11 @@ export const useResumeStore = create<ResumeStore>()(
                             },
                         ],
                     },
-                })),
+                }));
+            },
 
-            updateAward: (index, award) =>
+            updateAward: (index: number, award: Partial<import('./types').Award>) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -330,18 +407,22 @@ export const useResumeStore = create<ResumeStore>()(
                             i === index ? { ...item, ...award } : item
                         ),
                     },
-                })),
+                }));
+            },
 
-            removeAward: (index) =>
+            removeAward: (index: number) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         awards: state.resumeData.awards.filter((_, i) => i !== index),
                     },
-                })),
+                }));
+            },
 
             // Custom Sections
-            addCustomSection: (id) => {
+            addCustomSection: (id?: string) => {
+                (get() as any).saveToHistory();
                 const newId = id || `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 const newSection: import('./types').CustomSection = {
                     id: newId,
@@ -368,7 +449,8 @@ export const useResumeStore = create<ResumeStore>()(
                 return newId;
             },
 
-            updateCustomSection: (id, section) =>
+            updateCustomSection: (id: string, section: Partial<import('./types').CustomSection>) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -376,18 +458,22 @@ export const useResumeStore = create<ResumeStore>()(
                             item.id === id ? { ...item, ...section } : item
                         ),
                     },
-                })),
+                }));
+            },
 
-            removeCustomSection: (id) =>
+            removeCustomSection: (id: string) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         customSections: state.resumeData.customSections.filter((item) => item.id !== id),
                         sections: state.resumeData.sections.filter((s) => s !== id),
                     },
-                })),
+                }));
+            },
 
-            addCustomSectionItem: (sectionId) =>
+            addCustomSectionItem: (sectionId: string) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -410,9 +496,11 @@ export const useResumeStore = create<ResumeStore>()(
                                 : section
                         ),
                     },
-                })),
+                }));
+            },
 
-            updateCustomSectionItem: (sectionId, index, item) =>
+            updateCustomSectionItem: (sectionId: string, index: number, item: Partial<import('./types').CustomSectionEntry>) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -427,9 +515,11 @@ export const useResumeStore = create<ResumeStore>()(
                                 : section
                         ),
                     },
-                })),
+                }));
+            },
 
-            removeCustomSectionItem: (sectionId, index) =>
+            removeCustomSectionItem: (sectionId: string, index: number) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
@@ -442,11 +532,13 @@ export const useResumeStore = create<ResumeStore>()(
                                 : section
                         ),
                     },
-                })),
+                }));
+            },
 
             // Sections
-            setSections: (sections) =>
-                set((state) => {
+            setSections: (sections: string[]) => {
+                (get() as any).saveToHistory();
+                set((state: ResumeStore) => {
                     // Allow standard sections and custom section IDs
                     const standardSections = ['profile', 'education', 'work', 'skills', 'projects', 'awards'];
                     const customSectionIds = state.resumeData.customSections.map(s => s.id);
@@ -461,33 +553,40 @@ export const useResumeStore = create<ResumeStore>()(
                             sections: uniqueSections,
                         },
                     };
-                }),
+                });
+            },
 
             // Template
-            setTemplate: (templateId) =>
+            setTemplate: (templateId: import('./types').TemplateId) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         selectedTemplate: templateId,
                     },
-                })),
+                }));
+            },
 
             // Formatting
-            updateFormatting: (formatting) =>
+            updateFormatting: (formatting: Partial<import('./types').FormattingOptions>) => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         formatting: { ...state.resumeData.formatting, ...formatting },
                     },
-                })),
+                }));
+            },
 
-            resetFormatting: () =>
+            resetFormatting: () => {
+                (get() as any).saveToHistory();
                 set((state) => ({
                     resumeData: {
                         ...state.resumeData,
                         formatting: getDefaultResumeData().formatting,
                     },
-                })),
+                }));
+            },
 
             // LaTeX
             setCustomLatex: (source) =>
@@ -576,7 +675,9 @@ export const useResumeStore = create<ResumeStore>()(
                 return {
                     ...currentState,
                     ...persisted,
-                    resumeData: mergedResumeData
+                    resumeData: mergedResumeData,
+                    past: [],
+                    future: []
                 };
             },
         },

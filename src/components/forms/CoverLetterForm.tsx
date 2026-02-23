@@ -14,13 +14,21 @@ export function CoverLetterForm() {
             </div>
 
             {/* Date */}
-            <SmartDateInput
-                label="Date"
-                type="date"
-                value={coverLetterData.date}
-                onChange={updateDate}
-                placeholder="January 29, 2026"
-            />
+            <div className="relative">
+                <SmartDateInput
+                    label="Date"
+                    type="date"
+                    value={coverLetterData.date}
+                    onChange={updateDate}
+                    placeholder="January 29, 2026"
+                />
+                <button
+                    onClick={() => updateDate(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }))}
+                    className="absolute right-0 top-0 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-accent transition-colors py-1"
+                >
+                    Today
+                </button>
+            </div>
 
             {/* Recipient Information — 2×2 grid */}
             <div className="p-5 border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">

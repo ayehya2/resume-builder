@@ -11,6 +11,7 @@ A professional-grade **resume & cover letter builder** with pixel-perfect PDF ou
 - 👁️ **Live PDF Preview** — Real-time, high-fidelity Letter-sized preview with continuous scroll mode
 - ✍️ **LaTeX Support** — Monaco editor integration for direct LaTeX template editing and compilation
 - 🎯 **Deep Formatting Controls** — Typography, line heights, section spacing, margins, and decorative elements
+- ⏳ **Undo/Redo History** — Full edit history for both resumes and cover letters with keyboard shortcuts (Ctrl+Z/Y)
 - 💾 **Persistence** — Auto-save to local storage, JSON import/export, and DOCX import
 - 🌓 **Premium Theming** — 10+ built-in themes with full dark mode support
 - 📋 **Template Gallery** — Browse, preview, and select templates with filtering and pagination

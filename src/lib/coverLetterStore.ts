@@ -21,6 +21,13 @@ interface CoverLetterStore {
     loadSampleData: () => void;
     autoPopulateFromResume: (basics: import('../types').Basics) => void;
     reset: () => void;
+
+    // History
+    undo: () => void;
+    redo: () => void;
+    past: CoverLetterData[];
+    future: CoverLetterData[];
+    saveToHistory: () => void;
 }
 
 const getDefaultCoverLetterData = (): CoverLetterData => ({
@@ -39,64 +46,121 @@ const getDefaultCoverLetterData = (): CoverLetterData => ({
 
 export const useCoverLetterStore = create<CoverLetterStore>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             coverLetterData: getDefaultCoverLetterData(),
             showCoverLetter: false,
+            past: [] as CoverLetterData[],
+            future: [] as CoverLetterData[],
+
+            saveToHistory: () => {
+                const { coverLetterData, past } = get();
+                const newPast = [JSON.parse(JSON.stringify(coverLetterData)), ...past].slice(0, 50);
+                set({ past: newPast, future: [] });
+            },
+
+            undo: () => {
+                const { coverLetterData, past, future } = get();
+                if (past.length === 0) return;
+
+                const previous = past[0];
+                const newPast = past.slice(1);
+                const newFuture = [JSON.parse(JSON.stringify(coverLetterData)), ...future];
+
+                set({
+                    coverLetterData: previous,
+                    past: newPast,
+                    future: newFuture
+                });
+            },
+
+            redo: () => {
+                const { coverLetterData, past, future } = get();
+                if (future.length === 0) return;
+
+                const next = future[0];
+                const newFuture = future.slice(1);
+                const newPast = [JSON.parse(JSON.stringify(coverLetterData)), ...past];
+
+                set({
+                    coverLetterData: next,
+                    past: newPast,
+                    future: newFuture
+                });
+            },
 
             setShowCoverLetter: (show: boolean) => set({ showCoverLetter: show }),
 
-            updateRecipient: (recipient: Partial<Pick<CoverLetterData, 'recipientName' | 'recipientTitle' | 'company' | 'companyAddress'>>) =>
+            updateRecipient: (recipient: Partial<Pick<CoverLetterData, 'recipientName' | 'recipientTitle' | 'company' | 'companyAddress'>>) => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, ...recipient },
-                })),
+                }));
+            },
 
-            updatePosition: (position: string) =>
+            updatePosition: (position: string) => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, position },
-                })),
+                }));
+            },
 
-            updateDate: (date: string) =>
+            updateDate: (date: string) => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, date },
-                })),
+                }));
+            },
 
-            updateContent: (content: string) =>
+            updateContent: (content: string) => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, content },
-                })),
+                }));
+            },
 
-            updateClosing: (closing: string) =>
+            updateClosing: (closing: string) => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, closing },
-                })),
+                }));
+            },
 
-            updateSignature: (signature: string) =>
+            updateSignature: (signature: string) => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, signature },
-                })),
+                }));
+            },
 
-            setTemplate: (templateId: number) =>
+            setTemplate: (templateId: number) => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: { ...state.coverLetterData, selectedTemplate: templateId },
-                })),
+                }));
+            },
 
-            updateFormatting: (formatting: Partial<import('../types').FormattingOptions>) =>
+            updateFormatting: (formatting: Partial<import('../types').FormattingOptions>) => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: {
                         ...state.coverLetterData,
                         formatting: { ...state.coverLetterData.formatting, ...formatting },
                     },
-                })),
+                }));
+            },
 
-            resetFormatting: () =>
+            resetFormatting: () => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: {
                         ...state.coverLetterData,
                         formatting: getDefaultFormatting(),
                     },
-                })),
+                }));
+            },
 
             loadSampleData: () => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: {
                         ...state.coverLetterData,
@@ -105,14 +169,16 @@ export const useCoverLetterStore = create<CoverLetterStore>()(
                 }));
             },
 
-            autoPopulateFromResume: (basics: import('../types').Basics) =>
+            autoPopulateFromResume: (basics: import('../types').Basics) => {
+                (get() as any).saveToHistory();
                 set((state: CoverLetterStore) => ({
                     coverLetterData: {
                         ...state.coverLetterData,
                         signature: basics.name || state.coverLetterData.signature,
                         userBasics: basics,
                     }
-                })),
+                }));
+            },
 
             reset: () => set({ coverLetterData: getDefaultCoverLetterData() }),
         }),
@@ -135,7 +201,9 @@ export const useCoverLetterStore = create<CoverLetterStore>()(
                 return {
                     ...currentState,
                     ...(data || {}),
-                    coverLetterData: mergedCoverLetterData
+                    coverLetterData: mergedCoverLetterData,
+                    past: [],
+                    future: []
                 };
             },
         }
