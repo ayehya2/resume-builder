@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useCoverLetterStore } from '../../lib/coverLetterStore';
 import { useProofreadingStore } from '../../lib/proofreadingStore';
 import { useResumeStore } from '../../store';
