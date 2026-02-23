@@ -8,6 +8,7 @@ import {
     type AISuggestionTarget,
     type InlineSuggestion,
 } from '../../lib/aiSuggestionStore';
+import { useJobStore } from '../../lib/jobStore';
 import {
     improveResumeBullet,
     improveCoverLetterContent,
@@ -36,12 +37,28 @@ export function AITab() {
         dismissAll, clearSuggestions, getPendingSuggestions,
     } = useAISuggestionStore();
 
+    const { jobTitle, jobDescription } = useJobStore();
+
     const [keyInput, setKeyInput] = useState('');
     const [showKey, setShowKey] = useState(false);
 
     useEffect(() => {
         loadAPIKey();
     }, [loadAPIKey]);
+
+    // Debounced automatic generation when job context changes
+    useEffect(() => {
+        if (!isConfigured || !jobDescription || jobDescription.length < 50) return;
+
+        const timer = setTimeout(() => {
+            // Only auto-trigger if we're not already doing something and suggestible
+            if (step === 'idle' || step === 'reviewing') {
+                handleStartSuggestions();
+            }
+        }, 2000); // 2 second debounce
+
+        return () => clearTimeout(timer);
+    }, [jobDescription, jobTitle, isConfigured]);
 
     const handleSaveKey = () => {
         if (keyInput.trim()) {
@@ -119,7 +136,7 @@ export function AITab() {
                         if (!bullet || bullet.length < 10) continue; // skip empty or too short
 
                         try {
-                            const improved = await improveResumeBullet(apiKey, bullet);
+                            const improved = await improveResumeBullet(apiKey, bullet, { title: jobTitle, description: jobDescription });
                             if (improved && improved.trim() !== bullet) {
                                 newSuggestions.push({
                                     id: generateSuggestionId(),
@@ -166,7 +183,7 @@ export function AITab() {
             if (genTarget === 'coverletter' || genTarget === 'both') {
                 if (coverLetterData.content && coverLetterData.content.length > 30) {
                     try {
-                        const improved = await improveCoverLetterContent(apiKey, coverLetterData.content);
+                        const improved = await improveCoverLetterContent(apiKey, coverLetterData.content, { title: jobTitle, description: jobDescription });
                         if (improved && improved.trim() !== coverLetterData.content.trim()) {
                             newSuggestions.push({
                                 id: generateSuggestionId(),

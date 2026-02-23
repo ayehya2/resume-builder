@@ -92,9 +92,12 @@ Format: Return ONLY the bullet points, one per line, without bullet symbols or n
 
 export async function improveResumeBullet(
     apiKey: string,
-    bullet: string
+    bullet: string,
+    jobContext?: { title: string; description: string }
 ): Promise<string> {
-    const prompt = `You are a professional resume writer. Improve this resume bullet point to be more impactful, achievement-focused, and quantified where possible. Keep it concise (1-2 lines).
+    const prompt = `You are a professional resume writer. Improve this resume bullet point to be more impactful, achievement-focused, and quantified where possible.
+    ${jobContext?.description ? `Tailor the bullet to align with this job description: ${jobContext.description.slice(0, 1000)}` : ''}
+    ${jobContext?.title ? `Target Position: ${jobContext.title}` : ''}
 
 Current bullet point: ${bullet}
 
@@ -162,9 +165,12 @@ Return ONLY the paragraphs, separated by blank lines, without any labels or extr
 
 export async function improveCoverLetterContent(
     apiKey: string,
-    content: string
+    content: string,
+    jobContext?: { title: string; description: string }
 ): Promise<string> {
-    const prompt = `You are a professional cover letter editor. Improve this cover letter content to be more compelling, professional, and persuasive while maintaining the core message.
+    const prompt = `You are a professional cover letter editor. Improve this cover letter content to be more compelling, professional, and persuasive.
+    ${jobContext?.description ? `Tailor the content to strongly align with this job description: ${jobContext.description.slice(0, 1000)}` : ''}
+    ${jobContext?.title ? `Target Position: ${jobContext.title}` : ''}
 
 Current content:
 ${content}

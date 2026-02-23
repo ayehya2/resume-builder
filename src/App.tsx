@@ -16,6 +16,9 @@ import { FormattingForm } from './components/forms/FormattingForm'
 import { CoverLetterFormattingForm } from './components/forms/CoverLetterFormattingForm'
 import { LaTeXFormattingForm } from './components/forms/LaTeXFormattingForm'
 import { ProofreadingView } from './components/forms/ProofreadingView'
+import { JobLinkTab } from './components/forms/JobLinkTab'
+import { ImportTab } from './components/forms/ImportTab'
+import { useJobStore } from './lib/jobStore'
 import { TemplateThumbnail } from './components/preview/TemplateThumbnail'
 import { PDFPreview } from './components/preview/PDFPreview'
 import type { TemplateId, SectionKey, DocumentType, PreloadedTemplateId } from './types'
@@ -79,9 +82,6 @@ import {
   Redo2,
   BarChart3,
   Download,
-  FileUp,
-  FolderOpen,
-  Link,
 } from 'lucide-react'
 import './styles/index.css'
 
@@ -207,10 +207,6 @@ function App() { // Stores
   const [docDropdownOpen, setDocDropdownOpen] = useState(false);
   const [jobDropdownOpen, setJobDropdownOpen] = useState(false);
   const [jobSearch, setJobSearch] = useState('');
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [manualJobTitle, setManualJobTitle] = useState('');
-  const [manualJobUrl, setManualJobUrl] = useState('');
-  const [manualJobDescription, setManualJobDescription] = useState('');
 
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [resumeTemplateFilter, setResumeTemplateFilter] = useState<'all' | 'standard' | 'latex'>('all');
@@ -393,13 +389,18 @@ function App() { // Stores
         setParentSaveStatus(event.data.status);
       }
       if (event.data?.type === 'LINK_JOB' && event.data.job) {
-        if (event.data.job.id) setSelectedJobId(event.data.job.id);
-        // Pre-fill cover letter with full generated content
         const job = event.data.job;
+        useJobStore.getState().setJobContext({
+          jobTitle: job.title || '',
+          jobDescription: job.description || '',
+          jobUrl: job.url || '',
+          linkedJobId: job.id || null
+        });
+
+        // Update cover letter context
         const currentCL = useCoverLetterStore.getState().coverLetterData;
         const currentBasics = useResumeStore.getState().resumeData.basics;
 
-        // Update recipient info
         useCoverLetterStore.setState({
           coverLetterData: {
             ...currentCL,
@@ -409,26 +410,7 @@ function App() { // Stores
           }
         });
 
-        // Generate a full cover letter body (same logic as loadPrefillData)
-        if (job.title && job.company) {
-          let generatedContent = `I am writing to express my strong interest in the ${job.title} position at ${job.company}.`;
-          if (job.description) {
-            generatedContent += `\n\nAfter reviewing the job description, I am excited about the opportunity to contribute to ${job.company}. My background and skills align well with your requirements.`;
-          }
-          if (job.skills && job.skills.length > 0) {
-            generatedContent += `\n\nI have extensive experience with ${job.skills.slice(0, 5).join(', ')}, which makes me a strong candidate for this role.`;
-          }
-          generatedContent += `\n\nI am enthusiastic about the opportunity to bring my expertise to ${job.company} and contribute to your team's success.`;
-          generatedContent += `\n\nThank you for considering my application. I look forward to discussing this position further.`;
-          useCoverLetterStore.getState().updateContent(generatedContent);
-          useCoverLetterStore.getState().updateClosing('Sincerely');
-        }
-
-        // Auto-enable cover letter and switch to it
-        setShowCoverLetter(true);
-        setActiveTab('cover-letter');
-
-        // Explicitly broadcast save to parent after linking
+        // Broadcast save back to parent
         setTimeout(() => broadcastSave(), 200);
       }
       if (event.data?.type === 'REQUEST_SAVE') {
@@ -1358,107 +1340,10 @@ function App() { // Stores
     sections.push(
       <div key="job-link" id="continuous-section-job-link" className={dividerClass}>
         <div className="px-4 py-4 mb-6 text-xs font-black uppercase tracking-[0.2em] text-white/40 bg-white/5 border-y-2 border-white/10 mt-12">Job Context</div>
-        <div className="space-y-6">
-          {window.self !== window.top && (
-            <div className="p-6 border-2 border-slate-300 dark:border-slate-600 bg-white/5">
-              <div className="flex items-center gap-3 mb-4">
-                <Zap size={20} className="text-accent" />
-                <h3 className="text-lg font-bold">Select from JobTracker</h3>
-              </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Select a job from your tracker to auto-tailor your documents.</p>
-              <div className="relative border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950">
-                <div className="px-4 py-3.5 border-b flex items-center gap-3" style={{ borderColor: 'var(--card-border)' }}>
-                  <Search size={12} className="opacity-20" />
-                  <input
-                    type="text"
-                    value={jobSearch || ""}
-                    onChange={e => setJobSearch(e.target.value)}
-                    placeholder="SEARCH JOBS..."
-                    className="bg-transparent text-[9px] outline-none w-full font-black tracking-widest uppercase placeholder:opacity-20"
-                  />
-                </div>
-                <div className="max-h-64 overflow-y-auto custom-scrollbar">
-                  {parentApplications.filter(app => !jobSearch || app.company.toLowerCase().includes(jobSearch.toLowerCase()) || app.position.toLowerCase().includes(jobSearch.toLowerCase())).length === 0 ? (
-                    <div className="p-8 text-center text-[10px] opacity-30 uppercase font-bold tracking-widest italic">No Match</div>
-                  ) : (
-                    parentApplications
-                      .filter(app => !jobSearch || app.company.toLowerCase().includes(jobSearch.toLowerCase()) || app.position.toLowerCase().includes(jobSearch.toLowerCase()))
-                      .map((app: ParentApplication) => {
-                        const isSelected = selectedJobId === app.id;
-                        return (
-                          <button
-                            key={app.id}
-                            onClick={() => {
-                              setSelectedJobId(app.id);
-                              window.parent.postMessage({ type: 'LINK_PARENT_JOB', id: app.id }, '*');
-                            }}
-                            className={`w-full text-left px-5 py-4 transition-colors border-b last:border-0 group flex items-center justify-between ${isSelected ? 'bg-accent/10 border-accent/20' : 'hover:bg-slate-50 dark:hover:bg-white/5 border-slate-100 dark:border-white/5'}`}
-                          >
-                            <div>
-                              <div className={`font-bold text-xs ${isSelected ? 'text-accent' : 'group-hover:text-accent'} transition-colors`}>{app.position}</div>
-                              <div className="text-[9px] opacity-50 font-bold uppercase tracking-tight mt-0.5">{app.company}</div>
-                            </div>
-                            {isSelected && <Check size={14} className="text-accent" />}
-                          </button>
-                        );
-                      })
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="p-6 border-2 border-slate-300 dark:border-slate-600 bg-white/10">
-            <div className="flex items-center gap-3 mb-4">
-              <Link size={20} className="text-accent" />
-              <h3 className="text-lg font-bold">Manual Job Input</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Job Title</label>
-                  <input
-                    type="text"
-                    value={manualJobTitle || ""}
-                    onChange={e => setManualJobTitle(e.target.value)}
-                    placeholder="e.g. Senior Frontend Engineer"
-                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 text-sm outline-none focus:border-accent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Job URL</label>
-                  <input
-                    type="text"
-                    value={manualJobUrl || ""}
-                    onChange={e => setManualJobUrl(e.target.value)}
-                    placeholder="https://linkedin.com/jobs/..."
-                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 text-sm outline-none focus:border-accent transition-all"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Job Description</label>
-                <textarea
-                  value={manualJobDescription || ""}
-                  onChange={e => setManualJobDescription(e.target.value)}
-                  placeholder="Paste the job description here to help AI tailor your profile..."
-                  className="w-full h-32 px-4 py-3 bg-white/5 border-2 border-white/10 text-sm outline-none focus:border-accent transition-all resize-none custom-scrollbar"
-                />
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={() => {
-                    // This could trigger a re-tailor or just save locally
-                    alert('Job details saved locally and will be used for AI suggestions.');
-                  }}
-                  className="px-6 py-2 bg-accent text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all"
-                >
-                  Save Context
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <JobLinkTab
+          parentApplications={parentApplications}
+          onLinkJob={(id) => window.parent.postMessage({ type: 'LINK_PARENT_JOB', id }, '*')}
+        />
       </div>
     );
 
@@ -1466,47 +1351,10 @@ function App() { // Stores
     sections.push(
       <div key="import-tool" id="continuous-section-import-tool" className={dividerClass}>
         <div className="px-4 py-4 mb-6 text-xs font-black uppercase tracking-[0.2em] text-white/40 bg-white/5 border-y-2 border-white/10 mt-12">Import & Documents</div>
-        <div className="space-y-6">
-          <div className="p-8 text-center border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/5">
-            <Upload size={32} className="mx-auto mb-3 text-slate-400" />
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Import from File</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Import your existing resume from various file formats.</p>
-            <button
-              onClick={() => { handleImport(); }}
-              disabled={isImporting}
-              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-3 mx-auto disabled:opacity-50 active:scale-95 shadow-xl"
-            >
-              <FileUp size={18} />
-              <span>{isImporting ? 'Importing...' : 'Upload JSON / PDF / DOCX'}</span>
-            </button>
-          </div>
-
-          {window.self !== window.top && parentDocuments.length > 0 && (
-            <div className="p-6 border-2 border-slate-300 dark:border-slate-600 bg-white/5">
-              <div className="flex items-center gap-3 mb-4">
-                <FolderOpen size={20} className="text-accent" />
-                <h3 className="text-lg font-bold">Saved Documents</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {parentDocuments.map((doc) => (
-                  <button
-                    key={doc.id}
-                    onClick={() => { window.parent.postMessage({ type: 'LOAD_PARENT_DOCUMENT', id: doc.id }, '*'); }}
-                    className="flex items-center gap-4 p-4 text-left border-2 border-white/10 hover:border-accent/50 hover:bg-white/5 transition-all group"
-                  >
-                    <div className="w-10 h-12 bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-accent/10 transition-colors">
-                      <FileText size={18} className="text-white/30 group-hover:text-accent" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold truncate max-w-[150px]">{doc.title || 'Untitled Document'}</div>
-                      <div className="text-[8px] font-black uppercase tracking-widest opacity-40 mt-1">{doc.type || 'RESUME'}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <ImportTab
+          parentDocuments={parentDocuments}
+          onLoadParentDoc={(id) => window.parent.postMessage({ type: 'LOAD_PARENT_DOCUMENT', id }, '*')}
+        />
       </div>
     );
 
