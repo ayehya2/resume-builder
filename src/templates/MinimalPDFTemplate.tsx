@@ -155,7 +155,7 @@ export function MinimalPDFTemplate({ data, documentTitle }: MinimalPDFTemplatePr
                 </View>
 
                 {sections.map((sectionKey) => {
-                    if (sectionKey === 'profile' && basics.summary) {
+                    if (sectionKey === 'profile' && basics.summary?.trim()) {
                         return (
                             <View key="profile" style={styles.section}>
                                 <Text style={styles.sectionHeader}>Profile</Text>
@@ -166,11 +166,11 @@ export function MinimalPDFTemplate({ data, documentTitle }: MinimalPDFTemplatePr
                         );
                     }
 
-                    if (sectionKey === 'education' && education.length > 0) {
+                    if (sectionKey === 'education' && education.some(edu => edu.institution?.trim() || edu.degree?.trim())) {
                         return (
                             <View key="education" style={styles.section}>
                                 <Text style={styles.sectionHeader}>Education</Text>
-                                {education.map((edu, idx) => (
+                                {education.filter(edu => edu.institution?.trim() || edu.degree?.trim()).map((edu, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{edu.institution}</Text>
@@ -186,11 +186,11 @@ export function MinimalPDFTemplate({ data, documentTitle }: MinimalPDFTemplatePr
                         );
                     }
 
-                    if (sectionKey === 'work' && work.length > 0) {
+                    if (sectionKey === 'work' && work.some(job => job.company?.trim() || job.position?.trim())) {
                         return (
                             <View key="work" style={styles.section}>
                                 <Text style={styles.sectionHeader}>Experience</Text>
-                                {work.map((job, idx) => (
+                                {work.filter(job => job.company?.trim() || job.position?.trim()).map((job, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{formatting.companyTitleOrder === 'title-first' ? job.position : job.company}</Text>
@@ -215,25 +215,25 @@ export function MinimalPDFTemplate({ data, documentTitle }: MinimalPDFTemplatePr
                         );
                     }
 
-                    if (sectionKey === 'skills' && skills.length > 0) {
+                    if (sectionKey === 'skills' && skills.some(s => s.category?.trim() || s.items.some(i => i.trim()))) {
                         return (
                             <View key="skills" style={styles.section}>
                                 <Text style={styles.sectionHeader}>Skills</Text>
-                                {skills.map((skillGroup, idx) => (
+                                {skills.filter(s => s.category?.trim() || s.items.some(i => i.trim())).map((skillGroup, idx) => (
                                     <View key={idx} style={styles.skillRow}>
                                         <Text style={styles.skillCategory}>{skillGroup.category}: </Text>
-                                        <Text style={styles.skillItems}>{skillGroup.items.join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
+                                        <Text style={styles.skillItems}>{skillGroup.items.filter(i => i.trim()).join(getPDFSkillSeparator(formatting.skillLayout))}</Text>
                                     </View>
                                 ))}
                             </View>
                         );
                     }
 
-                    if (sectionKey === 'projects' && projects.length > 0) {
+                    if (sectionKey === 'projects' && projects.some(p => p.name?.trim())) {
                         return (
                             <View key="projects" style={styles.section}>
                                 <Text style={styles.sectionHeader}>Projects</Text>
-                                {projects.map((project, idx) => (
+                                {projects.filter(p => p.name?.trim()).map((project, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={styles.entryTitle}>
@@ -249,7 +249,7 @@ export function MinimalPDFTemplate({ data, documentTitle }: MinimalPDFTemplatePr
                                             </Text>
                                             <Text style={styles.dateRange}>{getPDFDateFormat(project.startDate || '', formatting.dateFormat)} {getPDFDateSeparator(formatting.dateSeparator)} {getPDFDateFormat(project.endDate || '', formatting.dateFormat)}</Text>
                                         </View>
-                                        {project.keywords.length > 0 && (
+                                        {project.keywords && project.keywords.length > 0 && (
                                             <Text style={{ fontSize: baseFontSize - 1.5, color: '#999999', marginBottom: 2 }}>
                                                 {project.keywords.join(' · ')}
                                             </Text>
@@ -270,11 +270,11 @@ export function MinimalPDFTemplate({ data, documentTitle }: MinimalPDFTemplatePr
                         );
                     }
 
-                    if (sectionKey === 'awards' && awards.length > 0) {
+                    if (sectionKey === 'awards' && awards.some(a => a.title?.trim())) {
                         return (
                             <View key="awards" style={styles.section}>
                                 <Text style={styles.sectionHeader}>Awards</Text>
-                                {awards.map((award, idx) => (
+                                {awards.filter(a => a.title?.trim()).map((award, idx) => (
                                     <View key={idx} style={styles.entryContainer} wrap={true}>
                                         <View style={styles.entryHeader}>
                                             <Text style={{ fontSize: 10, fontWeight: 'bold' }}>{award.title}</Text>
@@ -284,6 +284,37 @@ export function MinimalPDFTemplate({ data, documentTitle }: MinimalPDFTemplatePr
                                         {formatting.showAwardsSummaries && award.summary && <Text style={{ fontSize: baseFontSize - 1, color: '#444444' }}>{award.summary}</Text>}
                                     </View>
                                 ))}
+                            </View>
+                        );
+                    }
+
+                    // Custom sections
+                    const customSection = data.customSections.find(cs => cs.id === sectionKey);
+                    if (customSection && customSection.items.some(item => item.title?.trim() || item.subtitle?.trim() || (item.bullets && item.bullets.some(b => b.trim())))) {
+                        return (
+                            <View key={customSection.id} style={styles.section}>
+                                <Text style={styles.sectionHeader}>{customSection.title}</Text>
+                                {customSection.items
+                                    .filter(item => item.title?.trim() || item.subtitle?.trim() || (item.bullets && item.bullets.some(b => b.trim())))
+                                    .map((entry, idx) => (
+                                        <View key={idx} style={styles.entryContainer} wrap={true}>
+                                            <View style={styles.entryHeader}>
+                                                <Text style={{ ...styles.entryTitle, fontWeight: formatting.subHeaderWeight === 'normal' ? 'normal' : 'bold' }}>{entry.title || 'Untitled'}</Text>
+                                                {entry.date && <Text style={styles.dateRange}>{entry.date}</Text>}
+                                            </View>
+                                            {entry.subtitle && <Text style={styles.entrySubtitle}>{entry.subtitle}</Text>}
+                                            {entry.bullets && entry.bullets.filter(b => b.trim()).length > 0 && (
+                                                <View>
+                                                    {entry.bullets.filter(b => b.trim()).map((bullet, i) => (
+                                                        <View key={i} style={styles.bulletPoint}>
+                                                            <Text style={styles.bulletSymbol}>{bulletSymbol}</Text>
+                                                            <Text style={{ flex: 1 }}>{parseBoldTextPDF(bullet.replace(/^[•\-*]\s*/, ''), Text)}</Text>
+                                                        </View>
+                                                    ))}
+                                                </View>
+                                            )}
+                                        </View>
+                                    ))}
                             </View>
                         );
                     }

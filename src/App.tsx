@@ -1208,35 +1208,44 @@ function App() { // Stores
         );
       }
 
-      // Resume Content Forms
-      sectionTabs.map(tab => {
-        // 'templates' and 'formatting' are handled above
-        if (tab.key === 'templates' || tab.key === 'formatting') return;
+      // Resume Content Forms (Merged with Custom Sections to prevent duplicates and respect reordering)
+      sectionTabs.forEach(tab => {
+        // Standard sections we handle individually
+        const standardKeys = ['education', 'work', 'skills', 'projects', 'awards'];
 
-        sections.push(
-          <div key={tab.key} id={`continuous-section-${tab.key}`} className={dividerClass}>
-            {tab.key === 'education' && <EducationForm />}
-            {tab.key === 'work' && <WorkForm />}
-            {tab.key === 'skills' && <SkillsForm />}
-            {tab.key === 'projects' && <ProjectsForm />}
-            {tab.key === 'awards' && <AwardsForm />}
-          </div>
-        );
-      });
+        // Data presence checks for filtering
+        let hasData = false;
 
-      // Render custom sections
-      for (const sKey of resumeData.sections) {
-        if (!['basics', 'education', 'work', 'skills', 'projects', 'awards', 'profile'].includes(sKey)) {
-          const cs = resumeData.customSections.find(c => c.id === sKey);
+        if (tab.key === 'education') hasData = resumeData.education.some(edu => edu.institution?.trim() || edu.degree?.trim());
+        else if (tab.key === 'work') hasData = resumeData.work.some(job => job.company?.trim() || job.position?.trim());
+        else if (tab.key === 'skills') hasData = resumeData.skills.some(s => s.category?.trim() || s.items.some(i => i.trim()));
+        else if (tab.key === 'projects') hasData = resumeData.projects.some(p => p.name?.trim());
+        else if (tab.key === 'awards') hasData = resumeData.awards.some(a => a.title?.trim());
+        else {
+          // Custom Section
+          const cs = resumeData.customSections.find(c => c.id === tab.key);
           if (cs) {
-            sections.push(
-              <div key={sKey} id={`continuous-section-${sKey}`} className={dividerClass}>
-                <CustomSectionForm sectionId={sKey} />
-              </div>
-            );
+            // Loosened check: if it has a title OR items with data, consider it having data
+            hasData = cs.title?.trim().length > 0 || cs.items.some(item => item.title?.trim() || item.subtitle?.trim() || (item.bullets && item.bullets.some(b => b.trim())));
           }
         }
-      }
+
+        // Only render if it has data OR it's the active tab (to allow editing)
+        if (hasData || activeTab === tab.key) {
+          sections.push(
+            <div key={tab.key} id={`continuous-section-${tab.key}`} className={dividerClass}>
+              {tab.key === 'education' && <EducationForm />}
+              {tab.key === 'work' && <WorkForm />}
+              {tab.key === 'skills' && <SkillsForm />}
+              {tab.key === 'projects' && <ProjectsForm />}
+              {tab.key === 'awards' && <AwardsForm />}
+              {!standardKeys.includes(tab.key) && (
+                <CustomSectionForm sectionId={tab.key} />
+              )}
+            </div>
+          );
+        }
+      });
 
       // Share & Analytics (End of Resume Section)
       sections.push(

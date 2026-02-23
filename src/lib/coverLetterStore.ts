@@ -40,6 +40,8 @@ const getDefaultCoverLetterData = (): CoverLetterData => ({
     content: '',
     closing: 'Sincerely',
     signature: '',
+    email: '',
+    phone: '',
     selectedTemplate: 21, // Default Professional LaTeX Cover Letter
     formatting: getDefaultFormatting(),
 });
