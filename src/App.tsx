@@ -1243,6 +1243,13 @@ function App() { // Stores
           }
         }
       }
+
+      // Share & Analytics in Continuous Mode — Matched to Sidebar order (after custom sections)
+      sections.push(
+        <div key="share-analytics" id="continuous-section-share-analytics" className={dividerClass}>
+          <ShareAnalyticsView />
+        </div>
+      );
     }
 
     // LaTeX Editor (if LaTeX template is selected) — Matched to Sidebar order (part of Resume cluster)
@@ -1562,11 +1569,6 @@ function App() { // Stores
                             onClick={() => handleSidebarClick(tab.key)}
                           />
                         ))}
-                        <SidebarItem
-                          tab={{ key: 'share-analytics', label: 'Share & Analytics', icon: <Share2 size={18} /> }}
-                          isActive={activeTab === 'share-analytics'}
-                          onClick={() => handleSidebarClick('share-analytics')}
-                        />
                         <button
                           onClick={() => {
                             const newId = addCustomSection();
@@ -1578,6 +1580,11 @@ function App() { // Stores
                           <Plus size={16} className="text-white/40" />
                           <span className="text-sm font-semibold !text-white/60">Add Custom Section</span>
                         </button>
+                        <SidebarItem
+                          tab={{ key: 'share-analytics', label: 'Share & Analytics', icon: <Share2 size={18} /> }}
+                          isActive={activeTab === 'share-analytics'}
+                          onClick={() => handleSidebarClick('share-analytics')}
+                        />
                         {isAdvancedMode && isLatexTemplate(resumeData.selectedTemplate) && (
                           <SidebarItem
                             tab={{ key: 'latex-editor', label: 'LaTeX Editor', icon: <Code2 size={18} /> }}
@@ -1623,7 +1630,7 @@ function App() { // Stores
 
             {/* Bottom Controls: Export, Import, Sample, Theme, Reset */}
             {/* Bottom Controls Reorganized */}
-            <div className="relative border-t-2 p-3 space-y-2 shrink-0 mt-auto bg-[#0a0a14]/80 backdrop-blur-md" style={{ borderColor: 'var(--sidebar-border)' }}>
+            <div className="relative border-t-2 p-3 space-y-2 shrink-0 mt-auto backdrop-blur-md" style={{ backgroundColor: 'var(--sidebar-bg)', opacity: 0.95, borderColor: 'var(--sidebar-border)' }}>
 
               {/* Row 0: Undo / Redo */}
               <div className="grid grid-cols-2 gap-2">
@@ -1658,7 +1665,7 @@ function App() { // Stores
                   style={{
                     backgroundColor: 'var(--sidebar-hover)',
                     borderColor: parentSaveStatus === 'saved' ? 'var(--accent)' : 'var(--sidebar-border)',
-                    color: parentSaveStatus === 'saved' ? 'var(--accent)' : '#fff'
+                    color: parentSaveStatus === 'saved' ? 'var(--accent)' : 'var(--sidebar-text)'
                   }}
                 >
                   {parentSaveStatus === 'saved' ? (
@@ -1705,7 +1712,7 @@ function App() { // Stores
                   </button>
                 ) : (
                   /* Placeholder to keep grid 3-cols if not iframed */
-                  <div className="opacity-20 flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-2">
+                  <div className="opacity-20 flex flex-col items-center justify-center border-2 border-dashed p-2" style={{ borderColor: 'var(--sidebar-border)' }}>
                     <Link2 size={12} />
                   </div>
                 )}
@@ -1735,7 +1742,7 @@ function App() { // Stores
                 <button
                   onClick={() => { resetResume(); resetCV(); setTimeout(() => broadcastSave(), 50); }}
                   className="flex flex-col items-center justify-center gap-0.5 py-1 text-[8px] font-black uppercase tracking-tighter transition-all !rounded-none border-2"
-                  style={{ backgroundColor: '#450a0a', borderColor: '#991b1b', color: '#fca5a5' }}
+                  style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: '#ef4444', color: '#ef4444' }}
                 >
                   <RotateCcw size={12} />
                   <span className="truncate w-full text-center">Reset</span>
@@ -1748,7 +1755,7 @@ function App() { // Stores
               {/* Dropdown Popups (Moved to container level for perfect full-width alignment) */}
               {docDropdownOpen && (
                 <div className="absolute left-0 bottom-full w-full shadow-2xl border-t-2 z-[100] overflow-hidden" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)', transform: 'translateX(0)' }}>
-                  <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-white/5">
+                  <div className="px-4 py-3 border-b flex items-center justify-between" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'var(--sidebar-border)' }}>
                     <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-30">Saved Documents</span>
                   </div>
                   <div className="max-h-48 overflow-y-auto">
@@ -1759,7 +1766,8 @@ function App() { // Stores
                         <button
                           key={doc.id}
                           onClick={() => { window.parent.postMessage({ type: 'LOAD_PARENT_DOCUMENT', id: doc.id }, '*'); setDocDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-3 hover:bg-white/10 transition-colors border-b last:border-0 border-white/5 group"
+                          className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors border-b last:border-0 group"
+                          style={{ borderColor: 'rgba(255,255,255,0.05)' }}
                         >
                           <div className="font-bold text-[10px] truncate group-hover:text-accent transition-colors">{doc.title || 'Untitled'}</div>
                           <div className="text-[7px] opacity-40 uppercase tracking-tight">{doc.type === 'cover-letter' ? 'Cover Letter' : 'Resume'}</div>
@@ -1770,8 +1778,8 @@ function App() { // Stores
                   <button
                     onClick={() => { handleImport(); setDocDropdownOpen(false); }}
                     disabled={isImporting}
-                    className="w-full flex items-center gap-2.5 px-4 py-3.5 text-[9px] font-black uppercase tracking-widest border-t border-white/10 hover:bg-white/10 transition-all group"
-                    style={{ color: 'var(--accent)' }}
+                    className="w-full flex items-center gap-2.5 px-4 py-3.5 text-[9px] font-black uppercase tracking-widest border-t hover:bg-white/5 transition-all group"
+                    style={{ borderColor: 'var(--sidebar-border)', color: 'var(--accent)' }}
                   >
                     <Upload size={12} className="group-hover:scale-110 transition-transform" />
                     <span>{isImporting ? 'Importing...' : 'Import JSON/PDF'}</span>
@@ -1781,7 +1789,7 @@ function App() { // Stores
 
               {jobDropdownOpen && (
                 <div className="absolute left-0 bottom-full w-full shadow-2xl border-t-2 z-[100] overflow-hidden" style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
-                  <div className="px-4 py-3.5 border-b border-white/10 flex items-center gap-3 bg-white/5">
+                  <div className="px-4 py-3.5 border-b flex items-center gap-3" style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'var(--sidebar-border)' }}>
                     <Search size={12} className="opacity-20" />
                     <input
                       type="text"
