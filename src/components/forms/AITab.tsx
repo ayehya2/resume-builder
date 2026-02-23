@@ -48,20 +48,6 @@ export function AITab() {
         loadAPIKey();
     }, [loadAPIKey]);
 
-    // Debounced automatic generation when job context changes
-    useEffect(() => {
-        if (!isConfigured || !jobDescription || jobDescription.length < 50) return;
-
-        const timer = setTimeout(() => {
-            // Only auto-trigger if we're not already doing something and suggestible
-            if (step === 'idle' || step === 'reviewing') {
-                handleStartSuggestions();
-            }
-        }, 2000); // 2 second debounce
-
-        return () => clearTimeout(timer);
-    }, [jobDescription, jobTitle, isConfigured]);
-
     const handleSaveKey = () => {
         if (keyInput.trim()) {
             setAPIKey(keyInput.trim());
@@ -91,31 +77,8 @@ export function AITab() {
         return target; // both active — use user's selection
     }, [neitherActive, onlyResume, onlyCoverLetter, target]);
 
-    // Start the suggestion flow
-    const handleStartSuggestions = () => {
-        clearSuggestions();
-        if (neitherActive) {
-            setStep('idle');
-            return;
-        }
-        if (bothActive) {
-            setStep('choosing-target');
-        } else {
-            const effectiveTarget = getEffectiveTarget();
-            if (effectiveTarget) {
-                setTarget(effectiveTarget);
-                handleGenerate(effectiveTarget);
-            }
-        }
-    };
-
-    const handleSelectTarget = (selectedTarget: AISuggestionTarget) => {
-        setTarget(selectedTarget);
-        handleGenerate(selectedTarget);
-    };
-
     // Generate inline suggestions
-    const handleGenerate = async (genTarget: AISuggestionTarget) => {
+    const handleGenerate = useCallback(async (genTarget: AISuggestionTarget) => {
         if (!isConfigured) {
             setError('Please configure your API key first');
             return;
@@ -215,6 +178,43 @@ export function AITab() {
         } finally {
             setIsGenerating(false);
         }
+    }, [apiKey, isConfigured, jobDescription, jobTitle, resumeData, coverLetterData, setError, setIsGenerating, setStep, addSuggestions]);
+
+    // Start the suggestion flow
+    const handleStartSuggestions = useCallback(() => {
+        clearSuggestions();
+        if (neitherActive) {
+            setStep('idle');
+            return;
+        }
+        if (bothActive) {
+            setStep('choosing-target');
+        } else {
+            const effectiveTarget = getEffectiveTarget();
+            if (effectiveTarget) {
+                setTarget(effectiveTarget);
+                handleGenerate(effectiveTarget);
+            }
+        }
+    }, [clearSuggestions, neitherActive, bothActive, getEffectiveTarget, setTarget, handleGenerate, setStep]);
+
+    // Debounced automatic generation when job context changes
+    useEffect(() => {
+        if (!isConfigured || !jobDescription || jobDescription.length < 50) return;
+
+        const timer = setTimeout(() => {
+            // Only auto-trigger if we're not already doing something and suggestible
+            if (step === 'idle' || step === 'reviewing') {
+                handleStartSuggestions();
+            }
+        }, 2000); // 2 second debounce
+
+        return () => clearTimeout(timer);
+    }, [jobDescription, jobTitle, isConfigured, step, handleStartSuggestions]);
+
+    const handleSelectTarget = (selectedTarget: AISuggestionTarget) => {
+        setTarget(selectedTarget);
+        handleGenerate(selectedTarget);
     };
 
     // Accept a suggestion and apply it inline
