@@ -11,6 +11,7 @@ import { AwardsForm } from './components/forms/AwardsForm'
 import { CustomSectionForm } from './components/forms/CustomSectionForm'
 import { CoverLetterForm } from './components/forms/CoverLetterForm'
 import { AITab } from './components/forms/AITab'
+import { ShareAnalyticsView } from './components/forms/ShareAnalyticsView'
 import { FormattingForm } from './components/forms/FormattingForm'
 import { CoverLetterFormattingForm } from './components/forms/CoverLetterFormattingForm'
 import { LaTeXFormattingForm } from './components/forms/LaTeXFormattingForm'
@@ -31,6 +32,7 @@ import {
   saveShowCoverLetter
 } from './lib/storage'
 import { loadPrefillData } from './lib/loadFromUrl'
+import { decodeResumeFromUrl } from './lib/shareUtils'
 import { parseResumeFile } from './lib/resumeParser'
 import { isLatexTemplate } from './lib/pdfTemplateMap'
 import { useCoverLetterStore } from './lib/coverLetterStore'
@@ -74,6 +76,7 @@ import {
   Save,
   FolderOpen,
   Link2,
+  Share2,
   Undo2,
   Redo2
 } from 'lucide-react'
@@ -235,6 +238,7 @@ function App() { // Stores
 
   // UI State
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [readOnlyMode, setReadOnlyMode] = useState(false);
   const [isAdvancedMode, setIsAdvancedMode] = useState(false);
   const [mobileView, setMobileView] = useState<'form' | 'preview'>('form');
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
@@ -444,8 +448,20 @@ function App() { // Stores
       setDocumentType(savedType);
     }
 
-    // Check for theme in URL for instant sync when iframed
+    // Check for shared resume data in URL
     const params = new URLSearchParams(window.location.search);
+    const sharedData = params.get('data');
+    if (sharedData) {
+      const decoded = decodeResumeFromUrl(sharedData);
+      if (decoded) {
+        useResumeStore.setState({ resumeData: decoded });
+        setReadOnlyMode(true);
+        setDocumentType('resume');
+        return; // Don't load other data when in shared read-only mode
+      }
+    }
+
+    // Check for theme in URL for instant sync when iframed
     const urlTheme = params.get('theme');
     if (urlTheme && THEME_MAP[urlTheme]) {
       setTheme(urlTheme);
@@ -515,6 +531,7 @@ function App() { // Stores
     const isResumeTab = activeTab === 'templates' || activeTab === 'formatting' ||
       activeTab === 'work' || activeTab === 'education' || activeTab === 'skills' ||
       activeTab === 'projects' || activeTab === 'awards' || activeTab === 'latex-editor' ||
+      activeTab === 'share-analytics' ||
       resumeData.sections.includes(activeTab as SectionKey);
     const isProfileTab = activeTab === 'basics';
 
@@ -1327,6 +1344,40 @@ function App() { // Stores
     return sections;
   };
 
+  // ━━ Read-Only Share Mode ━━
+  // When someone opens a shared URL (?data=...), render only the PDF preview.
+  if (readOnlyMode) {
+    return (
+      <div className="h-screen flex flex-col" style={{ backgroundColor: 'var(--main-bg)' }}>
+        {/* Header Bar */}
+        <div className="flex items-center justify-between px-6 py-3 border-b-2 flex-shrink-0"
+          style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}>
+          <div className="flex items-center gap-3">
+            <Share2 size={18} style={{ color: 'var(--accent)' }} />
+            <span className="text-sm font-black tracking-tighter uppercase italic">Shared Resume</span>
+            {resumeData.basics?.name && (
+              <span className="text-xs font-semibold opacity-50 ml-2">— {resumeData.basics.name}</span>
+            )}
+          </div>
+          <a
+            href={window.location.origin + window.location.pathname}
+            className="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border-2 transition-all hover:bg-white/5"
+            style={{ borderColor: 'var(--sidebar-border)', color: 'var(--sidebar-text)' }}
+          >
+            Build Your Own
+          </a>
+        </div>
+        {/* Full-width PDF Preview */}
+        <div className="flex-1 overflow-hidden">
+          <PDFPreview
+            templateId={resumeData.selectedTemplate}
+            documentType="resume"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col lg:flex-row overflow-hidden" style={{ backgroundColor: 'var(--main-bg)' }}>
       {/* ━━ Mobile Header ━━ */}
@@ -1511,6 +1562,11 @@ function App() { // Stores
                             onClick={() => handleSidebarClick(tab.key)}
                           />
                         ))}
+                        <SidebarItem
+                          tab={{ key: 'share-analytics', label: 'Share & Analytics', icon: <Share2 size={18} /> }}
+                          isActive={activeTab === 'share-analytics'}
+                          onClick={() => handleSidebarClick('share-analytics')}
+                        />
                         <button
                           onClick={() => {
                             const newId = addCustomSection();
@@ -1791,6 +1847,7 @@ function App() { // Stores
                 {activeTab === 'skills' && showResume && <SkillsForm />}
                 {activeTab === 'projects' && showResume && <ProjectsForm />}
                 {activeTab === 'awards' && showResume && <AwardsForm />}
+                {activeTab === 'share-analytics' && showResume && <ShareAnalyticsView />}
                 {activeTab.startsWith('custom-') && showResume && <CustomSectionForm sectionId={activeTab} />}
                 {activeTab === 'cover-letter' && showCoverLetter && <CoverLetterForm />}
                 {activeTab === 'latex-editor' && isAdvancedMode && isLatexTemplate(resumeData.selectedTemplate) && (
